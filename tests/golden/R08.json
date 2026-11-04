@@ -1,0 +1,163 @@
+{
+  "id": "R08",
+  "title": "Latch, unlatch and edges",
+  "teaches": "Set/reset coils hold their state; rising- and falling-edge contacts pass power for exactly one scan.",
+  "project": {
+    "schemaVersion": 1,
+    "name": "Latch, unlatch and edges",
+    "dialect": "iec61131-3",
+    "scanTimeMs": 10,
+    "tags": [
+      {
+        "name": "SetBtn",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "ResetBtn",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Button",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Lamp",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "Rise",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "Fall",
+        "type": "BOOL",
+        "io": "output"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Main",
+        "rungs": [
+          {
+            "comment": "Set latches the lamp on.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "SetBtn",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Lamp",
+                  "coil": "set"
+                }
+              ]
+            }
+          },
+          {
+            "comment": "Reset unlatches it.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "ResetBtn",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Lamp",
+                  "coil": "reset"
+                }
+              ]
+            }
+          },
+          {
+            "comment": "One scan when Button is pressed.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "Button",
+                  "contact": "positiveEdge"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Rise",
+                  "coil": "normal"
+                }
+              ]
+            }
+          },
+          {
+            "comment": "One scan when Button is released.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "Button",
+                  "contact": "negativeEdge"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Fall",
+                  "coil": "normal"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "stimulus": [
+    {
+      "t": 0.1,
+      "input": "SetBtn",
+      "value": true
+    },
+    {
+      "t": 0.2,
+      "input": "SetBtn",
+      "value": false
+    },
+    {
+      "t": 0.4,
+      "input": "ResetBtn",
+      "value": true
+    },
+    {
+      "t": 0.5,
+      "input": "ResetBtn",
+      "value": false
+    },
+    {
+      "t": 0.6,
+      "input": "Button",
+      "value": true
+    },
+    {
+      "t": 0.8,
+      "input": "Button",
+      "value": false
+    }
+  ],
+  "durationSeconds": 1.0,
+  "watch": [
+    "SetBtn",
+    "ResetBtn",
+    "Lamp",
+    "Button",
+    "Rise",
+    "Fall"
+  ]
+}

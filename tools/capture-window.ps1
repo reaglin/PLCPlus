@@ -5,7 +5,9 @@ param(
     [string]$Args = "",
     [int]$WaitMs = 3000,
     # Names of buttons to press first, through UI Automation (never synthetic input).
-    [string[]]$Invoke = @()
+    [string[]]$Invoke = @(),
+    # "Combo name=Item text": chooses an item in a drop-down first, through UI Automation.
+    [string[]]$Select = @()
 )
 
 Add-Type -AssemblyName System.Drawing
@@ -55,9 +57,23 @@ if ($h -eq [IntPtr]::Zero) {
     exit 1
 }
 
+Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+$root = [System.Windows.Automation.AutomationElement]::FromHandle($h)
+foreach ($pair in $Select) {
+    $comboName, $itemText = $pair -split '=', 2
+    $cond = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $comboName)
+    $combo = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)
+    if (-not $combo) { Write-Output "NOT FOUND combo '$comboName'"; continue }
+    $combo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()
+    Start-Sleep -Milliseconds 300
+    $itemCond = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $itemText)
+    $item = $combo.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $itemCond)
+    if ($item) { $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select(); Write-Output "chose '$itemText'" }
+    else { Write-Output "NOT FOUND item '$itemText'" }
+    $combo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Collapse()
+    Start-Sleep -Milliseconds 500
+}
 if ($Invoke.Count -gt 0) {
-    Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
-    $root = [System.Windows.Automation.AutomationElement]::FromHandle($h)
     foreach ($name in $Invoke) {
         $cond = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
         $el = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)

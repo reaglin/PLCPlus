@@ -16,6 +16,8 @@ public sealed class PlcProject
     public string Dialect { get; set; } = "iec61131-3";
     /// <summary>The fixed scan time of the simulated clock, in milliseconds (spec 4.2; default 10 ms).</summary>
     public int ScanTimeMs { get; set; } = 10;
+    /// <summary>Structure types the tags can use (spec 4.1).</summary>
+    public List<StructType> Types { get; set; } = [];
     public List<TagDeclaration> Tags { get; set; } = [];
     public List<ProgramUnit> Programs { get; set; } = [];
 }
@@ -30,7 +32,10 @@ public enum IoDirection
     Output,
 }
 
-/// <summary>A tag (variable). Its type is an elementary type (BOOL, INT, …) or a function block type (TON, CTU, …).</summary>
+/// <summary>
+/// A tag (variable). Its type is an elementary type (BOOL, INT, …), <c>ARRAY[0..9] OF INT</c>, a structure
+/// declared in <see cref="PlcProject.Types"/>, or a function block type (TON, CTU, …).
+/// </summary>
 public sealed class TagDeclaration
 {
     public string Name { get; set; } = "";

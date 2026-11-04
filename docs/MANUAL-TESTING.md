@@ -28,4 +28,17 @@ What it shows: the engine, one simulated machine and the grader. There are no le
 | 0.7 | Press **Check this program** | Three lines: ✓ Start runs the motor…, ✓ Stop stops the motor, ✓ Hidden test 1. "Passed: 3 of 3 points", and the program's fingerprint |
 | 0.8 | Choose **Without seal-in (fails a test)** in Program, then **Check this program** | ✗ on the first test: "The motor should keep running after Start is released. At 1 s it was FALSE." and Hint 1 of 3. Check again: Hint 2. Hold Start and let go: the motor stops when you let go |
 | 0.9 | **Help ▸ About PLC+…** | "Created by Dr. Ron Eaglin" with the picture, the version, and the links to softwareplus.ai. **The softwareplus.ai/plcplus page does not exist yet** (plan 11.4) |
+| 0.8a | (Added with phase 1.) With **Without seal-in** checked, scroll the results | After the hint: "What happened in …", with one line for each moment something changed: everything comes on at 0.000 s, and Motor drops to FALSE at 0.200 s, when Start is released |
 | 0.10 | Anything about the look, the words or the flow | Notes welcome: the instructors' review comes later, and this window is replaced by the real one |
+
+---
+
+## Hand-test 1 — the engine's reference programs (plan 1.11, 1.12), 2026-11-04
+
+Nothing to run: this is reading.
+
+| # | Do this | You should see |
+|---|---|---|
+| 1.1 | Open `tests\golden\R02.trace.txt` and `R02.json` | The trace lists the moments something changed: the switch on at 0.1 s and off at 0.4 s (too short; the lamp stays off), on again at 0.6 s, the lamp on at 1.1 s (0.5 s later). Say whether this way of showing a program's behaviour is clear |
+| 1.2 | Open `R11.trace.txt` | The flasher: green 1 s, yellow 0.51 s (one scan more than 0.5 s, because the timers reset each other a scan apart) |
+| 1.3 | Read `docs\LAB-COMPARISON.md` | Each program written for Studio 5000, the table of differences, and how to run the comparison. Say who will run it on the Allen-Bradley PLC, and whether anything in the method does not suit the lab |

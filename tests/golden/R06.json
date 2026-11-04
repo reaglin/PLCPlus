@@ -1,0 +1,115 @@
+{
+  "id": "R06",
+  "title": "Down counter (CTD) with load",
+  "teaches": "CTD: load sets the count to the preset; each press counts down; Q at zero or below.",
+  "project": {
+    "schemaVersion": 1,
+    "name": "Down counter (CTD) with load",
+    "dialect": "iec61131-3",
+    "scanTimeMs": 10,
+    "tags": [
+      {
+        "name": "Load",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Count",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Lamp",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "C1",
+        "type": "CTD"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Main",
+        "rungs": [
+          {
+            "comment": "Load 2, count down to 0.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "Count",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "box",
+                  "instruction": "CTD",
+                  "operands": {
+                    "PV": "2",
+                    "LD": "Load"
+                  },
+                  "instance": "C1"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Lamp",
+                  "coil": "normal"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "stimulus": [
+    {
+      "t": 0.1,
+      "input": "Load",
+      "value": true
+    },
+    {
+      "t": 0.2,
+      "input": "Load",
+      "value": false
+    },
+    {
+      "t": 0.3,
+      "input": "Count",
+      "value": true
+    },
+    {
+      "t": 0.4,
+      "input": "Count",
+      "value": false
+    },
+    {
+      "t": 0.5,
+      "input": "Count",
+      "value": true
+    },
+    {
+      "t": 0.6,
+      "input": "Count",
+      "value": false
+    },
+    {
+      "t": 0.7,
+      "input": "Count",
+      "value": true
+    },
+    {
+      "t": 0.8,
+      "input": "Count",
+      "value": false
+    }
+  ],
+  "durationSeconds": 1.0,
+  "watch": [
+    "Load",
+    "Count",
+    "C1.CV",
+    "Lamp"
+  ]
+}

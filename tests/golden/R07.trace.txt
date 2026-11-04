@@ -1,0 +1,11 @@
+# R07 Up/down counter (CTUD)
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  Up=FALSE  Down=FALSE  C1.CV=0  Lamp=FALSE
+t=0.100s  Up=TRUE  C1.CV=1
+t=0.200s  Up=FALSE
+t=0.300s  Up=TRUE  C1.CV=2  Lamp=TRUE
+t=0.400s  Up=FALSE
+t=0.500s  Down=TRUE  C1.CV=1  Lamp=FALSE
+t=0.600s  Down=FALSE
+t=0.700s  Up=TRUE  Down=TRUE
+t=0.800s  Up=FALSE  Down=FALSE

@@ -1,0 +1,7 @@
+# R01 Motor start/stop with seal-in
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  Start=FALSE  Stop=TRUE  Motor=FALSE
+t=0.100s  Start=TRUE  Motor=TRUE
+t=0.300s  Start=FALSE
+t=1.000s  Stop=FALSE  Motor=FALSE
+t=1.200s  Stop=TRUE

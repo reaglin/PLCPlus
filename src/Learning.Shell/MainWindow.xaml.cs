@@ -177,6 +177,15 @@ public partial class MainWindow : Window
             var hint = _challenge.Hints.Count == 0 ? null : _challenge.Hints[Math.Min(_failedChecks, _challenge.Hints.Count) - 1];
             ScoreText.Text = $"Not passed yet: {outcome.Score:0} of {outcome.MaxScore:0} points.";
             if (hint is not null) lines.Add($"Hint {Math.Min(_failedChecks, _challenge.Hints.Count)} of {_challenge.Hints.Count}: {hint}");
+
+            // Replay the first failed test the learner can see, and show what happened, moment by moment.
+            var failed = outcome.Scenarios.Select((s, i) => (s, i)).FirstOrDefault(x => !x.s.Passed && !x.s.Hidden);
+            if (failed.s is not null)
+            {
+                var (_, trace) = runner.Replay(_challengeJson, _programJson, failed.i);
+                lines.Add($"What happened in \"{failed.s.Name}\" (each line is a moment something changed):");
+                lines.AddRange(trace.ToChangeLog().Split('\n', StringSplitOptions.RemoveEmptyEntries).Take(12).Select(l => "    " + l));
+            }
             SetStatus("Read the first failed test: it says what should have happened and when. Each further check unlocks the next hint.");
         }
         lines.Add($"Program fingerprint (SHA-256): {outcome.WorkHash[..16]}… — recorded with each attempt.");

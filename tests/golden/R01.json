@@ -1,0 +1,101 @@
+{
+  "id": "R01",
+  "title": "Motor start/stop with seal-in",
+  "teaches": "Seal-in (holding) contact; a normally closed Stop button wired so its input is TRUE until pressed.",
+  "project": {
+    "schemaVersion": 1,
+    "name": "Motor start/stop with seal-in",
+    "dialect": "iec61131-3",
+    "scanTimeMs": 10,
+    "tags": [
+      {
+        "name": "Start",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Stop",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Motor",
+        "type": "BOOL",
+        "io": "output"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Main",
+        "rungs": [
+          {
+            "comment": "Start, or the seal-in, runs the motor until Stop opens.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "parallel",
+                  "branches": [
+                    {
+                      "kind": "contact",
+                      "tag": "Start",
+                      "contact": "normallyOpen"
+                    },
+                    {
+                      "kind": "contact",
+                      "tag": "Motor",
+                      "contact": "normallyOpen"
+                    }
+                  ]
+                },
+                {
+                  "kind": "contact",
+                  "tag": "Stop",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Motor",
+                  "coil": "normal"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "stimulus": [
+    {
+      "t": 0,
+      "input": "Stop",
+      "value": true
+    },
+    {
+      "t": 0.1,
+      "input": "Start",
+      "value": true
+    },
+    {
+      "t": 0.3,
+      "input": "Start",
+      "value": false
+    },
+    {
+      "t": 1.0,
+      "input": "Stop",
+      "value": false
+    },
+    {
+      "t": 1.2,
+      "input": "Stop",
+      "value": true
+    }
+  ],
+  "durationSeconds": 1.5,
+  "watch": [
+    "Start",
+    "Stop",
+    "Motor"
+  ]
+}

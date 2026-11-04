@@ -1,0 +1,97 @@
+{
+  "id": "R04",
+  "title": "Pulse timer (TP)",
+  "teaches": "TP: a rising input starts a pulse of fixed length; the input changing during the pulse does not change it.",
+  "project": {
+    "schemaVersion": 1,
+    "name": "Pulse timer (TP)",
+    "dialect": "iec61131-3",
+    "scanTimeMs": 10,
+    "tags": [
+      {
+        "name": "Button",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Lamp",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "T1",
+        "type": "TP"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Main",
+        "rungs": [
+          {
+            "comment": "A 0.5 s pulse on each press.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "Button",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "box",
+                  "instruction": "TP",
+                  "operands": {
+                    "PT": "T#500ms"
+                  },
+                  "instance": "T1"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Lamp",
+                  "coil": "normal"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "stimulus": [
+    {
+      "t": 0.1,
+      "input": "Button",
+      "value": true
+    },
+    {
+      "t": 0.2,
+      "input": "Button",
+      "value": false
+    },
+    {
+      "t": 0.3,
+      "input": "Button",
+      "value": true
+    },
+    {
+      "t": 0.4,
+      "input": "Button",
+      "value": false
+    },
+    {
+      "t": 1.0,
+      "input": "Button",
+      "value": true
+    },
+    {
+      "t": 2.0,
+      "input": "Button",
+      "value": false
+    }
+  ],
+  "durationSeconds": 2.2,
+  "watch": [
+    "Button",
+    "Lamp"
+  ]
+}

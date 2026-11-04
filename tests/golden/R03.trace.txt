@@ -1,0 +1,11 @@
+# R03 Off-delay timer (TOF)
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  Switch=FALSE  Lamp=FALSE
+t=0.100s  Switch=TRUE  Lamp=TRUE
+t=0.300s  Switch=FALSE
+t=0.800s  Lamp=FALSE
+t=1.000s  Switch=TRUE  Lamp=TRUE
+t=1.200s  Switch=FALSE
+t=1.400s  Switch=TRUE
+t=1.600s  Switch=FALSE
+t=2.100s  Lamp=FALSE

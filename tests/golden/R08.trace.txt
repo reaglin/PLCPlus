@@ -1,0 +1,11 @@
+# R08 Latch, unlatch and edges
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  SetBtn=FALSE  ResetBtn=FALSE  Lamp=FALSE  Button=FALSE  Rise=FALSE  Fall=FALSE
+t=0.100s  SetBtn=TRUE  Lamp=TRUE
+t=0.200s  SetBtn=FALSE
+t=0.400s  ResetBtn=TRUE  Lamp=FALSE
+t=0.500s  ResetBtn=FALSE
+t=0.600s  Button=TRUE  Rise=TRUE
+t=0.610s  Rise=FALSE
+t=0.800s  Button=FALSE  Fall=TRUE
+t=0.810s  Fall=FALSE

@@ -1,0 +1,9 @@
+# R11 Timer cascade (flasher)
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  Run=FALSE  Green=FALSE  Yellow=FALSE
+t=0.100s  Run=TRUE  Green=TRUE
+t=1.100s  Green=FALSE  Yellow=TRUE
+t=1.610s  Green=TRUE  Yellow=FALSE
+t=2.620s  Green=FALSE  Yellow=TRUE
+t=3.130s  Green=TRUE  Yellow=FALSE
+t=3.500s  Run=FALSE  Green=FALSE

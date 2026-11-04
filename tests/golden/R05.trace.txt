@@ -1,0 +1,13 @@
+# R05 Up counter (CTU) with reset
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  Count=FALSE  Reset=FALSE  C1.CV=0  Lamp=FALSE
+t=0.100s  Count=TRUE  C1.CV=1
+t=0.200s  Count=FALSE
+t=0.300s  Count=TRUE  C1.CV=2
+t=0.400s  Count=FALSE
+t=0.500s  Count=TRUE  C1.CV=3  Lamp=TRUE
+t=0.600s  Count=FALSE
+t=0.700s  Count=TRUE  C1.CV=4
+t=0.800s  Count=FALSE
+t=1.000s  Reset=TRUE  C1.CV=0  Lamp=FALSE
+t=1.100s  Reset=FALSE

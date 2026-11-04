@@ -46,7 +46,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 
 ---
 
-## Phase 1 — the PLC engine (FR-2, NFR-3; spec 4)
+## Phase 1 — the PLC engine (FR-2, NFR-3; spec 4) ⚠️ built 2026-11-04 (Ron started it the same day)
 
 | # | Task | Done when |
 |---|---|---|
@@ -56,12 +56,12 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 | 1.4 | Contacts (NO, NC, rising edge, falling edge) and coils (normal, negated, set, reset) | ⚠️ Built; 9 tests |
 | 1.5 | TON / TOF / TP, CTU / CTD / CTUD, EQ NE GT GE LT LE, ADD SUB MUL DIV MOD, MOVE, AND OR XOR NOT; each with a one-sentence summary and help on every operand | ⚠️ Built; 30 tests |
 | 1.6 | Forcing inputs and outputs; live power flow per element | ⚠️ Built; tests |
-| 1.7 | Faults: divide by zero stops the PLC at the rung, outputs off, Reset starts again | ⚠️ Built; test. Index-out-of-range comes with arrays (1.10), watchdog with jumps and loops |
+| 1.7 | Faults: divide by zero and an index out of range stop the PLC at the rung, outputs off, Reset starts again | ⚠️ Built; tests. The watchdog comes with jumps and loops (not in the Phase 1 instruction set) |
 | 1.8 | Validator: messages for a beginner that point to the rung and the element | ⚠️ Built; 8 tests |
-| 1.9 | Run to a breakpoint (a rung), and a trace recorder (tag values per scan) that the grader and the failure replay use | |
-| 1.10 | Arrays and structures (spec 4.1); index-out-of-range fault | |
-| 1.11 | Golden-file tests: a set of reference programs with their expected traces, checked into `tests/golden/` | |
-| 1.12 | **Lab comparison:** the reference programs run on the lab's **Allen-Bradley** PLC and the traces compared (spec 4.5, the Phase 1 gate). Each reference program is written in IEC here and translated by hand for Studio 5000, with the timer differences noted (spec 4.4: AB's TON with .PRE/.ACC/.DN, and RTO) | ⚠️ Ron / the lab: who runs the programs on the PLC |
+| 1.9 | Run to a breakpoint (a rung), and a trace recorder (tag values per scan) that the grader and the failure replay use | ⚠️ Built 2026-11-04: `SetBreakpoint` / `RunToBreakpoint` stop at the end of the first scan in which the rung passes power; `TraceRecorder` records any tags and writes a change log; the grader's `Replay` runs one scenario with a trace. The first-look window now shows, after a failed check, what happened in the first failed test. 5 tests |
+| 1.10 | Arrays and structures (spec 4.1); index-out-of-range fault | ⚠️ Built 2026-11-04: `ARRAY[lo..hi] OF t`, structures declared in the project (`types`), arrays of structures; indexes by literal or by an INT/DINT tag; the validator checks bounds, members and index types in words for a beginner. 12 tests |
+| 1.11 | Golden-file tests: a set of reference programs with their expected traces, checked into `tests/golden/` | ⚠️ Built 2026-11-04: **R01–R11** (seal-in, TON, TOF, TP, CTU, CTD, CTUD, latch and edges, compare and math, array and fault, timer cascade), written by `tools/make-golden-cases.py`; each trace checked by hand. Ron: read one or two `.trace.txt` files and say if the format is clear |
+| 1.12 | **Lab comparison:** the reference programs run on the lab's **Allen-Bradley** PLC and the traces compared (spec 4.5, the Phase 1 gate) | ⚠️ **Ready for the lab:** `docs/LAB-COMPARISON.md` has every program as Logix rung text, the instruction map with the differences (CTD's done bit, no TP, divide by zero, the fault codes to confirm), how to run it (a 10 ms periodic task, internal tags first, a Trend), and a results table. Ron / the lab: who runs it |
 | 1.13 | Instruction presentation: each instruction's symbol and operand layout for the editor, and the lesson it links to | With phase 3 |
 
 ---
@@ -251,6 +251,8 @@ connection). No research analytics: the grant does not require research on outco
 - `docs/SPECIFICATION.pdf` — Ron's technical specification, the source of every requirement
 - `docs/PLAN.md` — decisions D1–D19 and how the engine and grader work
 - `docs/MANUAL-TESTING.md` — Ron's hand-tests and the hand-test build command
+- `docs/LAB-COMPARISON.md` — running the reference programs on the lab's Allen-Bradley PLC (1.12)
+- `tests/golden/` — the reference programs R01–R11 and their expected traces (1.11)
 - `docs/images/architecture.png` — the architecture diagram from the spec
 - `content/plcplus-foundations/` — the first scene, challenge and example programs
 - `..\USABILITY-CHECKLIST.md` — the usability rules every Store program meets

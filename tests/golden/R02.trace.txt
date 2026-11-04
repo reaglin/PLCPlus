@@ -1,0 +1,8 @@
+# R02 On-delay timer (TON)
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  Switch=FALSE  Lamp=FALSE
+t=0.100s  Switch=TRUE
+t=0.400s  Switch=FALSE
+t=0.600s  Switch=TRUE
+t=1.100s  Lamp=TRUE
+t=1.500s  Switch=FALSE  Lamp=FALSE

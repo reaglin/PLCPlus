@@ -99,6 +99,7 @@
 
             <!-- The machine -->
             <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
                 <StackPanel>
                     <TextBlock Text="The machine" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
                     <TextBlock Style="{StaticResource Lead}" Text="Hold a button down to press it; let go to release it." />
@@ -142,6 +143,7 @@
                                 ToolTip="Starts again from power-up: every tag off, the motor stopped, the clock at 0." />
                     </WrapPanel>
                 </StackPanel>
+                </ScrollViewer>
             </Border>
 
             <!-- The grader -->
@@ -152,6 +154,7 @@
                                 ToolTip="Runs the challenge's tests on this program, from a clean start each time, and shows which pass" />
                         <TextBlock x:Name="ScoreText" TextWrapping="Wrap" Margin="0,8,0,0" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" />
                     </StackPanel>
+                    <ScrollViewer MaxHeight="140" VerticalScrollBarVisibility="Auto" Focusable="False">
                     <ItemsControl x:Name="ResultsList" AutomationProperties.Name="Test results" MinHeight="70" Focusable="False">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -159,6 +162,7 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    </ScrollViewer>
                 </DockPanel>
             </Border>
         </Grid>

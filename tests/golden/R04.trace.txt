@@ -1,0 +1,11 @@
+# R04 Pulse timer (TP)
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  Button=FALSE  Lamp=FALSE
+t=0.100s  Button=TRUE  Lamp=TRUE
+t=0.200s  Button=FALSE
+t=0.300s  Button=TRUE
+t=0.400s  Button=FALSE
+t=0.600s  Lamp=FALSE
+t=1.000s  Button=TRUE  Lamp=TRUE
+t=1.500s  Lamp=FALSE
+t=2.000s  Button=FALSE

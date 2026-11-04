@@ -1,0 +1,11 @@
+# R06 Down counter (CTD) with load
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  Load=FALSE  Count=FALSE  C1.CV=0  Lamp=TRUE
+t=0.100s  Load=TRUE  C1.CV=2  Lamp=FALSE
+t=0.200s  Load=FALSE
+t=0.300s  Count=TRUE  C1.CV=1
+t=0.400s  Count=FALSE
+t=0.500s  Count=TRUE  C1.CV=0  Lamp=TRUE
+t=0.600s  Count=FALSE
+t=0.700s  Count=TRUE  C1.CV=-1
+t=0.800s  Count=FALSE

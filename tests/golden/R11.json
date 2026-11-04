@@ -1,0 +1,149 @@
+{
+  "id": "R11",
+  "title": "Timer cascade (flasher)",
+  "teaches": "Two TONs that reset each other make a repeating cycle; the rung order decides the exact timing.",
+  "project": {
+    "schemaVersion": 1,
+    "name": "Timer cascade (flasher)",
+    "dialect": "iec61131-3",
+    "scanTimeMs": 10,
+    "tags": [
+      {
+        "name": "Run",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Green",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "Yellow",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "T1",
+        "type": "TON"
+      },
+      {
+        "name": "T2",
+        "type": "TON"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Main",
+        "rungs": [
+          {
+            "comment": "Green time: 1 s, restarted when T2 finishes.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "Run",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "contact",
+                  "tag": "T2.Q",
+                  "contact": "normallyClosed"
+                },
+                {
+                  "kind": "box",
+                  "instruction": "TON",
+                  "operands": {
+                    "PT": "T#1s"
+                  },
+                  "instance": "T1"
+                }
+              ]
+            }
+          },
+          {
+            "comment": "Yellow time: 0.5 s after T1.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "T1.Q",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "box",
+                  "instruction": "TON",
+                  "operands": {
+                    "PT": "T#500ms"
+                  },
+                  "instance": "T2"
+                }
+              ]
+            }
+          },
+          {
+            "comment": "Green while T1 is timing.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "Run",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "contact",
+                  "tag": "T1.Q",
+                  "contact": "normallyClosed"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Green",
+                  "coil": "normal"
+                }
+              ]
+            }
+          },
+          {
+            "comment": "Yellow once T1 is done.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "T1.Q",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Yellow",
+                  "coil": "normal"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "stimulus": [
+    {
+      "t": 0.1,
+      "input": "Run",
+      "value": true
+    },
+    {
+      "t": 3.5,
+      "input": "Run",
+      "value": false
+    }
+  ],
+  "durationSeconds": 4.0,
+  "watch": [
+    "Run",
+    "Green",
+    "Yellow"
+  ]
+}

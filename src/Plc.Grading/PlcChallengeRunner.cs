@@ -111,7 +111,7 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
 
         // 2. Each scenario, headless, from a clean reset.
         var sceneJson = loadSceneJson(challenge.Scene);
-        var results = challenge.Scenarios.Select(s => RunScenario(project, Scene.Load(sceneJson), s)).ToList();
+        var results = challenge.Scenarios.Select(s => RunScenario(project, Scene.Load(sceneJson), s, null)).ToList();
         var score = results.Sum(r => r.Points);
         return new ChallengeOutcome(challenge.Id, true, [], results, score, max,
             max > 0 && score / max >= challenge.PassThreshold - 1e-9, hash);
@@ -144,9 +144,24 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
         _ => [],
     };
 
-    private static ScenarioOutcome RunScenario(PlcProject project, Scene scene, Scenario scenario)
+    /// <summary>
+    /// Runs one scenario again and records every input and output after each scan, so a failed test can be
+    /// replayed and shown (spec 7.2 step 3). The program must be one that ran (no validation errors).
+    /// </summary>
+    public (ScenarioOutcome Outcome, TraceRecorder Trace) Replay(string challengeJson, string workJson, int scenarioIndex)
+    {
+        var challenge = LoadChallenge(challengeJson);
+        var project = ProjectJson.Deserialize(workJson);
+        var scene = Scene.Load(loadSceneJson(challenge.Scene));
+        TraceRecorder? trace = null;
+        var outcome = RunScenario(project, scene, challenge.Scenarios[scenarioIndex], rt => trace = new TraceRecorder(rt));
+        return (outcome, trace!);
+    }
+
+    private static ScenarioOutcome RunScenario(PlcProject project, Scene scene, Scenario scenario, Action<PlcRuntime>? attach)
     {
         var runtime = new PlcRuntime(project, IecDialect.Instance, scene);
+        attach?.Invoke(runtime);
         var events = scenario.Events.OrderBy(e => e.T).ToList();
         var asserts = scenario.Assertions.OrderBy(a => a.At).ToList();
         var endMs = Ms(scenario.DurationSeconds);

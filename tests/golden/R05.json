@@ -1,0 +1,125 @@
+{
+  "id": "R05",
+  "title": "Up counter (CTU) with reset",
+  "teaches": "CTU counts rising edges only; Q at the preset; the count keeps going past it; reset clears it.",
+  "project": {
+    "schemaVersion": 1,
+    "name": "Up counter (CTU) with reset",
+    "dialect": "iec61131-3",
+    "scanTimeMs": 10,
+    "tags": [
+      {
+        "name": "Count",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Reset",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Lamp",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "C1",
+        "type": "CTU"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Main",
+        "rungs": [
+          {
+            "comment": "Lamp on after 3 presses of Count; Reset clears.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "Count",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "box",
+                  "instruction": "CTU",
+                  "operands": {
+                    "PV": "3",
+                    "R": "Reset"
+                  },
+                  "instance": "C1"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Lamp",
+                  "coil": "normal"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "stimulus": [
+    {
+      "t": 0.1,
+      "input": "Count",
+      "value": true
+    },
+    {
+      "t": 0.2,
+      "input": "Count",
+      "value": false
+    },
+    {
+      "t": 0.3,
+      "input": "Count",
+      "value": true
+    },
+    {
+      "t": 0.4,
+      "input": "Count",
+      "value": false
+    },
+    {
+      "t": 0.5,
+      "input": "Count",
+      "value": true
+    },
+    {
+      "t": 0.6,
+      "input": "Count",
+      "value": false
+    },
+    {
+      "t": 0.7,
+      "input": "Count",
+      "value": true
+    },
+    {
+      "t": 0.8,
+      "input": "Count",
+      "value": false
+    },
+    {
+      "t": 1.0,
+      "input": "Reset",
+      "value": true
+    },
+    {
+      "t": 1.1,
+      "input": "Reset",
+      "value": false
+    }
+  ],
+  "durationSeconds": 1.3,
+  "watch": [
+    "Count",
+    "Reset",
+    "C1.CV",
+    "Lamp"
+  ]
+}

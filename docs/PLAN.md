@@ -37,7 +37,7 @@ Their only link is the challenge runner (`Learning.Core.IChallengeRunner`). An a
 | `src/Plc.Scenes` | Scenes as JSON: push buttons, pilot lights and motors so far |
 | `src/Plc.Grading` | The challenge harness: scenarios, assertions, invariants, hidden tests, constraints |
 | `content/plcplus-foundations` | The first content: the motor station scene, its challenge, two example programs |
-| `tests/` | `Plc.Engine.Tests` (71) and `Learning.Core.Tests` (3, including the architecture test) |
+| `tests/` | `Plc.Engine.Tests` (97, with the 11 reference programs in `tests/golden/`) and `Learning.Core.Tests` (3, including the architecture test) |
 
 Projects still to come, from spec 11: `Plc.Editors`, `Reports.Pdf`, `Tools.ContentValidator`, `Tools.ReportVerifier`.
 
@@ -80,6 +80,14 @@ Projects still to come, from spec 11: `Plc.Editors`, `Reports.Pdf`, `Tools.Conte
 - **The validator** points to the exact rung and element (`Rung 2, element 1.1`) in words for a beginner. A program with
   errors does not run.
 - **Live view:** the runtime records whether power flowed out of each element in the last scan.
+- **Arrays and structures** (phase 1): `ARRAY[0..9] OF INT`, structures declared in the project, arrays of structures. Each
+  element and member is stored on its own (`Pumps[2].Speed`); an index taken from a tag is worked out when it is used, and
+  an index past the end stops the PLC with an index-out-of-range fault, as a real one does.
+- **Breakpoints** are on rungs: running to one stops at the end of the first scan in which that rung passed power, so the
+  whole machine can be seen at that moment.
+- **Traces** record any tags after every scan. Their change log (one line per scan in which something changed) is what the
+  reference programs in `tests/golden/` are held to, what the lab compares the Allen-Bradley PLC against
+  (`docs/LAB-COMPARISON.md`), and how a failed test is replayed.
 
 ## The grader (built 2026-11-04)
 
@@ -98,5 +106,6 @@ scenarios, 5 simulated seconds, grade at the click of the button). The result na
 - `docs/SPECIFICATION.pdf` — Ron's technical specification (the source of every requirement ID: FR-1…13, NFR-1…9)
 - `docs/DEVELOPMENT-PLAN.md` — phases and tasks
 - `docs/MANUAL-TESTING.md` — Ron's hand-tests
+- `docs/LAB-COMPARISON.md` — the Allen-Bradley comparison of the reference programs
 - `..\USABILITY-CHECKLIST.md` — the usability rules every program meets
 - `..\GamifyPlus\src\GamifyPlus.Core\Verify\` — the signed result line D6 builds on

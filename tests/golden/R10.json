@@ -1,0 +1,149 @@
+{
+  "id": "R10",
+  "title": "Array with an index, and the out-of-range fault",
+  "teaches": "An array element chosen by a tag; an index past the end stops the PLC with a fault and turns the outputs off.",
+  "project": {
+    "schemaVersion": 1,
+    "name": "Array with an index, and the out-of-range fault",
+    "dialect": "iec61131-3",
+    "scanTimeMs": 10,
+    "tags": [
+      {
+        "name": "Step",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Lamp",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "Index",
+        "type": "INT"
+      },
+      {
+        "name": "Values",
+        "type": "ARRAY[0..3] OF INT"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Main",
+        "rungs": [
+          {
+            "comment": "Each press moves the index on by one.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "Step",
+                  "contact": "positiveEdge"
+                },
+                {
+                  "kind": "box",
+                  "instruction": "ADD",
+                  "operands": {
+                    "IN1": "Index",
+                    "IN2": "1",
+                    "OUT": "Index"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "comment": "Values[Index] := Index x 10.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "box",
+                  "instruction": "MUL",
+                  "operands": {
+                    "IN1": "Index",
+                    "IN2": "10",
+                    "OUT": "Values[Index]"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "comment": "Lamp on once Values[2] reaches 20.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "box",
+                  "instruction": "GE",
+                  "operands": {
+                    "IN1": "Values[2]",
+                    "IN2": "20"
+                  }
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Lamp",
+                  "coil": "normal"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "stimulus": [
+    {
+      "t": 0.1,
+      "input": "Step",
+      "value": true
+    },
+    {
+      "t": 0.2,
+      "input": "Step",
+      "value": false
+    },
+    {
+      "t": 0.3,
+      "input": "Step",
+      "value": true
+    },
+    {
+      "t": 0.4,
+      "input": "Step",
+      "value": false
+    },
+    {
+      "t": 0.5,
+      "input": "Step",
+      "value": true
+    },
+    {
+      "t": 0.6,
+      "input": "Step",
+      "value": false
+    },
+    {
+      "t": 0.7,
+      "input": "Step",
+      "value": true
+    },
+    {
+      "t": 0.8,
+      "input": "Step",
+      "value": false
+    }
+  ],
+  "durationSeconds": 1.0,
+  "watch": [
+    "Step",
+    "Index",
+    "Values[1]",
+    "Values[2]",
+    "Values[3]",
+    "Lamp"
+  ]
+}

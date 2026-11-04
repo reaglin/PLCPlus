@@ -1,0 +1,12 @@
+# R09 Compare and math
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  AddBtn=FALSE  ClearBtn=FALSE  Total=0  Full=FALSE
+t=0.100s  AddBtn=TRUE  Total=5
+t=0.200s  AddBtn=FALSE
+t=0.300s  AddBtn=TRUE  Total=10
+t=0.400s  AddBtn=FALSE
+t=0.500s  AddBtn=TRUE  Total=15  Full=TRUE
+t=0.600s  AddBtn=FALSE
+t=0.800s  ClearBtn=TRUE  Total=0
+t=0.810s  Full=FALSE
+t=0.900s  ClearBtn=FALSE

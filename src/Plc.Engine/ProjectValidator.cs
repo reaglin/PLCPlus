@@ -18,6 +18,19 @@ public static class ProjectValidator
     {
         var list = new List<Diagnostic>();
         var tags = new Dictionary<string, TagDeclaration>(StringComparer.OrdinalIgnoreCase);
+        var roots = new Dictionary<string, TypeRef>(StringComparer.OrdinalIgnoreCase);
+        var types = new TypeSystem(project, dialect);
+
+        var structNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var s in project.Types)
+        {
+            if (string.IsNullOrWhiteSpace(s.Name) || PlcValue.TryParseType(s.Name, out _) || dialect.Find(s.Name) is not null)
+                list.Add(new(Severity.Error, "Types", 0, "", $"'{s.Name}' cannot be the name of a structure: choose a name that is not a type or instruction."));
+            else if (!structNames.Add(s.Name))
+                list.Add(new(Severity.Error, "Types", 0, "", $"There are two structures called '{s.Name}'."));
+            else if (types.Parse(s.Name, out var structError) is null)
+                list.Add(new(Severity.Error, "Types", 0, "", structError!));
+        }
 
         foreach (var tag in project.Tags)
         {
@@ -28,12 +41,21 @@ public static class ProjectValidator
             }
             if (!tags.TryAdd(tag.Name, tag))
                 list.Add(new(Severity.Error, "Tags", 0, "", $"There are two tags called '{tag.Name}'. Each tag needs its own name."));
-            var isElementary = PlcValue.TryParseType(tag.Type, out var type);
-            if (!isElementary && dialect.Find(tag.Type)?.FunctionBlockType is null)
-                list.Add(new(Severity.Error, "Tags", 0, "", $"The tag '{tag.Name}' has the type '{tag.Type}', which this PLC does not know. Use BOOL, INT, DINT, REAL, TIME, or a timer or counter type such as TON."));
-            if (tag.Io != IoDirection.None && isElementary && type != DataType.Bool)
+            var typeRef = types.Parse(tag.Type, out var typeError);
+            if (typeRef is null)
+            {
+                list.Add(new(Severity.Error, "Tags", 0, "", $"The tag '{tag.Name}': {typeError}"));
+                continue;
+            }
+            roots[tag.Name] = typeRef;
+            var isElementary = typeRef is TypeRef.Elementary;
+            if (tag.Io != IoDirection.None && !isElementary)
+                list.Add(new(Severity.Error, "Tags", 0, "", $"'{tag.Name}' is wired to the machine, so it must be a single value (BOOL), not {tag.Type}."));
+            else if (tag.Io != IoDirection.None && typeRef is TypeRef.Elementary { Type: not DataType.Bool })
                 list.Add(new(Severity.Warning, "Tags", 0, "", $"'{tag.Name}' is wired to the machine but is not BOOL. Analog I/O comes in a later unit."));
-            if (tag.Initial is not null && !PlcValue.TryParseLiteral(tag.Initial, out _))
+            if (tag.Initial is not null && !isElementary)
+                list.Add(new(Severity.Error, "Tags", 0, "", $"'{tag.Name}' is {tag.Type}: only a single value (BOOL, INT, DINT, REAL, TIME) can have a starting value. Arrays and structures start at zero."));
+            else if (tag.Initial is not null && !PlcValue.TryParseLiteral(tag.Initial, out _))
                 list.Add(new(Severity.Error, "Tags", 0, "", $"The starting value of '{tag.Name}' ('{tag.Initial}') is not a value this PLC understands."));
         }
 
@@ -41,7 +63,7 @@ public static class ProjectValidator
         {
             for (var r = 0; r < unit.Rungs.Count; r++)
             {
-                var ctx = new Ctx(list, unit.Name, r + 1, tags, dialect);
+                var ctx = new Ctx(list, unit.Name, r + 1, tags, roots, types, dialect);
                 Walk(unit.Rungs[r].Logic, "1", ctx);
                 if (!HasOutput(unit.Rungs[r].Logic))
                     list.Add(new(Severity.Warning, unit.Name, r + 1, "", "This rung has no coil or box, so it does nothing. Add a coil at the right-hand end."));
@@ -50,7 +72,8 @@ public static class ProjectValidator
         return list;
     }
 
-    private sealed record Ctx(List<Diagnostic> List, string Program, int Rung, Dictionary<string, TagDeclaration> Tags, IDialect Dialect)
+    private sealed record Ctx(List<Diagnostic> List, string Program, int Rung, Dictionary<string, TagDeclaration> Tags,
+        Dictionary<string, TypeRef> Roots, TypeSystem Types, IDialect Dialect)
     {
         public void Error(string path, string message) => List.Add(new(Severity.Error, Program, Rung, path, message));
         public void Warn(string path, string message) => List.Add(new(Severity.Warning, Program, Rung, path, message));
@@ -94,10 +117,12 @@ public static class ProjectValidator
             ctx.Error(path, $"This {what} has no tag. Type the name of the tag it {(write ? "turns on" : "checks")}.");
             return;
         }
-        var type = TypeOfOperand(name, ctx, out var isMember);
+        var type = TypeOfOperand(name, ctx, out var isMember, out var pathError);
         if (type is null)
         {
-            ctx.Error(path, $"The {what} uses '{name}', but there is no tag with that name. Declare it in the tag list, or check the spelling.");
+            ctx.Error(path, pathError is not null
+                ? $"The {what}: {pathError}"
+                : $"The {what} uses '{name}', but there is no tag with that name. Declare it in the tag list, or check the spelling.");
             return;
         }
         if (type != DataType.Bool)
@@ -145,10 +170,12 @@ public static class ProjectValidator
             }
             else
             {
-                type = TypeOfOperand(text, ctx, out var isMember);
+                type = TypeOfOperand(text, ctx, out var isMember, out var pathError);
                 if (type is null)
                 {
-                    ctx.Error(path, $"{instruction.Name}'s {spec.Name} uses '{text}', but there is no tag with that name.");
+                    ctx.Error(path, pathError is not null
+                        ? $"{instruction.Name}'s {spec.Name}: {pathError}"
+                        : $"{instruction.Name}'s {spec.Name} uses '{text}', but there is no tag with that name.");
                     continue;
                 }
                 if (spec.Direction == OperandDirection.Out && isMember)
@@ -162,21 +189,54 @@ public static class ProjectValidator
                 ctx.Warn(path, $"{instruction.Name} has no input or output called {name}; it is ignored.");
     }
 
-    private static DataType? TypeOfOperand(string name, Ctx ctx, out bool isMember)
+    private static DataType? TypeOfOperand(string name, Ctx ctx, out bool isMember, out string? error)
     {
         isMember = false;
-        if (ctx.Tags.TryGetValue(name, out var tag))
-            return PlcValue.TryParseType(tag.Type, out var t) ? t : null;
+        error = null;
+        name = name.Trim();
+
+        // A timer or counter member, such as T1.Q.
         var dot = name.IndexOf('.', StringComparison.Ordinal);
-        if (dot > 0 && ctx.Tags.TryGetValue(name[..dot], out var fb))
+        if (dot > 0 && !name.Contains('[', StringComparison.Ordinal)
+            && ctx.Roots.TryGetValue(name[..dot], out var root) && root is TypeRef.FunctionBlock fb)
         {
-            var member = ctx.Dialect.Find(fb.Type)?.Members
+            var member = ctx.Dialect.Find(fb.Name)?.Members
                 .FirstOrDefault(m => m.Name.Equals(name[(dot + 1)..], StringComparison.OrdinalIgnoreCase));
             isMember = member is not null;
+            if (member is null) error = $"'{name}': a {fb.Name} has no member called {name[(dot + 1)..]}.";
             return member?.Type;
         }
-        return null;
+
+        // A tag, an array element or a structure member.
+        var type = ctx.Types.TypeOfPath(name, ctx.Roots, out var pathError);
+        error = pathError;
+        switch (type)
+        {
+            case TypeRef.Elementary e:
+                return e.Type;
+            case null:
+                return null;
+            default:
+                error = $"'{name}' is a whole {Describe(type)}. Use one element or member of it, such as {Example(name, type)}.";
+                return null;
+        }
     }
+
+    private static string Describe(TypeRef type) => type switch
+    {
+        TypeRef.Array => "array",
+        TypeRef.Struct s => $"structure ({s.Definition.Name})",
+        TypeRef.FunctionBlock f => $"{f.Name}",
+        _ => "value",
+    };
+
+    private static string Example(string name, TypeRef type) => type switch
+    {
+        TypeRef.Array a => $"{name}[{a.Low}]",
+        TypeRef.Struct s when s.Definition.Members.Count > 0 => $"{name}.{s.Definition.Members[0].Name}",
+        TypeRef.FunctionBlock f when f.Name.StartsWith('C') => $"{name}.CV",
+        _ => $"{name}.Q",
+    };
 
     private static bool Fits(OperandKind kind, DataType type) => kind switch
     {

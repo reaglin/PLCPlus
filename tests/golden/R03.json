@@ -1,0 +1,97 @@
+{
+  "id": "R03",
+  "title": "Off-delay timer (TOF)",
+  "teaches": "TOF: the output follows the input on, and stays on for the preset after it turns off; turning on again restarts it.",
+  "project": {
+    "schemaVersion": 1,
+    "name": "Off-delay timer (TOF)",
+    "dialect": "iec61131-3",
+    "scanTimeMs": 10,
+    "tags": [
+      {
+        "name": "Switch",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Lamp",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "T1",
+        "type": "TOF"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Main",
+        "rungs": [
+          {
+            "comment": "Lamp stays on 0.5 s after Switch turns off.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "Switch",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "box",
+                  "instruction": "TOF",
+                  "operands": {
+                    "PT": "T#500ms"
+                  },
+                  "instance": "T1"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Lamp",
+                  "coil": "normal"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "stimulus": [
+    {
+      "t": 0.1,
+      "input": "Switch",
+      "value": true
+    },
+    {
+      "t": 0.3,
+      "input": "Switch",
+      "value": false
+    },
+    {
+      "t": 1.0,
+      "input": "Switch",
+      "value": true
+    },
+    {
+      "t": 1.2,
+      "input": "Switch",
+      "value": false
+    },
+    {
+      "t": 1.4,
+      "input": "Switch",
+      "value": true
+    },
+    {
+      "t": 1.6,
+      "input": "Switch",
+      "value": false
+    }
+  ],
+  "durationSeconds": 2.5,
+  "watch": [
+    "Switch",
+    "Lamp"
+  ]
+}

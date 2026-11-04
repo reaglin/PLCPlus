@@ -1,0 +1,11 @@
+# R10 Array with an index, and the out-of-range fault
+# scan 10 ms; each line is a scan in which a watched value changed
+t=0.000s  Step=FALSE  Index=0  Values[1]=0  Values[2]=0  Values[3]=0  Lamp=FALSE
+t=0.100s  Step=TRUE  Index=1  Values[1]=10
+t=0.200s  Step=FALSE
+t=0.300s  Step=TRUE  Index=2  Values[2]=20  Lamp=TRUE
+t=0.400s  Step=FALSE
+t=0.500s  Step=TRUE  Index=3  Values[3]=30
+t=0.600s  Step=FALSE
+t=0.700s  Step=TRUE  Index=4
+FAULT at t=0.700s, rung 2, IndexOutOfRange: 'Values[Index]' asked for element 4, but Values only has elements 0 to 3. A real PLC stops here too: check the index before using it.

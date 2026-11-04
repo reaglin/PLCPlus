@@ -31,6 +31,9 @@ public sealed class PlcRuntime
     private readonly Dictionary<string, PlcValue> _forces = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<LadderElement, bool> _edgeMemory = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<LadderElement, bool> _powerOut = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<string, TypeRef> _roots = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<(string Program, int Rung)> _breakpoints = [];
+    private readonly TypeSystem _typeSystem;
     private readonly List<TagDeclaration> _inputs;
     private readonly List<TagDeclaration> _outputs;
 
@@ -39,6 +42,8 @@ public sealed class PlcRuntime
     public IVirtualIo? Io { get; set; }
 
     public long NowMs { get; private set; }
+    /// <summary>The time at which the last scan ran (NowMs has already moved on by the scan time).</summary>
+    public long LastScanStartMs { get; private set; }
     public long ScanCount { get; private set; }
     public RunState State { get; private set; } = RunState.Running;
     public PlcFault? Fault { get; private set; }
@@ -56,6 +61,7 @@ public sealed class PlcRuntime
         Project = project;
         Dialect = dialect;
         Io = io;
+        _typeSystem = new TypeSystem(project, dialect);
         _inputs = project.Tags.Where(t => t.Io == IoDirection.Input).ToList();
         _outputs = project.Tags.Where(t => t.Io == IoDirection.Output).ToList();
         Reset();
@@ -69,22 +75,26 @@ public sealed class PlcRuntime
         _instances.Clear();
         _edgeMemory.Clear();
         _powerOut.Clear();
+        _roots.Clear();
         foreach (var tag in Project.Tags)
         {
-            if (PlcValue.TryParseType(tag.Type, out var type))
+            var typeRef = _typeSystem.Parse(tag.Type, out _)!; // the validator has checked every type
+            _roots[tag.Name] = typeRef;
+            if (typeRef is TypeRef.FunctionBlock fb)
             {
-                _types[tag.Name] = type;
-                var value = PlcValue.Default(type);
-                if (tag.Initial is not null && PlcValue.TryParseLiteral(tag.Initial, out var initial))
-                    value = initial.ConvertTo(type);
-                _tags[tag.Name] = value;
+                _instances[tag.Name] = new FbInstance(tag.Name, fb.Name);
+                continue;
             }
-            else
+            foreach (var (name, type) in _typeSystem.Flatten(tag.Name, typeRef))
             {
-                _instances[tag.Name] = new FbInstance(tag.Name, tag.Type.ToUpperInvariant());
+                _types[name] = type;
+                _tags[name] = PlcValue.Default(type);
             }
+            if (typeRef is TypeRef.Elementary e && tag.Initial is not null && PlcValue.TryParseLiteral(tag.Initial, out var initial))
+                _tags[tag.Name] = initial.ConvertTo(e.Type);
         }
         NowMs = 0;
+        LastScanStartMs = 0;
         ScanCount = 0;
         State = RunState.Running;
         Fault = null;
@@ -95,6 +105,7 @@ public sealed class PlcRuntime
     /// <summary>Reads a tag, or a function block member such as T1.Q.</summary>
     public PlcValue Read(string name)
     {
+        name = Resolve(name);
         if (_tags.TryGetValue(name, out var v)) return v;
         var dot = name.IndexOf('.', StringComparison.Ordinal);
         if (dot > 0 && _instances.TryGetValue(name[..dot], out var fb))
@@ -108,6 +119,7 @@ public sealed class PlcRuntime
 
     public DataType TypeOf(string name)
     {
+        name = Resolve(name);
         if (_types.TryGetValue(name, out var t)) return t;
         return Read(name).Type;
     }
@@ -115,11 +127,22 @@ public sealed class PlcRuntime
     /// <summary>Writes a tag; the value is converted to the tag's declared type.</summary>
     public void Write(string name, PlcValue value)
     {
+        name = Resolve(name);
         if (!_types.TryGetValue(name, out var type))
             throw new PlcFaultException(FaultKind.Configuration, $"'{name}' cannot be written to.");
         _tags[name] = value.ConvertTo(type);
     }
 
+    /// <summary>
+    /// The stored name of a tag path: <c>Levels[i]</c> becomes <c>Levels[3]</c> when i is 3. An index outside
+    /// the array raises an index-out-of-range fault.
+    /// </summary>
+    public string Resolve(string name) =>
+        name.Contains('[', StringComparison.Ordinal)
+            ? _typeSystem.Canonical(name, _roots, index => Read(index).AsLong)
+            : name;
+
+    /// <summary>Every stored value, by canonical name (array elements and structure members each have their own).</summary>
     public IReadOnlyDictionary<string, PlcValue> Tags => _tags;
     public FbInstance? InstanceOf(string name) => _instances.GetValueOrDefault(name);
 
@@ -130,6 +153,33 @@ public sealed class PlcRuntime
     public void Unforce(string tag) => _forces.Remove(tag);
     public void UnforceAll() => _forces.Clear();
     public IReadOnlyDictionary<string, PlcValue> Forces => _forces;
+
+    // ---- Breakpoints (spec 4.2: run-to-breakpoint) ----------------------------------------------
+    // A breakpoint is on a rung. Running to it stops at the end of the first scan in which that rung
+    // passed power to its outputs, so the learner sees the whole machine at that moment.
+
+    public void SetBreakpoint(string program, int rung) => _breakpoints.Add((program, rung));
+    public void ClearBreakpoint(string program, int rung) => _breakpoints.Remove((program, rung));
+    public void ClearBreakpoints() => _breakpoints.Clear();
+    public IReadOnlyCollection<(string Program, int Rung)> Breakpoints => _breakpoints;
+
+    /// <summary>The breakpoint rung that passed power in the last scan, if any (1-based rung number).</summary>
+    public (string Program, int Rung)? BreakpointHit { get; private set; }
+
+    /// <summary>
+    /// Runs scans until a breakpoint rung passes power, the PLC faults, or <paramref name="maxMs"/> of simulated
+    /// time has gone by. Returns true if it stopped at a breakpoint.
+    /// </summary>
+    public bool RunToBreakpoint(long maxMs)
+    {
+        var until = NowMs + maxMs;
+        while (NowMs < until && State == RunState.Running)
+        {
+            Scan();
+            if (BreakpointHit is not null) return true;
+        }
+        return false;
+    }
 
     // ---- Live view ----------------------------------------------------------------------------
 
@@ -153,13 +203,18 @@ public sealed class PlcRuntime
         // 2. The programs, in task order.
         string program = "";
         int rung = 0;
+        BreakpointHit = null;
         try
         {
             foreach (var unit in Project.Programs)
             {
                 program = unit.Name;
                 for (rung = 0; rung < unit.Rungs.Count; rung++)
-                    Evaluate(unit.Rungs[rung].Logic, true);
+                {
+                    var passed = Evaluate(unit.Rungs[rung].Logic, true);
+                    if (passed && BreakpointHit is null && _breakpoints.Count > 0 && _breakpoints.Contains((unit.Name, rung + 1)))
+                        BreakpointHit = (unit.Name, rung + 1);
+                }
             }
         }
         catch (PlcFaultException ex)
@@ -178,6 +233,7 @@ public sealed class PlcRuntime
         }
 
         // 4. Housekeeping: the clock moves on, and the machine with it.
+        LastScanStartMs = NowMs;
         NowMs += Project.ScanTimeMs;
         ScanCount++;
         Io?.Advance(Project.ScanTimeMs);

@@ -1,0 +1,152 @@
+{
+  "id": "R09",
+  "title": "Compare and math",
+  "teaches": "ADD on a rising edge accumulates; GE compares; MOVE clears.",
+  "project": {
+    "schemaVersion": 1,
+    "name": "Compare and math",
+    "dialect": "iec61131-3",
+    "scanTimeMs": 10,
+    "tags": [
+      {
+        "name": "AddBtn",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "ClearBtn",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Full",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "Total",
+        "type": "INT"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Main",
+        "rungs": [
+          {
+            "comment": "Each press adds 5.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "AddBtn",
+                  "contact": "positiveEdge"
+                },
+                {
+                  "kind": "box",
+                  "instruction": "ADD",
+                  "operands": {
+                    "IN1": "Total",
+                    "IN2": "5",
+                    "OUT": "Total"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "comment": "Full at 15 or more.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "box",
+                  "instruction": "GE",
+                  "operands": {
+                    "IN1": "Total",
+                    "IN2": "15"
+                  }
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Full",
+                  "coil": "normal"
+                }
+              ]
+            }
+          },
+          {
+            "comment": "Clear sets the total back to 0.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "ClearBtn",
+                  "contact": "positiveEdge"
+                },
+                {
+                  "kind": "box",
+                  "instruction": "MOVE",
+                  "operands": {
+                    "IN": "0",
+                    "OUT": "Total"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "stimulus": [
+    {
+      "t": 0.1,
+      "input": "AddBtn",
+      "value": true
+    },
+    {
+      "t": 0.2,
+      "input": "AddBtn",
+      "value": false
+    },
+    {
+      "t": 0.3,
+      "input": "AddBtn",
+      "value": true
+    },
+    {
+      "t": 0.4,
+      "input": "AddBtn",
+      "value": false
+    },
+    {
+      "t": 0.5,
+      "input": "AddBtn",
+      "value": true
+    },
+    {
+      "t": 0.6,
+      "input": "AddBtn",
+      "value": false
+    },
+    {
+      "t": 0.8,
+      "input": "ClearBtn",
+      "value": true
+    },
+    {
+      "t": 0.9,
+      "input": "ClearBtn",
+      "value": false
+    }
+  ],
+  "durationSeconds": 1.0,
+  "watch": [
+    "AddBtn",
+    "ClearBtn",
+    "Total",
+    "Full"
+  ]
+}

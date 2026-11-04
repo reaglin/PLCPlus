@@ -1,0 +1,125 @@
+{
+  "id": "R07",
+  "title": "Up/down counter (CTUD)",
+  "teaches": "CTUD: one input counts up, the other down; both at once cancel out.",
+  "project": {
+    "schemaVersion": 1,
+    "name": "Up/down counter (CTUD)",
+    "dialect": "iec61131-3",
+    "scanTimeMs": 10,
+    "tags": [
+      {
+        "name": "Up",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Down",
+        "type": "BOOL",
+        "io": "input"
+      },
+      {
+        "name": "Lamp",
+        "type": "BOOL",
+        "io": "output"
+      },
+      {
+        "name": "C1",
+        "type": "CTUD"
+      }
+    ],
+    "programs": [
+      {
+        "name": "Main",
+        "rungs": [
+          {
+            "comment": "Lamp on at 2 or more.",
+            "logic": {
+              "kind": "series",
+              "items": [
+                {
+                  "kind": "contact",
+                  "tag": "Up",
+                  "contact": "normallyOpen"
+                },
+                {
+                  "kind": "box",
+                  "instruction": "CTUD",
+                  "operands": {
+                    "PV": "2",
+                    "CD": "Down"
+                  },
+                  "instance": "C1"
+                },
+                {
+                  "kind": "coil",
+                  "tag": "Lamp",
+                  "coil": "normal"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "stimulus": [
+    {
+      "t": 0.1,
+      "input": "Up",
+      "value": true
+    },
+    {
+      "t": 0.2,
+      "input": "Up",
+      "value": false
+    },
+    {
+      "t": 0.3,
+      "input": "Up",
+      "value": true
+    },
+    {
+      "t": 0.4,
+      "input": "Up",
+      "value": false
+    },
+    {
+      "t": 0.5,
+      "input": "Down",
+      "value": true
+    },
+    {
+      "t": 0.6,
+      "input": "Down",
+      "value": false
+    },
+    {
+      "t": 0.7,
+      "input": "Up",
+      "value": true
+    },
+    {
+      "t": 0.7,
+      "input": "Down",
+      "value": true
+    },
+    {
+      "t": 0.8,
+      "input": "Up",
+      "value": false
+    },
+    {
+      "t": 0.8,
+      "input": "Down",
+      "value": false
+    }
+  ],
+  "durationSeconds": 1.0,
+  "watch": [
+    "Up",
+    "Down",
+    "C1.CV",
+    "Lamp"
+  ]
+}

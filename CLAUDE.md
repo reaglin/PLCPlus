@@ -17,8 +17,9 @@ WPF on .NET 10. The source is Ron's specification, `docs/SPECIFICATION.pdf` (202
 - the first scene and challenge (motor start/stop);
 - a first-look window.
 
-74 tests pass. Ron answered all 14 plan questions on 2026-11-04 (`docs/PLAN.md` D10–D19). Next: phases 1–3 (engine,
-scenes, ladder editor).
+**Phase 1 (the engine) built 2026-11-04:** arrays and structures, breakpoints, traces, failure replay, and the reference
+programs R01–R11 with their traces (`tests/golden/`) and the Allen-Bradley lab guide (`docs/LAB-COMPARISON.md`). 100 tests
+pass. Ron answered all 14 plan questions on 2026-11-04 (`docs/PLAN.md` D10–D19). Next: phase 2 (scenes), phase 3 (ladder editor).
 
 ### Read these first
 
@@ -28,6 +29,7 @@ scenes, ladder editor).
 | `docs/PLAN.md` | Decisions with Ron and why, the architecture, how the engine and grader work |
 | `docs/SPECIFICATION.pdf` | Ron's specification: requirement IDs FR-1…13, NFR-1…9 |
 | `docs/MANUAL-TESTING.md` | Ron's hand-tests and the hand-test build command |
+| `docs/LAB-COMPARISON.md` | The reference programs on the lab's Allen-Bradley PLC |
 
 ## Layout
 
@@ -41,6 +43,7 @@ src/Plc.Scenes/          simulated machines (JSON scenes, components)
 src/Plc.Grading/         challenges and the grader (implements Learning.Core.IChallengeRunner)
 content/plcplus-foundations/   scenes, challenges, example programs (copied beside the exe)
 tests/Plc.Engine.Tests/  engine, instructions, scenes, grading
+tests/golden/            reference programs R01–R11 (+ .trace.txt), written by tools/make-golden-cases.py
 tests/Learning.Core.Tests/     architecture rule
 tools/capture-window.ps1 photographs the window (PrintWindow) and presses buttons by UI Automation
 ```
@@ -60,8 +63,9 @@ tools/capture-window.ps1 photographs the window (PrintWindow) and presses button
   computer. Keep it subject-neutral: nothing PLC-specific goes in `Learning.Core`, and the architecture test enforces it.
 - **Deterministic:** the engine and scenes run only on the simulated clock (`PlcRuntime.NowMs`), never the wall clock. The
   same program and scenario always grade the same way (NFR-3).
-- **Every instruction's behaviour is pinned by tests** in `Plc.Engine.Tests`. Changing one changes how work is graded, so
-  it is a deliberate act with its tests updated.
+- **Every instruction's behaviour is pinned by tests** in `Plc.Engine.Tests` and by the golden traces in `tests/golden/`.
+  Changing one changes how work is graded, so it is a deliberate act: rewrite the traces with `PLCPLUS_UPDATE_GOLDEN=1`, read
+  the diff, and note it in `docs/LAB-COMPARISON.md` if it touches what the lab compares.
 - **Offline, and nothing sent:** no network calls with learner data (NFR-2). Progress leaves only as files the learner saves.
 - **Content is data:** lessons, scenes and challenges are files in `content/`, not code (NFR-4).
 - **Words for a beginner:** validation messages, failed tests and hints say what happened and what to do. Never show
