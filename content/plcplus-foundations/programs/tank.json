@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "name": "Tank fill and drain (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Auto",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Off/Auto switch: TRUE in Auto"
+    },
+    {
+      "name": "HighFloat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "TRUE when the liquid is at 80 % or above"
+    },
+    {
+      "name": "LowFloat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "TRUE when the liquid is at 20 % or above"
+    },
+    {
+      "name": "FillValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "DrainValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Filling",
+      "type": "BOOL",
+      "comment": "remembers that the tank is filling"
+    },
+    {
+      "name": "Draining",
+      "type": "BOOL",
+      "comment": "remembers that the tank is draining"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Below the low float: start filling (latch).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Auto",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "LowFloat",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Filling",
+                "coil": "set"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "At the high float: stop filling.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "HighFloat",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Filling",
+                "coil": "reset"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "At the high float: start draining (latch).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Auto",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "HighFloat",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Draining",
+                "coil": "set"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Below the low float: stop draining.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "LowFloat",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Draining",
+                "coil": "reset"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The fill valve, only in Auto.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Auto",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Filling",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Draining",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "FillValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The drain valve, only in Auto.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Auto",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Draining",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "DrainValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

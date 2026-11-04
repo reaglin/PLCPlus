@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "id": "u5.conveyor-sorter",
+  "title": "Sort metal from plastic",
+  "brief": "Start and Stop run the conveyor. Metal parts must be pushed into Bin A by the diverter; plastic parts ride on to Bin B. The metal sensor is earlier on the belt than the diverter, so the program must remember what it saw.",
+  "scene": "conveyor-sorter",
+  "constraints": {
+    "maxRungs": 8
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "The diverter is at the photo-eye, but only the metal sensor can tell metal from plastic, and it is upstream (earlier on the belt).",
+    "Latch a memory tag (set coil) when the metal sensor sees a part.",
+    "Divert when the photo-eye sees a part and the memory is set; reset the memory when the part leaves the photo-eye (a falling-edge contact)."
+  ],
+  "scenarios": [
+    {
+      "name": "Metal to Bin A, plastic to Bin B",
+      "points": 1,
+      "durationSeconds": 25.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 24.5,
+          "tag": "@diverter.metal",
+          "expect": "3",
+          "says": "Three metal parts should be in Bin A by now."
+        },
+        {
+          "at": 24.5,
+          "tag": "@diverter.plastic",
+          "expect": "0",
+          "says": "No plastic part should be in Bin A."
+        },
+        {
+          "at": 24.5,
+          "tag": "@belt.plastic",
+          "expect": "1",
+          "says": "The plastic part that has reached the end should be in Bin B."
+        }
+      ],
+      "hint": "Latch MetalSeen when Prox sees a part; divert when Eye sees a part and MetalSeen is set; reset MetalSeen when the part leaves the eye (a falling-edge contact of Eye)."
+    },
+    {
+      "name": "Stop stops the belt",
+      "points": 1,
+      "durationSeconds": 6.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 3.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 3.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 3.1,
+          "tag": "BeltMotor",
+          "expect": "FALSE",
+          "says": "Stop should stop the belt."
+        },
+        {
+          "at": 5.0,
+          "tag": "@belt.fed",
+          "expect": "1",
+          "says": "With the belt stopped, no new parts should come on."
+        }
+      ],
+      "hint": "StopPB is TRUE until Stop is pressed: a normally open contact of it in the belt's seal-in rung."
+    },
+    {
+      "name": "A longer run",
+      "points": 1,
+      "durationSeconds": 45.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 44.5,
+          "tag": "@diverter.plastic",
+          "expect": "0",
+          "says": "No plastic part should ever be diverted."
+        },
+        {
+          "at": 44.5,
+          "tag": "@belt.metal",
+          "expect": "0",
+          "says": "No metal part should reach Bin B."
+        }
+      ],
+      "hidden": true
+    }
+  ]
+}

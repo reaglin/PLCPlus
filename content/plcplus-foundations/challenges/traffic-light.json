@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "id": "u6.traffic-light",
+  "title": "Run a traffic light",
+  "brief": "With the Run switch on: green for 5 s, then yellow for 2 s, then red for 5 s, over and over. Only one light at a time. With Run off, all the lights are off.",
+  "scene": "traffic-light",
+  "constraints": {
+    "requiredInstructions": [
+      "TON"
+    ],
+    "maxRungs": 10
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Use one on-delay timer (TON) for each light's time, each started by the one before it finishing.",
+    "A light is on while its own timer is running and the next one has not finished: a normally open and a normally closed contact.",
+    "To repeat, let the last timer finishing reset the first: a normally closed contact of T3.Q on the first timer's rung."
+  ],
+  "scenarios": [
+    {
+      "name": "Green, yellow, red in turn",
+      "points": 1,
+      "durationSeconds": 13.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "run",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.5,
+          "tag": "Green",
+          "expect": "TRUE",
+          "says": "Green should be on for the first 5 s."
+        },
+        {
+          "at": 6.0,
+          "tag": "Yellow",
+          "expect": "TRUE",
+          "says": "Yellow should follow green, for 2 s."
+        },
+        {
+          "at": 9.5,
+          "tag": "Red",
+          "expect": "TRUE",
+          "says": "Red should follow yellow, for 5 s."
+        },
+        {
+          "at": 13.0,
+          "tag": "Green",
+          "expect": "TRUE",
+          "says": "After red, green should come back on."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "Red",
+            "Green"
+          ],
+          "says": "Red and green must never be on together."
+        },
+        {
+          "neverAllTrue": [
+            "Red",
+            "Yellow"
+          ],
+          "says": "Red and yellow must never be on together."
+        },
+        {
+          "neverAllTrue": [
+            "Green",
+            "Yellow"
+          ],
+          "says": "Green and yellow must never be on together."
+        }
+      ],
+      "hint": "Each light is on while its own timer is running and the next one has not finished. Yellow: a normally open contact of T1.Q and a normally closed contact of T2.Q."
+    },
+    {
+      "name": "Off turns every light off",
+      "points": 1,
+      "durationSeconds": 4.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "run",
+          "active": true
+        },
+        {
+          "t": 3.0,
+          "operate": "run",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 3.1,
+          "tag": "Green",
+          "expect": "FALSE",
+          "says": "With Run off, green should be off."
+        },
+        {
+          "at": 3.1,
+          "tag": "Yellow",
+          "expect": "FALSE",
+          "says": "With Run off, yellow should be off."
+        },
+        {
+          "at": 3.1,
+          "tag": "Red",
+          "expect": "FALSE",
+          "says": "With Run off, red should be off."
+        }
+      ],
+      "hint": "With Run off, the first timer resets, and the others follow. Make sure every light's rung depends on a timer, or on Run."
+    },
+    {
+      "name": "Keeps cycling",
+      "points": 1,
+      "durationSeconds": 31.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "run",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 30.5,
+          "tag": "Yellow",
+          "expect": "TRUE",
+          "says": "The cycle should keep repeating."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "Red",
+            "Green"
+          ],
+          "says": "Red and green must never be on together."
+        },
+        {
+          "neverAllTrue": [
+            "Red",
+            "Yellow"
+          ],
+          "says": "Red and yellow must never be on together."
+        },
+        {
+          "neverAllTrue": [
+            "Green",
+            "Yellow"
+          ],
+          "says": "Green and yellow must never be on together."
+        }
+      ],
+      "hidden": true
+    }
+  ]
+}

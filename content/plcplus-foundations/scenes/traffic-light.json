@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "traffic-light",
+  "title": "Traffic light",
+  "description": "One traffic signal head (red, amber, green) and a Run switch.",
+  "width": 440,
+  "height": 330,
+  "components": [
+    {
+      "type": "selectorSwitch",
+      "id": "run",
+      "label": "Run",
+      "tag": "Run",
+      "positions": [
+        "Off",
+        "Run"
+      ],
+      "x": 30,
+      "y": 130
+    },
+    {
+      "type": "pilotLight",
+      "id": "red",
+      "label": "Red",
+      "tag": "Red",
+      "color": "red",
+      "x": 260,
+      "y": 30
+    },
+    {
+      "type": "pilotLight",
+      "id": "yellow",
+      "label": "Yellow",
+      "tag": "Yellow",
+      "color": "amber",
+      "x": 260,
+      "y": 120
+    },
+    {
+      "type": "pilotLight",
+      "id": "green",
+      "label": "Green",
+      "tag": "Green",
+      "color": "green",
+      "x": 260,
+      "y": 210
+    }
+  ]
+}

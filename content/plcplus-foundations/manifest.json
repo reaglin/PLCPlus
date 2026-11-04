@@ -1,8 +1,100 @@
 {
   "id": "plcplus-foundations",
-  "version": "0.1.0",
-  "title": "PLC+ — foundations (first draft)",
+  "version": "0.2.0",
+  "title": "PLC+ — foundations (preview)",
   "dependencies": [],
   "minimumAppVersion": "0.1.0",
-  "note": "Phase 0 sample content. The package format (spec 6.3: lessons in Markdown with front-matter, signing) is plan phase 4."
+  "note": "Preview content for the instructors' review. The package format (spec 6.3: lessons in Markdown with front-matter, signing) is plan phase 4.",
+  "challenges": [
+    {
+      "file": "challenges/pilot-lights.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/pilot-lights.json",
+          "note": "Three rungs: one contact for Green, two in series (AND) for Amber, a normally closed contact for Red."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/pilot-lights-mistake.json",
+          "note": "Red uses a normally open contact, so it lights in Auto instead of Manual."
+        }
+      ]
+    },
+    {
+      "file": "challenges/motor-start-stop.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/motor-seal-in.json",
+          "note": "Rung 1: Start, or the Motor's own contact in parallel with it (the seal-in), passes power through Stop to the Motor coil. Let go of Start and the seal-in keeps the motor running. Stop is wired normally closed (TRUE until pressed), so the program checks it with a normally open contact: pressing Stop opens it and breaks the circuit."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/motor-no-seal-in.json",
+          "note": "Rung 1 has no seal-in contact: the motor runs only while Start is held down."
+        }
+      ]
+    },
+    {
+      "file": "challenges/traffic-light.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/traffic-light.json",
+          "note": "Three on-delay timers in a chain, each started by the one before finishing; the last one restarts the first."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/traffic-light-mistake.json",
+          "note": "Yellow has nothing to turn it off when red comes on, so the two are on together."
+        }
+      ]
+    },
+    {
+      "file": "challenges/garage-door.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/garage-door.json",
+          "note": "Two start/stop circuits, one per direction, each stopped by its limit switch and locked out by the other; the down rung also needs the safety eye clear."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/garage-door-mistake.json",
+          "note": "The down rung does not check the safety eye, so the door comes down on whatever is in the doorway."
+        }
+      ]
+    },
+    {
+      "file": "challenges/tank.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/tank.json",
+          "note": "Two latched memory tags, Filling and Draining, set and reset by the floats; the valves follow them."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/tank-mistake.json",
+          "note": "Without memory, the valves follow the high float alone: the tank chatters around 80 % and never drains."
+        }
+      ]
+    },
+    {
+      "file": "challenges/conveyor-sorter.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/conveyor-sorter.json",
+          "note": "The metal sensor latches MetalSeen; the diverter pushes when the photo-eye sees a part and MetalSeen is set; the part leaving the eye resets it."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/conveyor-sorter-mistake.json",
+          "note": "The diverter pushes every part that reaches the eye, metal or plastic."
+        }
+      ]
+    }
+  ]
 }

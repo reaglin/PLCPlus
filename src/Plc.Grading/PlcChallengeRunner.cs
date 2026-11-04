@@ -41,6 +41,8 @@ public sealed class Scenario
     public double Points { get; set; } = 1;
     /// <summary>A hidden scenario is not shown to the learner, so a program cannot be fitted to the visible tests.</summary>
     public bool Hidden { get; set; }
+    /// <summary>The hint shown when this test fails (a visible test only); otherwise the challenge's hints, in turn.</summary>
+    public string? Hint { get; set; }
     public double DurationSeconds { get; set; } = 1;
     public List<ScenarioEvent> Events { get; set; } = [];
     public List<Assertion> Assertions { get; set; } = [];
@@ -55,7 +57,10 @@ public sealed class ScenarioEvent
     public bool Active { get; set; }
 }
 
-/// <summary>At time At (seconds), the tag must have the expected value.</summary>
+/// <summary>
+/// At time At (seconds), the tag must have the expected value. The tag can be a PLC tag, or a probe of
+/// the machine itself: <c>@tank.overflow</c>, <c>@door.position</c>, <c>@diverter.metal</c>.
+/// </summary>
 public sealed class Assertion
 {
     public double At { get; set; }
@@ -63,12 +68,17 @@ public sealed class Assertion
     public string Expect { get; set; } = "TRUE";
     /// <summary>What a learner reads when it fails, such as "The motor should be running 0.1 s after Start is pressed."</summary>
     public string? Says { get; set; }
+    /// <summary>For a REAL value (a tank level, a door position): how far from Expect still counts as right.</summary>
+    public double Tolerance { get; set; }
 }
 
 /// <summary>Something that must never happen, checked after every scan.</summary>
 public sealed class Invariant
 {
-    /// <summary>These BOOL tags must never all be TRUE at once ("the fill and drain valves are never both open").</summary>
+    /// <summary>
+    /// These BOOL tags (or probes) must never all be TRUE at once ("the fill and drain valves are never both
+    /// open"). One entry means it must never be TRUE at all (<c>@tank.overflow</c>).
+    /// </summary>
     public List<string> NeverAllTrue { get; set; } = [];
     public string? Says { get; set; }
 }
@@ -144,18 +154,29 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
         _ => [],
     };
 
+    /// <summary>One check a scenario made: when, what, what it expected, what it found.</summary>
+    public sealed record CheckResult(long AtMs, string Tag, PlcValue Expected, PlcValue Actual, bool Passed, string? Says);
+
     /// <summary>
     /// Runs one scenario again and records every input and output after each scan, so a failed test can be
     /// replayed and shown (spec 7.2 step 3). The program must be one that ran (no validation errors).
     /// </summary>
     public (ScenarioOutcome Outcome, TraceRecorder Trace) Replay(string challengeJson, string workJson, int scenarioIndex)
     {
+        var (outcome, trace, _, _) = ReplayFull(challengeJson, workJson, scenarioIndex);
+        return (outcome, trace);
+    }
+
+    private (ScenarioOutcome Outcome, TraceRecorder Trace, Scene Scene, List<CheckResult> Checks) ReplayFull(
+        string challengeJson, string workJson, int scenarioIndex)
+    {
         var challenge = LoadChallenge(challengeJson);
         var project = ProjectJson.Deserialize(workJson);
         var scene = Scene.Load(loadSceneJson(challenge.Scene));
         TraceRecorder? trace = null;
-        var outcome = RunScenario(project, scene, challenge.Scenarios[scenarioIndex], rt => trace = new TraceRecorder(rt));
-        return (outcome, trace!);
+        var checks = new List<CheckResult>();
+        var outcome = RunScenario(project, scene, challenge.Scenarios[scenarioIndex], rt => trace = new TraceRecorder(rt), checks);
+        return (outcome, trace!, scene, checks);
     }
 
     /// <summary>
@@ -168,16 +189,12 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
         var challenge = LoadChallenge(challengeJson);
         var scenario = challenge.Scenarios[scenarioIndex];
         var project = ProjectJson.Deserialize(workJson);
-        var scene = Scene.Load(loadSceneJson(challenge.Scene));
-        var (_, trace) = Replay(challengeJson, workJson, scenarioIndex);
+        var (_, trace, scene, checks) = ReplayFull(challengeJson, workJson, scenarioIndex);
         var outputs = project.Tags.Where(t => t.Io == IoDirection.Output).Select(t => t.Name).ToList();
 
         var moments = new List<(long Ms, int Order, string Text)>();
         foreach (var e in scenario.Events)
-        {
-            var label = scene.Find(e.Operate)?.Label ?? e.Operate;
-            moments.Add((Ms(e.T), 0, $"{label} {(e.Active ? "pressed" : "released")}"));
-        }
+            moments.Add((Ms(e.T), 0, ActionWords(scene, e.Operate, e.Active)));
         PlcValue[]? last = null;
         foreach (var f in trace.Frames)
         {
@@ -191,13 +208,8 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
             }
             last = [.. f.Values];
         }
-        foreach (var a in scenario.Assertions)
-        {
-            var actual = trace.ValueAt(a.Tag, Ms(a.At));
-            if (actual is null) continue;
-            var ok = PlcValue.TryParseLiteral(a.Expect, out var expected) && Same(actual.Value, expected);
-            moments.Add((Ms(a.At), 2, $"the test checks: {a.Tag} should be {Words(expected)}; it was {Words(actual.Value)} {(ok ? "✓" : "✗")}"));
-        }
+        foreach (var c in checks)
+            moments.Add((c.AtMs, 2, $"the test checks: {Name(scene, c.Tag)} should be {Words(c.Expected)}; it was {Words(c.Actual)} {(c.Passed ? "✓" : "✗")}"));
 
         // A test stops at its first failure: nothing after the last scan that ran is shown.
         var lastMs = trace.Frames.Count > 0 ? trace.Frames[^1].TimeMs : 0;
@@ -205,15 +217,48 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
             .Select(m => $"{(m.Ms / 1000.0).ToString("0.00", CultureInfo.InvariantCulture)} s: {m.Text}").ToList();
         if (lines.Count > maxLines)
         {
+            // Keep the end, where the failure is: the first lines, a gap, then the last ones.
             var more = lines.Count - maxLines;
-            lines = [.. lines.Take(maxLines), $"… {more} more {(more == 1 ? "line" : "lines")}"];
+            var head = maxLines / 2;
+            lines = [.. lines.Take(head), $"… {more} more {(more == 1 ? "line" : "lines")} …", .. lines.Skip(lines.Count - (maxLines - head))];
         }
         return lines;
     }
 
+    private static string ActionWords(Scene scene, string id, bool active)
+    {
+        var c = scene.Find(id);
+        var label = c?.Label ?? id;
+        return c switch
+        {
+            SelectorSwitch s => $"{label} switch turned to {(s.Positions.Count == 2 ? s.Positions[active ? 1 : 0] : active ? "On" : "Off")}",
+            SafetyEye => active ? $"something stepped into the {label} beam" : $"the {label} beam is clear again",
+            EmergencyStop => active ? $"{label} pressed (latched)" : $"{label} pulled out (released)",
+            _ => $"{label} {(active ? "pressed" : "released")}",
+        };
+    }
+
+    /// <summary>A tag, or a probe such as @tank.overflow, in words: "Tank overflow".</summary>
+    private static string Name(Scene scene, string tag)
+    {
+        if (!tag.StartsWith('@')) return tag;
+        var p = tag[1..];
+        var dot = p.IndexOf('.', StringComparison.Ordinal);
+        if (dot <= 0) return tag;
+        var label = scene.Find(p[..dot])?.Label ?? p[..dot];
+        return $"{label} {p[(dot + 1)..]}";
+    }
+
     private static string Words(PlcValue v) => v.Type == DataType.Bool ? (v.AsBool ? "on" : "off") : v.ToString();
 
-    private static ScenarioOutcome RunScenario(PlcProject project, Scene scene, Scenario scenario, Action<PlcRuntime>? attach)
+    /// <summary>Reads a PLC tag, or a probe of the machine itself (<c>@tank.overflow</c>).</summary>
+    private static PlcValue ReadAny(PlcRuntime runtime, Scene scene, string tag) =>
+        tag.StartsWith('@')
+            ? scene.Probe(tag) ?? throw new InvalidOperationException($"The scene has nothing called {tag}.")
+            : runtime.Read(tag);
+
+    private static ScenarioOutcome RunScenario(PlcProject project, Scene scene, Scenario scenario,
+        Action<PlcRuntime>? attach, List<CheckResult>? checks = null)
     {
         var runtime = new PlcRuntime(project, IecDialect.Instance, scene);
         attach?.Invoke(runtime);
@@ -243,9 +288,9 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
 
             foreach (var inv in scenario.Invariants)
             {
-                if (inv.NeverAllTrue.Count > 0 && inv.NeverAllTrue.All(tag => runtime.Read(tag).AsBool))
+                if (inv.NeverAllTrue.Count > 0 && inv.NeverAllTrue.All(tag => ReadAny(runtime, scene, tag).AsBool))
                 {
-                    failure = inv.Says ?? $"{string.Join(" and ", inv.NeverAllTrue)} must never all be on at once.";
+                    failure = inv.Says ?? $"{string.Join(" and ", inv.NeverAllTrue.Select(x => Name(scene, x)))} must never all be on at once.";
                     failedAt = t / 1000.0;
                     break;
                 }
@@ -254,10 +299,13 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
             while (failure is null && nextAssert < asserts.Count && Ms(asserts[nextAssert].At) <= t)
             {
                 var a = asserts[nextAssert++];
-                var actual = runtime.Read(a.Tag);
-                if (!PlcValue.TryParseLiteral(a.Expect, out var expected) || !Same(actual, expected))
+                var actual = ReadAny(runtime, scene, a.Tag);
+                var parsed = PlcValue.TryParseLiteral(a.Expect, out var expected);
+                var ok = parsed && Same(actual, expected, a.Tolerance);
+                checks?.Add(new CheckResult(Ms(a.At), a.Tag, expected, actual, ok, a.Says));
+                if (!ok)
                 {
-                    failure = (a.Says ?? $"{a.Tag} should be {a.Expect}.") + $" At {Seconds(a.At)} s it was {actual}.";
+                    failure = (a.Says ?? $"{Name(scene, a.Tag)} should be {a.Expect}.") + $" At {Seconds(a.At)} s it was {Words(actual)}.";
                     failedAt = a.At;
                 }
             }
@@ -275,9 +323,9 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
             scenario.Hidden ? null : failedAt);
     }
 
-    private static bool Same(PlcValue actual, PlcValue expected) =>
+    private static bool Same(PlcValue actual, PlcValue expected, double tolerance = 1e-6) =>
         expected.Type == DataType.Real || actual.Type == DataType.Real
-            ? Math.Abs(actual.AsReal - expected.AsReal) < 1e-6
+            ? Math.Abs(actual.AsReal - expected.AsReal) <= Math.Max(tolerance, 1e-6)
             : actual.AsLong == expected.AsLong;
 
     private static long Ms(double seconds) => (long)Math.Round(seconds * 1000);

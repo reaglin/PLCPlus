@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "name": "Traffic light (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Run",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Run switch"
+    },
+    {
+      "name": "Red",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Yellow",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Green",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "T1",
+      "type": "TON",
+      "comment": "green time"
+    },
+    {
+      "name": "T2",
+      "type": "TON",
+      "comment": "yellow time"
+    },
+    {
+      "name": "T3",
+      "type": "TON",
+      "comment": "red time"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Green time, 5 s. T3 finishing (end of red) restarts the cycle.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Run",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T3.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#5s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Yellow time, 2 s, after green.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T2",
+                "operands": {
+                  "PT": "T#2s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Red time, 5 s, after yellow.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "T2.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T3",
+                "operands": {
+                  "PT": "T#5s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Green while the green timer is running.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Run",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Green",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Yellow after green, until yellow time is up.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T2.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Yellow",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Red after yellow.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "T2.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Red",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

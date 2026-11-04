@@ -269,3 +269,6 @@ manual-test/
 
 # The release documents and Store screenshots (not a build folder)
 !docs/release/
+
+# The self-contained build for the instructors' review (tools/make-review-build)
+review/

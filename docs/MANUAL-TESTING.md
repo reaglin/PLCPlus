@@ -13,29 +13,31 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
-## Hand-test 0 — the first look (plan 0.4), 2026-11-04
+## Hand-test 2 — the preview for review (plan 2.1–2.11), 2026-11-04
 
-What it shows: the engine, one simulated machine and the grader. There are no lessons, editor or learners yet.
+This replaces hand-test 0: the one-machine window grew into the preview the instructors will review. It has six machines,
+each with a challenge and two programs. Do this before sending the preview out; `docs/INSTRUCTOR-REVIEW.md` is what the
+instructors read.
 
 | # | Do this | You should see |
 |---|---|---|
-| 0.1 | Open `manual-test\PLCPlus.exe` | The title bar says "PLC+ — first look at the engine"; the page heading "Motor start/stop — a first look", with the challenge in one sentence, the program's two rungs on the left, the machine in the middle and the help panel on the right. The clock counts up under "The PLC" |
-| 0.2 | Read the help panel | It says what the screen is for and what to do. Press **F1**: the panel hides; F1 again shows it |
-| 0.3 | Hold **Start** down with the mouse for a second, then let go | While held: the Start contact and the wires turn green and thick and show TRUE; the Motor coil turns on; the motor spins up ("starting", then "running"); the Running light comes on. After you let go, the motor keeps running, because the Motor contact below Start (the seal-in) now carries the power |
-| 0.4 | Press **Stop** | The Stop contact goes grey (FALSE), the motor coasts down and stops, and the light goes off. Stop is wired normally closed, so its input is TRUE until it is pressed |
-| 0.5 | Tab to **Start** and hold the **Space bar** | The motor starts, as with the mouse |
-| 0.6 | Press **Pause**, then **Step one scan** a few times. Then tick **Keep pressed: Start** and step again | The clock stops and moves on exactly 0.01 s per step; Step is greyed out while running, and its tooltip says why. With Start kept pressed, the next step turns the Motor coil on. Untick it before going on |
-| 0.7 | Press **Check this program** | Three lines: ✓ Start runs the motor…, ✓ Stop stops the motor, ✓ Hidden test 1, and "Passed: 3 of 3 points" (point at it to see the program's fingerprint). Press **Reset**: the results stay |
-| 0.8 | Choose **Without seal-in (fails a test)** in Program, then **Check this program** | ✗ on the first test: "The motor should keep running after Start is released. At 1 s it was FALSE." and Hint 1 of 3. Check again: Hint 2. Hold Start and let go: the motor stops when you let go |
-| 0.9 | **Help ▸ About PLC+…** | "Created by Dr. Ron Eaglin" with the picture, the version, and the links to softwareplus.ai. **The softwareplus.ai/plcplus page does not exist yet** (plan 11.4) |
-| 0.8a | (Added with phase 1.) With **Without seal-in** checked, scroll the results (mouse wheel, or Tab to them and use the arrow keys) | After the hint, "What happened in the test …", in plain words: 0.00 s Start pressed, Motor turned on; 0.10 s the test checks: Motor should be on; it was on ✓; 0.20 s Start released, Motor turned off; 1.00 s the test checks: Motor should be on; it was off ✗ |
-| 0.10 | Anything about the look, the words or the flow | Notes welcome: the instructors' review comes later, and this window is replaced by the real one |
-
----
+| 2.1 | Open `manual-test\PLCPlus.exe` | "PLC+ — preview for review": Challenge "Light the pilot lights", Program "Works", the task in one sentence, three rungs on the left, two buttons, a Mode switch and three lights on the right, the help panel (F1 hides and shows it) |
+| 2.2 | Hold **Button 1**; then hold both; turn **Mode** to Auto | Green on with Button 1; Amber only with both; Red goes off in Auto. Each light says ON or off beside it, and the rungs turn green and TRUE as power passes |
+| 2.3 | Open **What every part is doing** and **The wiring** | Every part's state in words; every tag with what it means (PB1 input, normally open, …) |
+| 2.4 | Choose **Run a traffic light**, turn **Run** on, watch for 15 s | Green 5 s, yellow 2 s, red 5 s, then green again; never two at once. The TON boxes show ET counting up and Q |
+| 2.5 | **Pause**, then **Step one scan** across the change from red to green | Red goes off and green comes on in the same scan; T1, T2 and T3 reset one scan after T3 finishes |
+| 2.6 | Choose **Open and close a garage door safely**. Tick **keep pressed** under Open, untick it; when the door is open, do the same with Close, and while it comes down choose **Step into the doorway** | The door rises to the top and stops (Top limit ON); it comes down; with someone in the doorway it stops and does not come down on them. The door's words say where it is and which way it is going |
+| 2.7 | Program **A common mistake**, then **Check this program** | 4 of 5 points. "Something in the doorway" failed: "the door must stop coming down. At 6.1 s it was on." A hint for that test (put EyeClear on the down rung), and what happened, moment by moment, ending in ✗ |
+| 2.8 | Choose **Fill and drain a tank**, turn **Mode** to Auto, watch 20 s | Fill valve OPEN until the high float, then the drain valve until below the low float, then filling again. The level shows inside the tank; the floats say liquid or dry |
+| 2.9 | Choose **Sort metal from plastic**; Tab to the Start button and hold the **Space bar** a moment | The belt runs (it keeps running: seal-in). M (metal) parts are pushed into Bin A at the photo-eye; P (plastic) parts ride on to Bin B. The counts show under each bin |
+| 2.10 | For each of the six challenges: **Works** → Check, then **A common mistake** → Check | Works passes every test; the mistake fails at least one test you can see, with a message and a hint that make sense to a student |
+| 2.11 | **Reset** after checking | The machine and clock start again; the test results stay |
+| 2.11a | Keyboard only: from the Challenge list, press Tab | The order is Program, the machine's Pause/Reset, the machine's buttons and switches, then the two lists under it, then Check this program; the help panel comes last |
+| 2.12 | Anything about the look, the words, the order of the challenges | Notes go back into the plan before the preview goes to the instructors |
 
 ## Hand-test 1 — the engine's reference programs (plan 1.11, 1.12), 2026-11-04
 
-Nothing to run: this is reading.
+Nothing to run: this is reading. (The Allen-Bradley comparison waits for the lab instructor.)
 
 | # | Do this | You should see |
 |---|---|---|

@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "name": "Pilot lights (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "PB1",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Button 1 (normally open)"
+    },
+    {
+      "name": "PB2",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Button 2 (normally open)"
+    },
+    {
+      "name": "Mode",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Selector: TRUE in Auto, FALSE in Manual"
+    },
+    {
+      "name": "Green",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Amber",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Red",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Green while Button 1 is pressed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "PB1",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Green",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Amber only while both buttons are pressed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "PB1",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "PB2",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Amber",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Red in Manual — but with a normally OPEN contact, so it lights in Auto instead.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Mode",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Red",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

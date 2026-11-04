@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "conveyor-sorter",
+  "title": "Conveyor sorter",
+  "description": "A conveyor carries metal and plastic parts past a proximity sensor (metal only) and a photo-eye (any part). A diverter can push a part off the belt into Bin A; the rest fall into Bin B at the end.",
+  "width": 460,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 20,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 130,
+      "y": 20
+    },
+    {
+      "type": "conveyor",
+      "id": "belt",
+      "label": "Conveyor",
+      "runTag": "BeltMotor",
+      "crossTimeMs": 10000,
+      "feedIntervalMs": 4000,
+      "feedPattern": [
+        "metal",
+        "plastic",
+        "metal",
+        "metal",
+        "plastic"
+      ],
+      "length": 380,
+      "endBinLabel": "Bin B",
+      "x": 30,
+      "y": 190
+    },
+    {
+      "type": "proximitySensor",
+      "id": "prox",
+      "label": "Metal sensor",
+      "tag": "Prox",
+      "conveyor": "belt",
+      "at": 0.3,
+      "zone": 0.03,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "photoEye",
+      "id": "eye",
+      "label": "Photo-eye",
+      "tag": "Eye",
+      "conveyor": "belt",
+      "at": 0.6,
+      "zone": 0.03,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "type": "diverter",
+      "id": "diverter",
+      "label": "Diverter",
+      "tag": "Divert",
+      "conveyor": "belt",
+      "at": 0.6,
+      "zone": 0.03,
+      "strokeTimeMs": 200,
+      "binLabel": "Bin A",
+      "x": 0,
+      "y": 0
+    }
+  ]
+}

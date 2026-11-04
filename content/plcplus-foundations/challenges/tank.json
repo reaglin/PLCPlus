@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "id": "u5.tank",
+  "title": "Fill and drain a tank",
+  "brief": "In Auto, fill the tank until the high float, then drain it until the liquid falls below the low float, then fill again, over and over. The two valves are never open together. Off closes both valves.",
+  "scene": "tank",
+  "constraints": {
+    "maxRungs": 10
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "The floats alone cannot tell filling from draining: between 20 % and 80 % the tank could be doing either. The program has to remember.",
+    "Use set and reset coils (latches) on memory tags: Filling and Draining.",
+    "Set Filling while LowFloat is FALSE (the low float is dry), reset it when HighFloat is TRUE. Do the opposite for Draining."
+  ],
+  "scenarios": [
+    {
+      "name": "Fills to the high float, then drains to the low",
+      "points": 1,
+      "durationSeconds": 15.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "auto",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "In Auto, a tank below the low float should start filling."
+        },
+        {
+          "at": 7.3,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "Filling should stop at the high float (80 %)."
+        },
+        {
+          "at": 7.3,
+          "tag": "DrainValve",
+          "expect": "TRUE",
+          "says": "Draining should start at the high float."
+        },
+        {
+          "at": 11.0,
+          "tag": "DrainValve",
+          "expect": "TRUE",
+          "says": "It should keep draining all the way down to the low float."
+        },
+        {
+          "at": 15.2,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "Below the low float (20 %), filling should start again."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "FillValve",
+            "DrainValve"
+          ],
+          "says": "The fill and drain valves must never be open together."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.overflow"
+          ],
+          "says": "The tank must never overflow."
+        }
+      ],
+      "hint": "The floats alone cannot tell filling from draining. Latch a Filling tag (set when LowFloat is FALSE, reset when HighFloat is TRUE) and a Draining tag (the opposite), and drive the valves from them."
+    },
+    {
+      "name": "Off closes both valves",
+      "points": 1,
+      "durationSeconds": 6.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "auto",
+          "active": true
+        },
+        {
+          "t": 3.0,
+          "operate": "auto",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 3.1,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "With the switch Off, the fill valve should close."
+        },
+        {
+          "at": 3.1,
+          "tag": "DrainValve",
+          "expect": "FALSE",
+          "says": "With the switch Off, the drain valve should close."
+        },
+        {
+          "at": 5.0,
+          "tag": "@tank.level",
+          "expect": "40.0",
+          "says": "The level should stay where it was when the switch was turned Off.",
+          "tolerance": 1.5
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "FillValve",
+            "DrainValve"
+          ],
+          "says": "The fill and drain valves must never be open together."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.overflow"
+          ],
+          "says": "The tank must never overflow."
+        }
+      ],
+      "hint": "Put a normally open contact of Auto on both valve rungs."
+    },
+    {
+      "name": "A minute without overflowing or running dry",
+      "points": 1,
+      "durationSeconds": 60.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "auto",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 59.0,
+          "tag": "@tank.empty",
+          "expect": "FALSE",
+          "says": "The tank should never run dry."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "FillValve",
+            "DrainValve"
+          ],
+          "says": "The fill and drain valves must never be open together."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.overflow"
+          ],
+          "says": "The tank must never overflow."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.empty"
+          ],
+          "says": "The tank must never run dry."
+        }
+      ],
+      "hidden": true
+    }
+  ]
+}

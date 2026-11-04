@@ -188,6 +188,6 @@ public class TraceTests
             "1.00 s: the test checks: Motor should be on; it was off ✗",
         ], lines);
         var cut = runner.Narrate(Content("challenges", "motor-start-stop.json"), Content("programs", "motor-no-seal-in.json"), 0, maxLines: 3);
-        Assert.Equal("… 5 more lines", cut[^1]);
+        Assert.Equal("… 5 more lines …", cut[1]);
     }
 }

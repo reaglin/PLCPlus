@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "name": "Tank fill and drain (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Auto",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Off/Auto switch: TRUE in Auto"
+    },
+    {
+      "name": "HighFloat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "TRUE when the liquid is at 80 % or above"
+    },
+    {
+      "name": "LowFloat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "TRUE when the liquid is at 20 % or above"
+    },
+    {
+      "name": "FillValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "DrainValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Filling",
+      "type": "BOOL",
+      "comment": "remembers that the tank is filling"
+    },
+    {
+      "name": "Draining",
+      "type": "BOOL",
+      "comment": "remembers that the tank is draining"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Fill whenever the liquid is below the high float — with nothing to remember which way it is going.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Auto",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "HighFloat",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "FillValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Drain whenever it is at the high float.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Auto",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "HighFloat",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "DrainValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

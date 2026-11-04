@@ -1,0 +1,274 @@
+{
+  "schemaVersion": 1,
+  "id": "u5.garage-door",
+  "title": "Open and close a garage door safely",
+  "brief": "Open runs the door up until the top limit switch. Close runs it down until the bottom limit switch. Stop stops it either way. While the door is moving one way, the other button does nothing (an interlock), and up and down are never on together. If something is in the doorway (the safety eye is blocked), the door must stop coming down. (A real opener also reverses; that comes in a later challenge.)",
+  "scene": "garage-door",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Each direction is a motor start/stop circuit: a seal-in contact in parallel with its button.",
+    "The limit switch for each direction stops it: a normally closed contact of the Top limit (tag OpenLimit) on the up rung, and of the Bottom limit (ClosedLimit) on the down rung.",
+    "The safety eye's tag, EyeClear, is TRUE while the doorway is clear. A normally open contact of it on the down rung breaks the circuit when something steps in."
+  ],
+  "scenarios": [
+    {
+      "name": "Open runs the door to the top",
+      "points": 1,
+      "durationSeconds": 5.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "open",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "MotorUp",
+          "expect": "TRUE",
+          "says": "The door should start going up when Open is pressed."
+        },
+        {
+          "at": 4.3,
+          "tag": "MotorUp",
+          "expect": "FALSE",
+          "says": "The motor should stop when the door reaches the top limit."
+        },
+        {
+          "at": 4.3,
+          "tag": "@door.open",
+          "expect": "TRUE",
+          "says": "The door should be fully open."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "MotorUp",
+            "MotorDown"
+          ],
+          "says": "The motor must never be told to go up and down at once: that shorts the reversing contactors."
+        }
+      ],
+      "hint": "The up rung needs a seal-in contact (MotorUp in parallel with Open) and a normally closed contact of the Top limit (OpenLimit) to stop at the top."
+    },
+    {
+      "name": "Close brings it back down",
+      "points": 1,
+      "durationSeconds": 10.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "open",
+          "active": false
+        },
+        {
+          "t": 5.0,
+          "operate": "close",
+          "active": true
+        },
+        {
+          "t": 5.2,
+          "operate": "close",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 5.1,
+          "tag": "MotorDown",
+          "expect": "TRUE",
+          "says": "The door should start going down when Close is pressed."
+        },
+        {
+          "at": 9.4,
+          "tag": "MotorDown",
+          "expect": "FALSE",
+          "says": "The motor should stop at the bottom limit."
+        },
+        {
+          "at": 9.4,
+          "tag": "@door.closed",
+          "expect": "TRUE",
+          "says": "The door should be fully closed."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "MotorUp",
+            "MotorDown"
+          ],
+          "says": "The motor must never be told to go up and down at once: that shorts the reversing contactors."
+        }
+      ],
+      "hint": "The down rung is the same shape as the up rung, with Close, MotorDown and the Bottom limit (ClosedLimit)."
+    },
+    {
+      "name": "Stop stops it",
+      "points": 1,
+      "durationSeconds": 3.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "open",
+          "active": false
+        },
+        {
+          "t": 2.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 2.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.1,
+          "tag": "MotorUp",
+          "expect": "FALSE",
+          "says": "Stop should stop the door."
+        },
+        {
+          "at": 3.0,
+          "tag": "MotorUp",
+          "expect": "FALSE",
+          "says": "The door should stay stopped after Stop is released."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "MotorUp",
+            "MotorDown"
+          ],
+          "says": "The motor must never be told to go up and down at once: that shorts the reversing contactors."
+        }
+      ],
+      "hint": "StopPB is TRUE until Stop is pressed: a normally open contact of it on each rung breaks the seal-in when Stop is pressed."
+    },
+    {
+      "name": "Something in the doorway",
+      "points": 1,
+      "durationSeconds": 10.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "open",
+          "active": false
+        },
+        {
+          "t": 5.0,
+          "operate": "close",
+          "active": true
+        },
+        {
+          "t": 5.2,
+          "operate": "close",
+          "active": false
+        },
+        {
+          "t": 6.0,
+          "operate": "eye",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 6.1,
+          "tag": "MotorDown",
+          "expect": "FALSE",
+          "says": "With something in the doorway, the door must stop coming down."
+        },
+        {
+          "at": 9.5,
+          "tag": "@door.hit",
+          "expect": "FALSE",
+          "says": "The door must never come down on what is in the doorway."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "MotorUp",
+            "MotorDown"
+          ],
+          "says": "The motor must never be told to go up and down at once: that shorts the reversing contactors."
+        }
+      ],
+      "hint": "EyeClear is TRUE while the doorway is clear. Put a normally open contact of it on the down rung, so a blocked beam breaks the circuit and drops the seal-in."
+    },
+    {
+      "name": "Close while it is opening",
+      "points": 1,
+      "durationSeconds": 5.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "open",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "close",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "close",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 4.5,
+          "tag": "@door.open",
+          "expect": "TRUE",
+          "says": "Close while opening should not stop the door or reverse it in this challenge."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "MotorUp",
+            "MotorDown"
+          ],
+          "says": "The motor must never be told to go up and down at once: that shorts the reversing contactors."
+        }
+      ],
+      "hidden": true
+    }
+  ]
+}

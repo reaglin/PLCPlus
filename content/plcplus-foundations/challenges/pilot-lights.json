@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "id": "u5.pilot-lights",
+  "title": "Light the pilot lights",
+  "brief": "Green is lit while Button 1 is pressed. Amber is lit only while Button 1 AND Button 2 are both pressed. Red is lit while the Mode switch is in Manual.",
+  "scene": "pilot-station",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Each light needs its own rung, with its coil at the right-hand end.",
+    "For AND, put two contacts one after the other (in series). Power must pass through both.",
+    "Mode is FALSE in Manual. Which kind of contact passes power when its tag is FALSE?"
+  ],
+  "scenarios": [
+    {
+      "name": "Button 1 lights green",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "pb1",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "pb1",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "Green",
+          "expect": "TRUE",
+          "says": "Green should be lit while Button 1 is pressed."
+        },
+        {
+          "at": 0.1,
+          "tag": "Amber",
+          "expect": "FALSE",
+          "says": "Amber should stay off with only one button pressed."
+        },
+        {
+          "at": 0.7,
+          "tag": "Green",
+          "expect": "FALSE",
+          "says": "Green should go off when Button 1 is released."
+        }
+      ],
+      "hint": "One normally open contact of PB1, then the Green coil."
+    },
+    {
+      "name": "Both buttons light amber",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "pb1",
+          "active": true
+        },
+        {
+          "t": 0,
+          "operate": "pb2",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "pb2",
+          "active": false
+        },
+        {
+          "t": 0.5,
+          "operate": "pb1",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "Amber",
+          "expect": "TRUE",
+          "says": "Amber should be lit while both buttons are pressed."
+        },
+        {
+          "at": 0.4,
+          "tag": "Amber",
+          "expect": "FALSE",
+          "says": "Amber should go off when Button 2 is released."
+        }
+      ],
+      "hint": "For AND, put two contacts one after the other (in series): PB1, then PB2, then the Amber coil."
+    },
+    {
+      "name": "Red shows Manual",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.3,
+          "operate": "mode",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "Red",
+          "expect": "TRUE",
+          "says": "Red should be lit with the Mode switch in Manual."
+        },
+        {
+          "at": 0.4,
+          "tag": "Red",
+          "expect": "FALSE",
+          "says": "Red should go off when the switch is turned to Auto."
+        }
+      ],
+      "hint": "Mode is FALSE in Manual. A normally closed contact passes power while its tag is FALSE."
+    },
+    {
+      "name": "Button 2 alone does nothing",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "pb2",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "pb2",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "Amber",
+          "expect": "FALSE",
+          "says": "Amber needs both buttons."
+        },
+        {
+          "at": 0.1,
+          "tag": "Green",
+          "expect": "FALSE",
+          "says": "Green belongs to Button 1."
+        }
+      ],
+      "hidden": true
+    }
+  ]
+}

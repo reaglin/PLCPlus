@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Plc.Engine;
@@ -15,19 +16,35 @@ public sealed class Scene : IVirtualIo
     public string Id { get; set; } = "";
     public string Title { get; set; } = "";
     public string? Description { get; set; }
+    /// <summary>The size of the drawing, in device-independent units.</summary>
+    public double Width { get; set; } = 440;
+    public double Height { get; set; } = 360;
     public List<SceneComponent> Components { get; set; } = [];
+    /// <summary>Wiring faults for troubleshooting lessons (spec 5.3): applied to inputs as the PLC reads them.</summary>
+    public List<WiringFault> WiringFaults { get; set; } = [];
 
     public SceneComponent? Find(string id) =>
         Components.FirstOrDefault(c => c.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+
+    public T? Find<T>(string? id) where T : SceneComponent => id is null ? null : Find(id) as T;
 
     /// <summary>The I/O list a learner is given: every tag the scene reads or drives.</summary>
     public IEnumerable<IoPoint> IoList => Components.SelectMany(c => c.Points);
 
     public PlcValue? ReadInput(string tag)
     {
+        var fault = WiringFaults.FirstOrDefault(f => f.Tag.Equals(tag, StringComparison.OrdinalIgnoreCase));
+        if (fault?.Kind == WiringFaultKind.SwappedWith && fault.Other is not null)
+            tag = fault.Other;
+        PlcValue? value = null;
         foreach (var c in Components)
-            if (c.ReadInput(tag) is { } v) return v;
-        return null;
+            if (c.ReadInput(tag) is { } v) { value = v; break; }
+        return fault?.Kind switch
+        {
+            WiringFaultKind.Open when value is not null => PlcValue.False,
+            WiringFaultKind.Shorted when value is not null => PlcValue.True,
+            _ => value,
+        };
     }
 
     public void WriteOutput(string tag, PlcValue value)
@@ -40,11 +57,23 @@ public sealed class Scene : IVirtualIo
         foreach (var c in Components) c.Advance(ms);
     }
 
-    /// <summary>Operates an operator input (press or release a push button, turn a switch).</summary>
+    /// <summary>Operates an operator input (press or release a push button, turn a switch, block a beam).</summary>
     public void Operate(string componentId, bool active)
     {
         if (Find(componentId) is IOperatorInput input) input.Operate(active);
         else throw new ArgumentException($"The scene has no button or switch called '{componentId}'.", nameof(componentId));
+    }
+
+    /// <summary>
+    /// Reads something about the machine itself, not a PLC tag: <c>@tank.level</c>, <c>@door.position</c>,
+    /// <c>@diverter.metal</c>. Tests use probes to check what the machine did ("the tank never overflowed").
+    /// </summary>
+    public PlcValue? Probe(string path)
+    {
+        var p = path.TrimStart('@');
+        var dot = p.IndexOf('.', StringComparison.Ordinal);
+        if (dot <= 0) return null;
+        return Find(p[..dot])?.Probe(p[(dot + 1)..].ToLowerInvariant());
     }
 
     public static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -54,10 +83,22 @@ public sealed class Scene : IVirtualIo
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    public static Scene Load(string json) =>
-        JsonSerializer.Deserialize<Scene>(json, JsonOptions) ?? throw new JsonException("The scene file is empty.");
+    public static Scene Load(string json)
+    {
+        var scene = JsonSerializer.Deserialize<Scene>(json, JsonOptions) ?? throw new JsonException("The scene file is empty.");
+        foreach (var c in scene.Components) c.Owner = scene;
+        return scene;
+    }
 
     public string Save() => JsonSerializer.Serialize(this, JsonOptions);
+
+    /// <summary>Adds a component made in code (tests), linking it to this scene.</summary>
+    public T Add<T>(T component) where T : SceneComponent
+    {
+        component.Owner = this;
+        Components.Add(component);
+        return component;
+    }
 }
 
 public enum IoKind { Input, Output }
@@ -65,16 +106,49 @@ public enum IoKind { Input, Output }
 /// <summary>One wire between the machine and the PLC: which tag, which way, and what it means.</summary>
 public sealed record IoPoint(string Tag, IoKind Kind, string Meaning);
 
-/// <summary>A button or switch a person (or a test scenario) operates.</summary>
+/// <summary>A button, switch or obstruction a person (or a test scenario) operates.</summary>
 public interface IOperatorInput
 {
     void Operate(bool active);
+    bool Active { get; }
+    /// <summary>True for a momentary push button (held down), false for something that stays where it is put.</summary>
+    bool Momentary { get; }
+}
+
+public enum WiringFaultKind
+{
+    /// <summary>A broken wire: the input always reads FALSE.</summary>
+    Open,
+    /// <summary>A short to the supply: the input always reads TRUE.</summary>
+    Shorted,
+    /// <summary>Two inputs wired to each other's terminals.</summary>
+    SwappedWith,
+}
+
+public sealed class WiringFault
+{
+    public string Tag { get; set; } = "";
+    public WiringFaultKind Kind { get; set; }
+    public string? Other { get; set; }
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(PushButton), "pushButton")]
+[JsonDerivedType(typeof(SelectorSwitch), "selectorSwitch")]
+[JsonDerivedType(typeof(EmergencyStop), "emergencyStop")]
 [JsonDerivedType(typeof(PilotLight), "pilotLight")]
+[JsonDerivedType(typeof(Horn), "horn")]
 [JsonDerivedType(typeof(Motor), "motor")]
+[JsonDerivedType(typeof(LimitSwitch), "limitSwitch")]
+[JsonDerivedType(typeof(FloatSwitch), "floatSwitch")]
+[JsonDerivedType(typeof(PhotoEye), "photoEye")]
+[JsonDerivedType(typeof(ProximitySensor), "proximitySensor")]
+[JsonDerivedType(typeof(SafetyEye), "safetyEye")]
+[JsonDerivedType(typeof(Tank), "tank")]
+[JsonDerivedType(typeof(SolenoidValve), "solenoidValve")]
+[JsonDerivedType(typeof(GarageDoor), "garageDoor")]
+[JsonDerivedType(typeof(Conveyor), "conveyor")]
+[JsonDerivedType(typeof(Diverter), "diverter")]
 public abstract class SceneComponent
 {
     public string Id { get; set; } = "";
@@ -83,98 +157,18 @@ public abstract class SceneComponent
     public double X { get; set; }
     public double Y { get; set; }
 
+    [JsonIgnore] public Scene? Owner { get; internal set; }
     [JsonIgnore] public abstract IEnumerable<IoPoint> Points { get; }
+
+    /// <summary>The component's state in words, for the scene view and screen readers ("Motor M1: running").</summary>
+    [JsonIgnore] public abstract string StateText { get; }
+
     public virtual PlcValue? ReadInput(string tag) => null;
     public virtual void WriteOutput(string tag, PlcValue value) { }
     public virtual void Advance(long ms) { }
+    /// <summary>A named property of the machine for tests (lower case), or null.</summary>
+    public virtual PlcValue? Probe(string property) => null;
 
-    protected static bool Is(string? a, string b) => a is not null && a.Equals(b, StringComparison.OrdinalIgnoreCase);
-}
-
-/// <summary>
-/// A momentary push button. A normally-closed button (a Stop button, wired for safety) sends TRUE
-/// while it is <em>not</em> pressed — so a broken wire stops the machine. Lessons teach this.
-/// </summary>
-public sealed class PushButton : SceneComponent, IOperatorInput
-{
-    public string Tag { get; set; } = "";
-    public bool NormallyClosed { get; set; }
-    public string Color { get; set; } = "green";
-    /// <summary>Fault injection: the contact is stuck open or closed whatever the button does.</summary>
-    public bool? StuckAt { get; set; }
-
-    [JsonIgnore] public bool Pressed { get; private set; }
-
-    public void Operate(bool active) => Pressed = active;
-
-    public override IEnumerable<IoPoint> Points =>
-        [new(Tag, IoKind.Input, NormallyClosed
-            ? $"{Label} push button (normally closed): TRUE while it is NOT pressed"
-            : $"{Label} push button (normally open): TRUE while it is pressed")];
-
-    public override PlcValue? ReadInput(string tag) =>
-        Is(tag, Tag) ? PlcValue.FromBool(StuckAt ?? (Pressed ^ NormallyClosed)) : null;
-}
-
-/// <summary>A pilot light, lit while its output is TRUE.</summary>
-public sealed class PilotLight : SceneComponent
-{
-    public string Tag { get; set; } = "";
-    public string Color { get; set; } = "green";
-
-    [JsonIgnore] public bool Lit { get; private set; }
-
-    public override IEnumerable<IoPoint> Points => [new(Tag, IoKind.Output, $"{Label} pilot light: lit while TRUE")];
-
-    public override void WriteOutput(string tag, PlcValue value)
-    {
-        if (Is(tag, Tag)) Lit = value.AsBool;
-    }
-}
-
-/// <summary>
-/// A motor on a contactor. The run output pulls the contactor in; the motor reaches speed after
-/// <see cref="StartTimeMs"/>, and an optional running feedback input reports it.
-/// </summary>
-public sealed class Motor : SceneComponent
-{
-    public string RunTag { get; set; } = "";
-    public string? RunningTag { get; set; }
-    public int StartTimeMs { get; set; } = 500;
-    /// <summary>Fault injection: the motor does not turn even when told to run.</summary>
-    public bool Failed { get; set; }
-
-    [JsonIgnore] public bool Commanded { get; private set; }
-    /// <summary>0 (stopped) to 1 (full speed).</summary>
-    [JsonIgnore] public double Speed { get; private set; }
-    [JsonIgnore] public bool Running => Speed >= 1;
-    /// <summary>The shaft angle in degrees, for the animation.</summary>
-    [JsonIgnore] public double Angle { get; private set; }
-
-    public override IEnumerable<IoPoint> Points
-    {
-        get
-        {
-            yield return new(RunTag, IoKind.Output, $"{Label}: runs while TRUE");
-            if (RunningTag is not null) yield return new(RunningTag, IoKind.Input, $"{Label} running feedback: TRUE once it is up to speed");
-        }
-    }
-
-    public override PlcValue? ReadInput(string tag) => Is(tag, RunningTag ?? "") ? PlcValue.FromBool(Running) : null;
-
-    public override void WriteOutput(string tag, PlcValue value)
-    {
-        if (Is(tag, RunTag)) Commanded = value.AsBool;
-    }
-
-    public override void Advance(long ms)
-    {
-        // Whole milliseconds, so speed reaches exactly 1 at StartTimeMs (no rounding drift).
-        var full = Math.Max(0, StartTimeMs);
-        _spinMs = Commanded && !Failed ? Math.Min(full, _spinMs + ms) : Math.Max(0, _spinMs - ms);
-        Speed = full == 0 ? (Commanded && !Failed ? 1 : 0) : (double)_spinMs / full;
-        Angle = (Angle + Speed * 0.72 * ms) % 360; // 2 turns a second at full speed
-    }
-
-    private long _spinMs;
+    protected static bool Is(string? a, string? b) => a is not null && b is not null && a.Equals(b, StringComparison.OrdinalIgnoreCase);
+    protected static string Pct(double fraction) => (fraction * 100).ToString("0", CultureInfo.InvariantCulture) + " %";
 }

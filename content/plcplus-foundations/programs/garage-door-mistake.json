@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "name": "Garage door (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "OpenPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Open button (normally open)"
+    },
+    {
+      "name": "ClosePB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Close button (normally open)"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed: TRUE until pressed)"
+    },
+    {
+      "name": "OpenLimit",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Top limit switch: TRUE when the door is fully open"
+    },
+    {
+      "name": "ClosedLimit",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Bottom limit switch: TRUE when the door is fully closed"
+    },
+    {
+      "name": "EyeClear",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Safety eye: TRUE while nothing is in the doorway"
+    },
+    {
+      "name": "MotorUp",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "MotorDown",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Open: seal in until the top limit or Stop. Never while going down (interlock).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "contact",
+                    "tag": "OpenPB",
+                    "contact": "normallyOpen"
+                  },
+                  {
+                    "kind": "contact",
+                    "tag": "MotorUp",
+                    "contact": "normallyOpen"
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "OpenLimit",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "contact",
+                "tag": "MotorDown",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "MotorUp",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Close: seal in until the bottom limit or Stop — but the safety eye is not checked.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "contact",
+                    "tag": "ClosePB",
+                    "contact": "normallyOpen"
+                  },
+                  {
+                    "kind": "contact",
+                    "tag": "MotorDown",
+                    "contact": "normallyOpen"
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "ClosedLimit",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "contact",
+                "tag": "MotorUp",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "MotorDown",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

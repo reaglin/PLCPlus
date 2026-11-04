@@ -41,7 +41,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 | 0.1 | Repo `PLCPlus`, `Directory.Build.props` (warnings as errors), `.gitignore`, `PLCPlus.slnx` with spec 11's project layout | ⚠️ Built 2026-11-04 |
 | 0.2 | `docs/SPECIFICATION.pdf` (Ron's spec), `docs/PLAN.md` (decisions), this plan, `docs/MANUAL-TESTING.md`, `CLAUDE.md` | ⚠️ 2026-11-04 |
 | 0.3 | Architecture test: `Learning.Core` references no `Plc.*` assembly (spec 12, NFR-5) | ⚠️ `Learning.Core.Tests`, 3 tests |
-| 0.4 | **First-look window** (`PLCPlus.exe`): the motor station live (hold Start, press Stop), the program's rungs with power flow shown in green, thick and TRUE, the simulated clock with Pause / Step one scan / Reset, and **Check this program**, which runs the challenge's tests and shows each result, with hints after a failure. Help panel (F1), Help ▸ About with "Created by Dr. Ron Eaglin" | ⚠️ **Ron: hand-test 0** in `docs/MANUAL-TESTING.md`. Photographed through PrintWindow: all 3 tests pass with the seal-in program. **UX: walkthrough + heuristics 2026-11-04, 3 major and 6 minor, fixed:** the replay in plain words with each check marked ✓/✗; the results get their own share of the window and scroll by keyboard; Keep pressed boxes for stepping with a button held; why Stop uses a normally open contact; the fingerprint moved to a tooltip; Reset keeps the results; access keys no longer clash; a clear message if the content folder is missing. Not done yet: Help on the web and the privacy link in About wait for the softwareplus.ai page (11.4) |
+| 0.4 | **First-look window** (`PLCPlus.exe`; became the review preview in phase 2): the motor station live (hold Start, press Stop), the program's rungs with power flow shown in green, thick and TRUE, the simulated clock with Pause / Step one scan / Reset, and **Check this program**, which runs the challenge's tests and shows each result, with hints after a failure. Help panel (F1), Help ▸ About with "Created by Dr. Ron Eaglin" | ⚠️ **Ron: hand-test 0** in `docs/MANUAL-TESTING.md`. Photographed through PrintWindow: all 3 tests pass with the seal-in program. **UX: walkthrough + heuristics 2026-11-04, 3 major and 6 minor, fixed:** the replay in plain words with each check marked ✓/✗; the results get their own share of the window and scroll by keyboard; Keep pressed boxes for stepping with a button held; why Stop uses a normally open contact; the fingerprint moved to a tooltip; Reset keeps the results; access keys no longer clash; a clear message if the content folder is missing. Not done yet: Help on the web and the privacy link in About wait for the softwareplus.ai page (11.4) |
 | 0.5 | GitHub repo `reaglin/PLCPlus`, pushed | ⚠️ Ron created it (public) 2026-11-04: https://github.com/reaglin/PLCPlus; pushed the same day |
 
 ---
@@ -61,15 +61,32 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 | 1.9 | Run to a breakpoint (a rung), and a trace recorder (tag values per scan) that the grader and the failure replay use | ⚠️ Built 2026-11-04: `SetBreakpoint` / `RunToBreakpoint` stop at the end of the first scan in which the rung passes power; `TraceRecorder` records any tags and writes a change log; the grader's `Replay` runs one scenario with a trace. The first-look window now shows, after a failed check, what happened in the first failed test. 5 tests |
 | 1.10 | Arrays and structures (spec 4.1); index-out-of-range fault | ⚠️ Built 2026-11-04: `ARRAY[lo..hi] OF t`, structures declared in the project (`types`), arrays of structures; indexes by literal or by an INT/DINT tag; the validator checks bounds, members and index types in words for a beginner. 12 tests |
 | 1.11 | Golden-file tests: a set of reference programs with their expected traces, checked into `tests/golden/` | ⚠️ Built 2026-11-04: **R01–R11** (seal-in, TON, TOF, TP, CTU, CTD, CTUD, latch and edges, compare and math, array and fault, timer cascade), written by `tools/make-golden-cases.py`; each trace checked by hand. Ron: read one or two `.trace.txt` files and say if the format is clear |
-| 1.12 | **Lab comparison:** the reference programs run on the lab's **Allen-Bradley** PLC and the traces compared (spec 4.5, the Phase 1 gate) | ⚠️ **Ready for the lab:** `docs/LAB-COMPARISON.md` has every program as Logix rung text, the instruction map with the differences (CTD's done bit, no TP, divide by zero, the fault codes to confirm), how to run it (a 10 ms periodic task, internal tags first, a Trend), and a results table. Ron / the lab: who runs it |
+| 1.12 | **Lab comparison** (waits for the lab instructor, Ron 2026-11-04): the reference programs run on the lab's **Allen-Bradley** PLC and the traces compared (spec 4.5, the Phase 1 gate) | ⚠️ **Ready for the lab:** `docs/LAB-COMPARISON.md` has every program as Logix rung text, the instruction map with the differences (CTD's done bit, no TP, divide by zero, the fault codes to confirm), how to run it (a 10 ms periodic task, internal tags first, a Trend), and a results table. Ron / the lab: who runs it |
 | 1.13 | Instruction presentation: each instruction's symbol and operand layout for the editor, and the lesson it links to | With phase 3 |
 
 ---
 
-## Phase 2 — simulation scenes (FR-3; spec 5.3)
+## Phase 2 — simulation scenes (FR-3; spec 5.3) ⚠️ built 2026-11-04 — the preview for the instructors' review
+
+Each scene has a challenge, a program that works and a program with a common mistake, all in
+`content/plcplus-foundations/` (written by `tools/make-phase2-content.py`). Tests prove every working program passes every
+test and every mistake fails a test the learner can see.
 
 | # | Task | Done when |
 |---|---|---|
+| 2.1 | The scene format (JSON): components, layout, physics parameters, I/O map to tags; physics on the engine's clock in whole milliseconds; probes (`@tank.overflow`, `@door.position`, `@diverter.metal`) so tests can check what the machine itself did | ⚠️ Built 2026-11-04 |
+| 2.2 | Scene 1: **pilot light and push-button station** — challenge "Light the pilot lights" (AND in series, a normally closed contact for Manual) | ⚠️ Built 2026-11-04 |
+| 2.3 | Scene 2: **motor start/stop with seal-in** | ⚠️ Built 2026-11-04 |
+| 2.4 | Scene 3: **traffic light** — "Run a traffic light" (three TONs in a chain; never two lights at once) | ⚠️ Built 2026-11-04 |
+| 2.5 | Scene 4: **garage door** — "Open and close a garage door safely" (reversing motor, top and bottom limit switches, safety eye, interlock; the door records a conflict or coming down on something) | ⚠️ Built 2026-11-04 |
+| 2.6 | Scene 5: **tank fill and drain** — "Fill and drain a tank" (float switches at 20 % and 80 %, fill and drain valves, latched Filling/Draining memory; never overflows, never both valves) | ⚠️ Built 2026-11-04 |
+| 2.7 | Scene 6: **conveyor sorter** — "Sort metal from plastic" (a feeder with a fixed pattern of parts, a metal sensor, a photo-eye, a diverter into Bin A; the program must remember what the sensor saw) | ⚠️ Built 2026-11-04 |
+| 2.8 | The component library | ⚠️ Built: push button, selector switch, emergency stop, pilot light, horn, motor, solenoid valve, tank, float switch, garage door, limit switch, safety eye, conveyor (with its feeder), photo-eye, proximity sensor, diverter. **Still to come:** thumbwheel, analog sensors and numeric display (with analog I/O, Unit 9), cylinder, heater, pump, stack light, elevator car |
+| 2.9 | The scene view: draws any scene from its file and animates it, with buttons operable by keyboard and screen reader | ⚠️ Built 2026-11-04 (`SceneView`): every control is a real button or switch; every part says its state in words beside it and in "What every part is doing"; "The wiring" lists each tag and what it means. **UX: walkthrough + heuristics 2026-11-04, 0 critical, 3 major and 6 minor, fixed:** Alt+C clash; the garage door's brief states the interlock its hidden test checks; the state list changes only lines that changed (screen readers keep their place); each test has its own hint; the tank's switch is "Mode: Off/Auto"; toggles keep a fixed screen-reader name; hints name the controls as drawn; push-button tooltips mention the Space bar; Tab order follows the screen; picking a program starts the clock again. The garage door only stops (a real opener also reverses): said in the brief and in the review guide |
+| 2.10 | Fault injection: a stuck sensor, a failed motor, a wiring error | ⚠️ Built: stuck buttons, switches and sensors, a failed motor or valve, and wiring faults (open wire, short, two inputs swapped). Used by the troubleshooting unit (11); no scene uses them yet |
+| 2.11 | **Instructors' review** of the preview: the flow, the six challenges, the wording | ⚠️ Ron: hand-test 2, then send the review build to the PLC instructors: `review\PLCPlus-preview-2026-11-04.zip` (63 MB; self-contained, needs no .NET; unzip and open PLCPlus.exe; the guide `INSTRUCTOR-REVIEW.md` is inside). Their notes become plan items |
+
+---|---|---|
 | 2.1 | The scene format (JSON): components, layout, physics parameters, I/O map to tags; physics on the engine's clock | ⚠️ Built 2026-11-04 for push buttons, pilot lights and motors |
 | 2.2 | Scene 1: **pilot light and push-button station** | |
 | 2.3 | Scene 2: **motor start/stop with seal-in** | ⚠️ `motor-station.json` (the first-look scene) |
@@ -252,6 +269,7 @@ connection). No research analytics: the grant does not require research on outco
 - `docs/PLAN.md` — decisions D1–D19 and how the engine and grader work
 - `docs/MANUAL-TESTING.md` — Ron's hand-tests and the hand-test build command
 - `docs/LAB-COMPARISON.md` — running the reference programs on the lab's Allen-Bradley PLC (1.12)
+- `docs/INSTRUCTOR-REVIEW.md` — the guide for the PLC instructors reviewing the preview (2.11)
 - `tests/golden/` — the reference programs R01–R11 and their expected traces (1.11)
 - `docs/images/architecture.png` — the architecture diagram from the spec
 - `content/plcplus-foundations/` — the first scene, challenge and example programs

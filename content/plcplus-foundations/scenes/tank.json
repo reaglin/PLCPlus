@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "id": "tank",
+  "title": "Tank fill and drain",
+  "description": "A tank with a fill valve, a drain valve, a low float switch at 20 % and a high float switch at 80 %, and an Off/Auto switch.",
+  "width": 440,
+  "height": 340,
+  "components": [
+    {
+      "type": "selectorSwitch",
+      "id": "auto",
+      "label": "Mode",
+      "tag": "Auto",
+      "positions": [
+        "Off",
+        "Auto"
+      ],
+      "x": 20,
+      "y": 40
+    },
+    {
+      "type": "solenoidValve",
+      "id": "fill",
+      "label": "Fill valve",
+      "tag": "FillValve",
+      "tank": "tank",
+      "inlet": true,
+      "ratePercentPerSecond": 10,
+      "x": 190,
+      "y": 10
+    },
+    {
+      "type": "tank",
+      "id": "tank",
+      "label": "Tank",
+      "initialLevelPercent": 10,
+      "x": 180,
+      "y": 60,
+      "width": 120,
+      "height": 200
+    },
+    {
+      "type": "solenoidValve",
+      "id": "drain",
+      "label": "Drain valve",
+      "tag": "DrainValve",
+      "tank": "tank",
+      "inlet": false,
+      "ratePercentPerSecond": 8,
+      "x": 190,
+      "y": 280
+    },
+    {
+      "type": "floatSwitch",
+      "id": "high",
+      "label": "High float (80 %)",
+      "tag": "HighFloat",
+      "tank": "tank",
+      "levelPercent": 80,
+      "x": 315,
+      "y": 90
+    },
+    {
+      "type": "floatSwitch",
+      "id": "low",
+      "label": "Low float (20 %)",
+      "tag": "LowFloat",
+      "tank": "tank",
+      "levelPercent": 20,
+      "x": 315,
+      "y": 210
+    }
+  ]
+}

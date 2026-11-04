@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "name": "Conveyor sorter (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button (normally open)"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed)"
+    },
+    {
+      "name": "Prox",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Metal sensor at 30 % of the belt: TRUE while a metal part is in front of it"
+    },
+    {
+      "name": "Eye",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Photo-eye at the diverter: TRUE while any part is in front of it"
+    },
+    {
+      "name": "BeltMotor",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Divert",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "MetalSeen",
+      "type": "BOOL",
+      "comment": "remembers that the part on its way is metal"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Start/stop the belt with a seal-in.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "contact",
+                    "tag": "StartPB",
+                    "contact": "normallyOpen"
+                  },
+                  {
+                    "kind": "contact",
+                    "tag": "BeltMotor",
+                    "contact": "normallyOpen"
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "BeltMotor",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The metal sensor sees a metal part: remember it.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Prox",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "MetalSeen",
+                "coil": "set"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "A remembered metal part reaches the eye: push it into Bin A.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Eye",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "MetalSeen",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Divert",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "When the part leaves the eye, forget it.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Eye",
+                "contact": "negativeEdge"
+              },
+              {
+                "kind": "coil",
+                "tag": "MetalSeen",
+                "coil": "reset"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

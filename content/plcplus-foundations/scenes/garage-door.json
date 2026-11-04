@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "id": "garage-door",
+  "title": "Garage door",
+  "description": "A door driven up and down by a reversing motor, limit switches at the top and bottom, a safety eye across the doorway, and Open, Close and Stop buttons.",
+  "width": 500,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "open",
+      "label": "Open",
+      "tag": "OpenPB",
+      "color": "green",
+      "x": 20,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "close",
+      "label": "Close",
+      "tag": "ClosePB",
+      "color": "green",
+      "x": 20,
+      "y": 110
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 20,
+      "y": 200
+    },
+    {
+      "type": "garageDoor",
+      "id": "door",
+      "label": "Door",
+      "upTag": "MotorUp",
+      "downTag": "MotorDown",
+      "travelTimeMs": 4000,
+      "initialPosition": 0,
+      "safetyEye": "eye",
+      "x": 200,
+      "y": 30,
+      "width": 160,
+      "height": 160
+    },
+    {
+      "type": "limitSwitch",
+      "id": "toplimit",
+      "label": "Top limit",
+      "tag": "OpenLimit",
+      "door": "door",
+      "at": "open",
+      "x": 370,
+      "y": 30
+    },
+    {
+      "type": "limitSwitch",
+      "id": "bottomlimit",
+      "label": "Bottom limit",
+      "tag": "ClosedLimit",
+      "door": "door",
+      "at": "closed",
+      "x": 370,
+      "y": 170
+    },
+    {
+      "type": "safetyEye",
+      "id": "eye",
+      "label": "Safety eye",
+      "tag": "EyeClear",
+      "x": 200,
+      "y": 240
+    }
+  ]
+}

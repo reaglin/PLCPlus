@@ -80,7 +80,7 @@ public class GradingTests
         Assert.False(first.Passed);
         Assert.Equal(1.0, first.FailedAtSeconds);
         Assert.Contains("keep running after Start is released", first.Failure, StringComparison.Ordinal);
-        Assert.Contains("FALSE", first.Failure, StringComparison.Ordinal);
+        Assert.Contains("it was off", first.Failure, StringComparison.Ordinal);
     }
 
     [Fact]

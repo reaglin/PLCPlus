@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "pilot-station",
+  "title": "Pilot light and push-button station",
+  "description": "Two push buttons and a Manual/Auto selector switch wired to the PLC's inputs; three pilot lights on its outputs.",
+  "width": 440,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "pb1",
+      "label": "Button 1",
+      "tag": "PB1",
+      "color": "green",
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "pb2",
+      "label": "Button 2",
+      "tag": "PB2",
+      "color": "green",
+      "x": 30,
+      "y": 120
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "mode",
+      "label": "Mode",
+      "tag": "Mode",
+      "positions": [
+        "Manual",
+        "Auto"
+      ],
+      "x": 30,
+      "y": 220
+    },
+    {
+      "type": "pilotLight",
+      "id": "green",
+      "label": "Green",
+      "tag": "Green",
+      "color": "green",
+      "x": 250,
+      "y": 30
+    },
+    {
+      "type": "pilotLight",
+      "id": "amber",
+      "label": "Amber",
+      "tag": "Amber",
+      "color": "amber",
+      "x": 250,
+      "y": 120
+    },
+    {
+      "type": "pilotLight",
+      "id": "red",
+      "label": "Red",
+      "tag": "Red",
+      "color": "red",
+      "x": 250,
+      "y": 220
+    }
+  ]
+}

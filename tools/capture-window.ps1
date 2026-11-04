@@ -7,7 +7,11 @@ param(
     # Names of buttons to press first, through UI Automation (never synthetic input).
     [string[]]$Invoke = @(),
     # "Combo name=Item text": chooses an item in a drop-down first, through UI Automation.
-    [string[]]$Select = @()
+    [string[]]$Select = @(),
+    # Names of check boxes or toggle buttons to switch, through UI Automation, after -Select.
+    [string[]]$Toggle = @(),
+    # How long to let the window run after the clicks, before the picture.
+    [int]$SettleMs = 300
 )
 
 Add-Type -AssemblyName System.Drawing
@@ -73,6 +77,13 @@ foreach ($pair in $Select) {
     $combo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Collapse()
     Start-Sleep -Milliseconds 500
 }
+foreach ($name in $Toggle) {
+    $cond = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
+    $el = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $cond)
+    if ($el) { $el.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern).Toggle(); Write-Output "toggled '$name'" }
+    else { Write-Output "NOT FOUND toggle '$name'" }
+    Start-Sleep -Milliseconds 300
+}
 if ($Invoke.Count -gt 0) {
     foreach ($name in $Invoke) {
         $cond = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
@@ -82,8 +93,7 @@ if ($Invoke.Count -gt 0) {
         Start-Sleep -Milliseconds 700
     }
 }
-Start-Sleep -Milliseconds 300
-
+Start-Sleep -Milliseconds $SettleMs
 $r = New-Object Win+RECT
 [Win]::GetWindowRect($h, [ref]$r) | Out-Null
 $w = $r.Right - $r.Left

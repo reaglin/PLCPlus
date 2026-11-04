@@ -1,7 +1,7 @@
 <Window x:Class="Learning.Shell.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PLC+ — first look at the engine" Width="1180" Height="860" MinWidth="900" MinHeight="600"
+        Title="PLC+ — preview for review" Width="1400" Height="900" MinWidth="1000" MinHeight="620"
         Background="{DynamicResource PageBrush}" Foreground="{DynamicResource InkBrush}"
         FontFamily="Segoe UI" FontSize="14" WindowStartupLocation="CenterScreen">
     <Window.InputBindings>
@@ -11,8 +11,8 @@
         <CommandBinding Command="ApplicationCommands.Help" Executed="Help_Executed" />
     </Window.CommandBindings>
 
-    <DockPanel>
-        <Menu DockPanel.Dock="Top" Padding="4,2">
+    <DockPanel KeyboardNavigation.TabNavigation="Local">
+        <Menu DockPanel.Dock="Top" Padding="4,2" KeyboardNavigation.TabIndex="0">
             <MenuItem Header="_File">
                 <MenuItem Header="E_xit" Click="Exit_Click" ToolTip="Closes PLC+" />
             </MenuItem>
@@ -30,34 +30,36 @@
         </Border>
 
         <!-- Help panel (F1). -->
-        <Border x:Name="HelpPanel" DockPanel.Dock="Right" Width="300" Background="{DynamicResource PanelBrush}"
+        <Border x:Name="HelpPanel" DockPanel.Dock="Right" Width="290" KeyboardNavigation.TabIndex="2" Background="{DynamicResource PanelBrush}"
                 BorderBrush="{DynamicResource LineBrush}" BorderThickness="1,0,0,0" Padding="16,14">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <TextBlock Text="How to use this screen" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
                     <TextBlock Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}">
-                        This is an early preview of PLC+. It shows the parts that already work: the PLC engine, a simulated machine, and the grader.
-                        The lessons, the ladder editor and your saved progress come later.
+                        A preview of PLC+ for review. It has six simulated machines, each with a challenge, and for each one a program that works and a program with a common mistake.
+                        Lessons, the ladder editor (to write your own programs) and saved progress come later.
                     </TextBlock>
-                    <TextBlock Text="1. Watch the program run" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Text="1. Choose a challenge" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        The left side shows the program as ladder rungs. Power flows from the left rail to the right.
-                        A part that passes power is drawn green and thick, and shows TRUE; one that does not is grey and thin, and shows FALSE.
+                        Challenge (at the top) picks the machine and its task. Program picks the program the PLC runs: the one that works, or the one with a common mistake.
                     </TextBlock>
-                    <TextBlock Text="2. Work the machine" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Text="2. Watch the program run" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Hold down Start (click and hold, or Tab to it and hold the Space bar). The motor starts. Let go: with the seal-in program it keeps running.
-                        Press Stop to stop it. The Stop button is wired normally closed, so its input is TRUE until you press it — a broken wire stops the machine, which is safer.
+                        The rungs on the left run live. Power flows from the left rail to the right. A part that passes power is green and thick and shows TRUE; one that does not is grey and thin and shows FALSE.
                     </TextBlock>
-                    <TextBlock Text="3. Check the program" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Text="3. Work the machine" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Check this program runs the challenge's tests — press buttons at set times and look at the motor — much faster than real time.
-                        Choose "Without seal-in" above the rungs to see how a failing test is reported, and the hint you get.
+                        Hold a push button down to press it (or Tab to it and hold the Space bar). Switches stay where you turn them. Each part says what it is doing in words; "What every part is doing" lists them all.
+                        A Stop button is wired normally closed: its input is TRUE until you press it, so a broken wire stops the machine.
+                    </TextBlock>
+                    <TextBlock Text="4. Check the program" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Style="{StaticResource Lead}">
+                        Check this program runs the challenge's tests — buttons pressed at set times, the machine watched — much faster than real time. A failed test says what should have happened, and when, and replays what did.
                     </TextBlock>
                     <TextBlock Text="The clock" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        The PLC runs on a simulated clock: every scan moves it on by exactly 10 ms. That is why a program and a test always give the same result.
-                        Pause stops the clock; Step one scan runs one scan; Reset starts again from power-up (your test results stay). To press Start or Stop while stepping, tick Keep pressed.
+                        The PLC runs on a simulated clock: every scan moves it on by exactly 10 ms, so a program and a test always give the same result.
+                        Pause stops the clock; Step one scan runs one scan; Reset starts again from power-up (your test results stay). To press a button while stepping, tick its "keep pressed" box.
                     </TextBlock>
                     <Button Content="Hide help" HorizontalAlignment="Left" Click="Help_Executed" Margin="0,8,0,0"
                             ToolTip="Hides this panel. Press F1 or use Help ▸ Help for this screen to show it again." />
@@ -65,31 +67,36 @@
             </ScrollViewer>
         </Border>
 
-        <Grid Margin="16,12,16,12">
+        <Grid Margin="16,10,16,12" KeyboardNavigation.TabIndex="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="3*" MinHeight="300" />
-                <RowDefinition Height="2*" MinHeight="140" />
+                <RowDefinition Height="3*" MinHeight="330" />
+                <RowDefinition Height="1.4*" MinHeight="130" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.ColumnSpan="2" Margin="0,0,0,8">
-                <TextBlock Text="Motor start/stop — a first look" Style="{StaticResource SectionTitle}" AutomationProperties.HeadingLevel="Level1" />
-                <TextBlock x:Name="BriefText" Style="{StaticResource Lead}" />
+                <WrapPanel Margin="0,0,0,6">
+                    <Label Content="Chall_enge:" Target="{Binding ElementName=ChallengePicker}" Padding="0,0,8,0" VerticalAlignment="Center" />
+                    <ComboBox x:Name="ChallengePicker" Width="330" SelectionChanged="ChallengePicker_SelectionChanged" Margin="0,0,20,0"
+                              AutomationProperties.Name="Challenge"
+                              ToolTip="Which machine and task. Choosing another one loads its machine, its programs and its tests." />
+                    <Label Content="_Program:" Target="{Binding ElementName=ProgramPicker}" Padding="0,0,8,0" VerticalAlignment="Center" />
+                    <ComboBox x:Name="ProgramPicker" Width="220" SelectionChanged="ProgramPicker_SelectionChanged"
+                              AutomationProperties.Name="Program"
+                              ToolTip="Which program the PLC runs: the one that works, or one with a common mistake. Choosing another one resets the PLC and the machine." />
+                </WrapPanel>
+                <TextBlock x:Name="TitleText" Style="{StaticResource SectionTitle}" AutomationProperties.HeadingLevel="Level1" />
+                <TextBlock x:Name="BriefText" Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}" />
             </StackPanel>
 
             <!-- The program -->
             <Border Grid.Row="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="12" Margin="0,0,12,0">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
-                        <Label Content="_Program:" Target="{Binding ElementName=ProgramPicker}" Padding="0,0,8,0" VerticalAlignment="Center" />
-                        <ComboBox x:Name="ProgramPicker" Width="300" SelectionChanged="ProgramPicker_SelectionChanged"
-                                  AutomationProperties.Name="Program"
-                                  ToolTip="Which program the PLC runs. Choosing another one resets the PLC and the machine." />
-                    </StackPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="The program" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
                     <TextBlock DockPanel.Dock="Top" x:Name="ProgramNote" Style="{StaticResource Lead}" />
                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Focusable="False">
                         <Canvas x:Name="LadderCanvas" AutomationProperties.Name="Ladder program, live" />
@@ -98,60 +105,40 @@
             </Border>
 
             <!-- The machine -->
-            <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="12">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
-                <StackPanel>
-                    <TextBlock Text="The machine" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
-                    <TextBlock Style="{StaticResource Lead}" Text="Hold a button down to press it; let go to release it." />
-                    <StackPanel Orientation="Horizontal" Margin="0,4,0,12">
-                        <Button x:Name="StartButton" Content="Start" Width="96" Height="56" FontSize="16" FontWeight="SemiBold"
-                                Background="#2E8B47" Foreground="White"
-                                AutomationProperties.HelpText="Start push button, normally open. Hold it down to press it."
-                                ToolTip="Start push button (normally open): its input is TRUE while you hold it down" />
-                        <Button x:Name="StopButton" Content="Stop" Width="96" Height="56" FontSize="16" FontWeight="SemiBold"
-                                Background="#B3261E" Foreground="White"
-                                AutomationProperties.HelpText="Stop push button, normally closed. Hold it down to press it."
-                                ToolTip="Stop push button (normally closed): its input is TRUE until you press it" />
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <Ellipse x:Name="LightLamp" Width="28" Height="28" Stroke="{DynamicResource InkBrush}" StrokeThickness="1.5" Margin="0,0,10,0" />
-                        <TextBlock x:Name="LightText" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <Canvas Width="56" Height="56" Margin="0,0,10,0">
-                            <Ellipse Width="56" Height="56" Fill="#DDE3EA" Stroke="{DynamicResource InkBrush}" StrokeThickness="1.5" />
-                            <Rectangle x:Name="MotorShaft" Canvas.Left="25" Canvas.Top="6" Width="6" Height="44" Fill="{DynamicResource InkBrush}"
-                                       RenderTransformOrigin="0.5,0.5">
-                                <Rectangle.RenderTransform>
-                                    <RotateTransform x:Name="MotorRotation" />
-                                </Rectangle.RenderTransform>
-                            </Rectangle>
-                        </Canvas>
-                        <TextBlock x:Name="MotorText" VerticalAlignment="Center" TextWrapping="Wrap" Width="190" AutomationProperties.LiveSetting="Polite" />
-                    </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <TextBlock Text="Keep pressed:" VerticalAlignment="Center" Margin="0,0,8,0" />
-                        <CheckBox x:Name="HoldStart" Content="Star_t" Margin="0,0,12,0" VerticalAlignment="Center"
-                                  ToolTip="While ticked, Start stays pressed, so you can watch it scan by scan with Pause and Step one scan" />
-                        <CheckBox x:Name="HoldStop" Content="St_op" VerticalAlignment="Center"
-                                  ToolTip="While ticked, Stop stays pressed (its input reads FALSE)" />
-                    </StackPanel>
-
-                    <TextBlock Text="The PLC" Style="{StaticResource PanelTitle}" Margin="0,10,0,4" AutomationProperties.HeadingLevel="Level2" />
-                    <TextBlock x:Name="ClockText" Margin="0,0,0,8" />
-                    <WrapPanel>
-                        <Button x:Name="PauseButton" Content="P_ause" Click="Pause_Click" Margin="0,0,8,8"
-                                ToolTip="Stops the simulated clock. The program and the machine stay as they are." />
-                        <Button x:Name="StepButton" Content="Step one _scan" Click="Step_Click" Margin="0,0,8,8" IsEnabled="False"
-                                ToolTip="Runs exactly one scan (10 ms). Available while paused." />
-                        <Button Content="_Reset" Click="Reset_Click" Margin="0,0,8,8"
-                                ToolTip="Starts again from power-up: every tag off, the motor stopped, the clock at 0." />
-                    </WrapPanel>
-                </StackPanel>
-                </ScrollViewer>
+            <Border Grid.Row="1" Grid.Column="1" Width="545" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="12">
+                <DockPanel KeyboardNavigation.TabNavigation="Local">
+                    <TextBlock DockPanel.Dock="Top" x:Name="SceneTitle" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6" KeyboardNavigation.TabIndex="0">
+                        <WrapPanel DockPanel.Dock="Right">
+                            <Button x:Name="PauseButton" Content="P_ause" Click="Pause_Click" Margin="0,0,6,0"
+                                    ToolTip="Stops the simulated clock. The program and the machine stay as they are." />
+                            <Button x:Name="StepButton" Content="Step one _scan" Click="Step_Click" Margin="0,0,6,0" IsEnabled="False"
+                                    ToolTip="Runs exactly one scan (10 ms). Available while paused: press Pause first." />
+                            <Button Content="_Reset" Click="Reset_Click" Margin="0"
+                                    ToolTip="Starts again from power-up: every tag off, the machine as it began, the clock at 0. Your test results stay." />
+                        </WrapPanel>
+                        <TextBlock x:Name="ClockText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" />
+                    </DockPanel>
+                    <Expander DockPanel.Dock="Bottom" Header="_The wiring: which tag is which" Margin="0,6,0,0" KeyboardNavigation.TabIndex="3"
+                              ToolTip="Every input and output tag of this machine, and what it means">
+                        <ItemsControl x:Name="WiringList" Margin="18,4,0,0" AutomationProperties.Name="The wiring">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,2" /></DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Expander>
+                    <Expander DockPanel.Dock="Bottom" Header="_What every part is doing" Margin="0,6,0,0" KeyboardNavigation.TabIndex="2"
+                              ToolTip="Each part of the machine and its state, in words">
+                        <ItemsControl x:Name="StateList" Margin="18,4,0,0" AutomationProperties.Name="What every part of the machine is doing">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,2" /></DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Expander>
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Focusable="False" KeyboardNavigation.TabIndex="1">
+                        <Canvas x:Name="SceneCanvas" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    </ScrollViewer>
+                </DockPanel>
             </Border>
 
             <!-- The grader -->
@@ -164,13 +151,13 @@
                     </StackPanel>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" IsTabStop="True" AutomationProperties.Name="Test results; use the arrow keys to scroll"
                                   ToolTip="The test results. Scroll to read them all (arrow keys or the mouse wheel)">
-                    <ItemsControl x:Name="ResultsList" AutomationProperties.Name="Test results" MinHeight="70" Focusable="False">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,4" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        <ItemsControl x:Name="ResultsList" AutomationProperties.Name="Test results" MinHeight="60" Focusable="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,4" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
