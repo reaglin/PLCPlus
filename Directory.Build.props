@@ -1,6 +1,6 @@
 <Project>
 
-  <!-- Shared settings for PLC Plus (src/, tests/, later packaging/). -->
+  <!-- Shared settings for PLC+ (src/, tests/, later packaging/). -->
 
   <PropertyGroup>
     <!-- One version property; the MSIX identity version will be read from it. -->
@@ -21,7 +21,7 @@
 
   <PropertyGroup>
     <Company>Ron Eaglin</Company>
-    <Product>PLC Plus</Product>
+    <Product>PLC+</Product>
     <Copyright>Copyright © Ron Eaglin</Copyright>
     <RepositoryUrl>https://github.com/reaglin/PLCPlus</RepositoryUrl>
   </PropertyGroup>

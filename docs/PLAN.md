@@ -1,10 +1,10 @@
-# PLC Plus — the plan: decisions and why
+# PLC+ — the plan: decisions and why
 
 The source is **Ron's technical specification**, `docs/SPECIFICATION.pdf` (2026-11-04, 15 pages, 13 sections). This file
 records where we follow it, where we differ and why, and Ron's decisions as they are made. The work itself is in
 `docs/DEVELOPMENT-PLAN.md`.
 
-## What PLC Plus is
+## What PLC+ is
 
 A Windows program that takes a learner from electrical and logic basics to advanced PLC programming, with **simulated
 machines in place of real hardware**. It is the home, self-paced half of a PLC course. The lab, with real PLCs, is the other
@@ -48,13 +48,22 @@ Projects still to come, from spec 11: `Plc.Editors`, `Reports.Pdf`, `Tools.Conte
 | D1 | **We stay with what we know works for our software** where the spec offers a newer choice | Ron, 2026-11-04 | Every one of Ron's Store programs ships this way, and the release steps, WACK and Partner Center are proven |
 | D2 | **Packaging: MSIX on the Microsoft Store**, like the other programs, not Velopack | Ron, 2026-11-04 (D1) | Same packaging, certification and updates as the family. A lab's machine-wide install uses MSIX provisioning (`Add-AppxProvisionedPackage`), so every account on a lab PC gets it |
 | D3 | **Ladder and scenes drawn with WPF's own shapes and text, not SkiaSharp** | Ron, 2026-11-04 (D1) | A Skia canvas is one picture to a screen reader. WPF elements carry their own names, so NFR-6 (keyboard and screen reader) holds in the editor itself |
-| D4 | **Progress files encrypted with .NET's built-in cryptography, not SQLCipher** | Ron, 2026-11-04 (D1) | No native library to ship or certify. AES-GCM with a key from the PIN (PBKDF2); the file layout is question 4 |
+| D4 | **Progress files encrypted with .NET's built-in cryptography, not SQLCipher** | Ron, 2026-11-04 (D1) | No native library to ship or certify. AES-GCM with a key from the PIN (PBKDF2); the file layout is D13 |
 | D5 | **The Learning Core is the shared engine for all our learning software**: reporting results, submitting them, and several learners on one machine | Ron, 2026-11-04 | Ron: *"These are all part of the engine that will be common to this learning software and the other software we produce."* Built here first as `Learning.Core`. Once a second program uses it, it becomes a versioned package in `C:\nuget-local`, as AI Manager is |
 | D6 | **Submission follows the Gamify+ games**: the final screen shows the grade, the progress and the learner's name, and the learner hands that in | Ron, 2026-11-04 | Ron: *"The current JavaScript games that we have created have worked well."* One progress snapshot gives several outputs: the PDF report (spec 9), a **signed result line** that pastes into any LMS, discussion or e-mail (like Gamify+'s `GP1\|name\|game\|8/10\|date\|code`), and sending it straight to the instructor. Together they make *"a submission path that works for all online platforms or direct submission of an assignment to the faculty"* |
 | D7 | **Every module has Learn, Assess and Reference.** Its first page shows the modules that must come first (prerequisites), its learning outcomes and its topics | Ron, 2026-11-04 | Ron: *"We do not need to worry if we do not get it correct in the early software. We will have instructors of PLC courses reviewing the software and giving feedback on the flow."* This is the first shape; the instructors' review reshapes it |
 | D8 | **Engine semantics are pinned by tests**, one or more per instruction, and the scan order is fixed: inputs → programs → outputs → clock | Spec 4.2, 4.5 | NFR-3: the same program and scenario always grade the same way |
 | D9 | **The tests a learner cannot see report pass or fail only**, not what they check | Spec 7.2 | So a program cannot be fitted to the tests |
-| D10 | **Name in front of a person: "PLC Plus"** (the spec's name), `PLCPlus` in code, folders and the exe, until question 1 is answered | 2026-11-04 | The portfolio's "+" naming would make it **PLC+** |
+| D10 | **Name: PLC+** in front of a person; `PLCPlus` in code, folders and the exe | Ron, 2026-11-04 | The family's "+" naming; reserved in Partner Center by Ron (plan 11.1) |
+| D11 | **Free on the Microsoft Store** | Ron, 2026-11-04 | As Gamify+ and the other learning programs |
+| D12 | **Reports are signed two ways**: always with the computer's own key (not edited since), and also with the instructor's **class code** when the learner entered one (came from that class) | Ron, 2026-11-04 | Gamify+'s Verify page works because the teacher holds the key; the computer's key alone proves only that nothing was edited |
+| D13 | **The progress file is a readable header plus one AES-GCM block of JSON**, not SQLite | Ron, 2026-11-04 | *"The files are not likely to get that large, JSON is the better choice."* Append-only attempts keep merging simple |
+| D14 | **The lab PLC is Allen-Bradley.** The engine is compared against it, and Rockwell is the first vendor dialect | Ron, 2026-11-04 | Spec 4.5 and 4.4. Phase 1 stays Generic IEC; the AB differences (TON .PRE/.ACC/.DN, RTO) are noted in lessons |
+| D15 | **Prerequisites are recommended, not enforced; lessons show in the program's own window; the main window has the family's layout** | Ron, 2026-11-04 | Plan 4.4, 4.5, 7.1 |
+| D16 | **Ron signs the content when it is published** | Ron, 2026-11-04 | The key stays out of git; the program rejects unsigned packages |
+| D17 | **No AI in Phase 1.** It comes back as a question only if the instructors' review shows it is needed | Ron, 2026-11-04 | NFR-2: no learner data leaves the computer |
+| D18 | **Lab PCs are not reimaged, but learners must back up their files** | Ron, 2026-11-04 | The program asks for a backup and reminds them (plan 6.10) |
+| D19 | **The grant's outcomes are written as we go**; no research analytics; **only the learner's name is required** on a report (ID, course, e-mail optional) | Ron, 2026-11-04 | The grant asks for faculty training on PLCs and student educational resources, and does not require research on outcomes |
 
 ## How the engine works (built 2026-11-04)
 

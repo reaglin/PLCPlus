@@ -1,7 +1,7 @@
 <Window x:Class="Learning.Shell.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PLC Plus — first look at the engine" Width="1180" Height="780" MinWidth="900" MinHeight="600"
+        Title="PLC+ — first look at the engine" Width="1180" Height="780" MinWidth="900" MinHeight="600"
         Background="{DynamicResource PageBrush}" Foreground="{DynamicResource InkBrush}"
         FontFamily="Segoe UI" FontSize="14" WindowStartupLocation="CenterScreen">
     <Window.InputBindings>
@@ -14,13 +14,13 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top" Padding="4,2">
             <MenuItem Header="_File">
-                <MenuItem Header="E_xit" Click="Exit_Click" ToolTip="Closes PLC Plus" />
+                <MenuItem Header="E_xit" Click="Exit_Click" ToolTip="Closes PLC+" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_Help for this screen" InputGestureText="F1" Command="ApplicationCommands.Help"
                           ToolTip="Shows or hides the help panel on the right: what this screen is for and how to use it" />
                 <Separator />
-                <MenuItem Header="_About PLC Plus…" Click="About_Click" ToolTip="Who made PLC Plus, its version, and where to find more" />
+                <MenuItem Header="_About PLC+…" Click="About_Click" ToolTip="Who made PLC+, its version, and where to find more" />
             </MenuItem>
         </Menu>
 
@@ -36,7 +36,7 @@
                 <StackPanel>
                     <TextBlock Text="How to use this screen" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
                     <TextBlock Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}">
-                        This is an early preview of PLC Plus. It shows the parts that already work: the PLC engine, a simulated machine, and the grader.
+                        This is an early preview of PLC+. It shows the parts that already work: the PLC engine, a simulated machine, and the grader.
                         The lessons, the ladder editor and your saved progress come later.
                     </TextBlock>
                     <TextBlock Text="1. Watch the program run" FontWeight="SemiBold" Margin="0,6,0,2" />

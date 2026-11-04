@@ -6,7 +6,7 @@ namespace Learning.Core;
 // The only link between the Learning Core and a subject module (spec 3, 12): the core asks the
 // module to grade a learner's work and gets results back. Nothing here knows what a PLC is.
 
-/// <summary>Implemented by each subject module (PLC Plus: Plc.Grading) so the core can grade its challenges.</summary>
+/// <summary>Implemented by each subject module (PLC+: Plc.Grading) so the core can grade its challenges.</summary>
 public interface IChallengeRunner
 {
     /// <summary>The subject this runner grades, such as "plc".</summary>

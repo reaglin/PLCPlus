@@ -5,7 +5,7 @@ The portfolio's shared guidance is in `..\CLAUDE.md` (loaded automatically).
 
 ## What this is
 
-**PLC Plus** (repo `PLCPlus`) teaches PLC programming at home, from electrical and logic basics to advanced ladder logic,
+**PLC+** (repo `PLCPlus`; free on the Microsoft Store, Ron 2026-11-04) teaches PLC programming at home, from electrical and logic basics to advanced ladder logic,
 with **simulated machines in place of real hardware**. It is the self-paced half of a PLC course; the lab is the other half.
 It is for students, faculty in a grant training cohort, and the instructors who receive learners' progress reports.
 WPF on .NET 10. The source is Ron's specification, `docs/SPECIFICATION.pdf` (2026-11-04).
@@ -17,7 +17,8 @@ WPF on .NET 10. The source is Ron's specification, `docs/SPECIFICATION.pdf` (202
 - the first scene and challenge (motor start/stop);
 - a first-look window.
 
-74 tests pass. Next: open questions 1–14 in the plan, then phases 1–3 (engine, scenes, ladder editor).
+74 tests pass. Ron answered all 14 plan questions on 2026-11-04 (`docs/PLAN.md` D10–D19). Next: phases 1–3 (engine,
+scenes, ladder editor).
 
 ### Read these first
 
@@ -67,7 +68,9 @@ tools/capture-window.ps1 photographs the window (PrintWindow) and presses button
   colour alone: power is green **and** thick **and** TRUE.
 - **Modules:** each has Learn, Assess and Reference, and its first page shows prerequisites, learning outcomes and topics
   (Ron, 2026-11-04). PLC instructors will review the flow, so expect it to change.
-- Name: **PLC Plus** in front of a person (or PLC+, question 1); `PLCPlus` in code, folders and the exe.
+- Name: **PLC+** in front of a person (Ron, 2026-11-04); `PLCPlus` in code, folders and the exe.
+- **No AI in Phase 1** (Ron). The lab PLC is **Allen-Bradley**: the engine is compared against it, and Rockwell is the
+  first vendor dialect. Ron signs content packages when they are published; the key never goes in git.
 
 ## Portfolio conventions that apply
 

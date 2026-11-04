@@ -1,7 +1,7 @@
 {
   "id": "plcplus-foundations",
   "version": "0.1.0",
-  "title": "PLC Plus — foundations (first draft)",
+  "title": "PLC+ — foundations (first draft)",
   "dependencies": [],
   "minimumAppVersion": "0.1.0",
   "note": "Phase 0 sample content. The package format (spec 6.3: lessons in Markdown with front-matter, signing) is plan phase 4."

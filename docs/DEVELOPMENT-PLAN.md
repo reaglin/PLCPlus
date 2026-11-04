@@ -1,4 +1,4 @@
-# PLC Plus — development plan
+# PLC+ — development plan
 
 Numbered tasks per phase, each with what "done" means. Requirement IDs (FR-, NFR-) and section numbers refer to Ron's
 specification, `docs/SPECIFICATION.pdf`. Decisions and the reasons for them are in `docs/PLAN.md`.
@@ -29,7 +29,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 
 | # | Task | Done when |
 |---|---|---|
-| R.1 | AI Manager: **not used** (the spec has no AI, and NFR-2 rules out sending learner data). If an AI feature is ever added, every release moves to the latest AI Manager first | Question 9 |
+| R.1 | AI Manager: **not used in Phase 1** (Ron, question 9). If the instructors' review shows an AI part is needed, the question comes back to Ron; then every release moves to the latest AI Manager first | — |
 | R.2 | A hand-test exe in `manual-test\` for every round Ron tests (`docs/MANUAL-TESTING.md` has the command) | Rebuilt before each hand-test |
 
 ---
@@ -39,7 +39,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 | # | Task | Done when |
 |---|---|---|
 | 0.1 | Repo `PLCPlus`, `Directory.Build.props` (warnings as errors), `.gitignore`, `PLCPlus.slnx` with spec 11's project layout | ⚠️ Built 2026-11-04 |
-| 0.2 | `docs/SPECIFICATION.pdf` (Ron's spec), `docs/PLAN.md` (decisions D1–D10), this plan, `docs/MANUAL-TESTING.md`, `CLAUDE.md` | ⚠️ 2026-11-04 |
+| 0.2 | `docs/SPECIFICATION.pdf` (Ron's spec), `docs/PLAN.md` (decisions), this plan, `docs/MANUAL-TESTING.md`, `CLAUDE.md` | ⚠️ 2026-11-04 |
 | 0.3 | Architecture test: `Learning.Core` references no `Plc.*` assembly (spec 12, NFR-5) | ⚠️ `Learning.Core.Tests`, 3 tests |
 | 0.4 | **First-look window** (`PLCPlus.exe`): the motor station live (hold Start, press Stop), the program's rungs with power flow shown in green, thick and TRUE, the simulated clock with Pause / Step one scan / Reset, and **Check this program**, which runs the challenge's tests and shows each result, with hints after a failure. Help panel (F1), Help ▸ About with "Created by Dr. Ron Eaglin" | ⚠️ **Ron: hand-test 0** in `docs/MANUAL-TESTING.md`. Photographed through PrintWindow: all 3 tests pass with the seal-in program |
 | 0.5 | GitHub repo `reaglin/PLCPlus` (private), pushed | ⚠️ Ron: committed locally 2026-11-04; creating the GitHub repo needs Ron's go-ahead (the session's permission check stopped it) |
@@ -61,7 +61,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 | 1.9 | Run to a breakpoint (a rung), and a trace recorder (tag values per scan) that the grader and the failure replay use | |
 | 1.10 | Arrays and structures (spec 4.1); index-out-of-range fault | |
 | 1.11 | Golden-file tests: a set of reference programs with their expected traces, checked into `tests/golden/` | |
-| 1.12 | **Lab comparison:** the reference programs run on a real PLC in the lab and the traces compared (spec 4.5, the Phase 1 gate) | ⚠️ Ron / the lab: which PLC, and who runs it (question 5) |
+| 1.12 | **Lab comparison:** the reference programs run on the lab's **Allen-Bradley** PLC and the traces compared (spec 4.5, the Phase 1 gate). Each reference program is written in IEC here and translated by hand for Studio 5000, with the timer differences noted (spec 4.4: AB's TON with .PRE/.ACC/.DN, and RTO) | ⚠️ Ron / the lab: who runs the programs on the PLC |
 | 1.13 | Instruction presentation: each instruction's symbol and operand layout for the editor, and the lesson it links to | With phase 3 |
 
 ---
@@ -103,11 +103,11 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 | 4.1 | Content package: a folder or zip with `manifest.json`, lessons in Markdown with front-matter, scenes, challenges, media | `content/plcplus-foundations/manifest.json` is a placeholder |
 | 4.2 | The hierarchy: learning path → unit → lesson → activity (reading, guided simulation, quiz, graded challenge); stable IDs for objectives and activities | |
 | 4.3 | **Every module (unit) has Learn, Assess and Reference** (D7). Its first page shows its prerequisites, learning outcomes and topics | Ron's first shape; PLC instructors review the flow (4.9) |
-| 4.4 | Prerequisites enforced or recommended (FR-1) | Question 6 |
-| 4.5 | The lesson viewer: Markdown into a WPF FlowDocument, with live widgets (a mini simulation, a truth table, a diagram) | Question 7 |
+| 4.4 | Prerequisites are **recommended, not enforced** (Ron, question 6): a module whose prerequisites are not mastered says what to finish first but opens anyway, and the report shows the instructor it was opened early | |
+| 4.5 | The lesson viewer **in the program's own window** (Ron, question 7): Markdown (Markdig) into a WPF FlowDocument, with live widgets (a mini simulation, a truth table, a diagram); no web view | |
 | 4.6 | Submission points declared in the path: which exercises they cover and what counts as complete | |
 | 4.7 | `Tools.ContentValidator`: checks links, IDs and challenge definitions from the command line | |
-| 4.8 | Package signing, and rejecting unsigned or untrusted packages | Question 8 |
+| 4.8 | Package signing: **Ron signs the content when it is published** (question 8), with a key kept out of git; a signing step in the publish script; the program rejects unsigned or untrusted packages | |
 | 4.9 | **Review of the flow by PLC course instructors**: their comments become plan items | ⚠️ Ron arranges the reviewers |
 
 ---
@@ -131,12 +131,13 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 |---|---|---|
 | 6.1 | Start screen: every learner on this computer, by name and when they last used it | |
 | 6.2 | New learner: display name, optional student ID, a 4–6 digit PIN, and a one-time recovery code to write down or print | |
-| 6.3 | The progress file (`.plcprogress`): a small readable header (name, profile ID, last saved, app version) and the encrypted body; PBKDF2 key from the PIN, a second copy of the key wrapped with the recovery code | Question 4 |
+| 6.3 | The progress file (`.plcprogress`): a small readable header (name, profile ID, last saved, app version) and **one encrypted block of JSON** (Ron, question 4); AES-GCM with a PBKDF2 key from the PIN, a second copy of the key wrapped with the recovery code | |
 | 6.4 | Wrong PIN: after 5 tries a wait that grows; auto-lock after 15 minutes idle and on Switch learner | |
 | 6.5 | Remove from this computer (needs the PIN; offers to export first) | |
 | 6.6 | Export and import ("Add learner from file"), showing which computer saved it last and when | |
 | 6.7 | Merging two copies: attempts are append-only with unique IDs, so both copies' attempts are kept and mastery recalculated | |
-| 6.8 | The shared folder `%ProgramData%\PLCPlus\Learners`, so lab PCs work with one shared login or separate ones; changeable in settings | Question 10 |
+| 6.8 | The shared folder `%ProgramData%\PLCPlus\Learners`, so lab PCs work with one shared login or separate ones; changeable in settings. Lab PCs are not reimaged (Ron, question 10) | |
+| 6.10 | **Backups are required** (Ron, question 10): the program asks the learner to back up (export) their file to a drive or cloud folder they choose, shows when the last backup was made, and reminds them when it is out of date (at each submission point and when they sign out) | |
 | 6.9 | The event log (xAPI-style learning events) inside the progress file | |
 
 ---
@@ -145,7 +146,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 
 | # | Task | Done when |
 |---|---|---|
-| 7.1 | The shell in MVVM (CommunityToolkit.Mvvm), in the family's layout | Question 11 |
+| 7.1 | The shell in MVVM (CommunityToolkit.Mvvm), **in the family's layout** (Ron, question 11): menu bar, rail of actions, the learning path as a tree (units → lessons), Learn / Assess / Reference as tabs on the right, a status line saying what to do next | |
 | 7.2 | Path map: each unit and lesson locked, available, in progress or mastered (with a mark as well as a colour) | |
 | 7.3 | Submission points: not reached, ready to generate, generated (with the date) | |
 | 7.4 | Objectives view with evidence, and a "review suggested" list | |
@@ -162,11 +163,12 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 | 8.1 | The progress snapshot: one format-neutral record of everything a report shows (spec 9.5) | |
 | 8.2 | The **final screen** of a submission point, as in the Gamify+ games: grade, progress, the learner's name, and the ways to hand it in | |
 | 8.3 | The **PDF report**: cover, summary, exercise detail, program evidence (optional), verification (report ID, versions, code, QR); PDF/A and tagged; default name `PLCPlus_<LastName>_<SubmissionPoint>_<yyyy-MM-dd>.pdf` | QuestPDF (its Community licence covers an organisation under US $1M revenue) and QRCoder |
-| 8.4 | The **signed result line** for any LMS, discussion or e-mail, in Gamify+'s shape | Question 3 |
+| 8.4 | The **signed result line** for any LMS, discussion or e-mail, in Gamify+'s shape. **Signed both ways** (Ron, question 3): always with the computer's own key (proves it was not edited), and also with the instructor's **class code** when the learner has entered one (proves it came from that class) | |
+| 8.4a | The report cover's fields: **name required**; student ID, course and section, and e-mail optional (Ron, question 14) | |
 | 8.5 | **Send to my instructor**: opens the learner's e-mail with the result line and says where the saved PDF is, to attach | |
 | 8.6 | Incomplete reports allowed, marked Incomplete with what is missing; regenerate earlier reports; an on-demand full report | |
 | 8.7 | Submission history: every report with its ID, date and hash | |
-| 8.8 | The report verifier (FR-11, spec Phase 2): checks a PDF or a result line | Question 3 |
+| 8.8 | The report verifier (FR-11, spec Phase 2): checks a PDF or a result line, and makes an instructor's class code | |
 
 ---
 
@@ -179,7 +181,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 | 9.3 | Unit 3 Relay control: relays, contactors, relay ladder diagrams, seal-in circuits | |
 | 9.4 | Unit 4 PLC fundamentals: hardware, I/O modules, sensors, scan cycle, tags and addressing | |
 | 9.5 | Unit 5 Basic ladder programming: contacts, coils, latching, edge detection | The motor start/stop challenge is its first |
-| 9.6 | Objectives with stable IDs, aligned with the grant's outcomes | Question 12 |
+| 9.6 | Objectives with stable IDs. **The grant's outcomes are written as we go** (Ron, question 12): the grant asks for faculty training on PLCs and student educational resources, so each unit's outcomes are drafted with the unit, kept in one list (`docs/OUTCOMES.md`, once there is a unit), and Ron reviews them | ⚠️ Ron reviews each unit's outcomes |
 
 ---
 
@@ -198,7 +200,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 
 | # | Task | Done when |
 |---|---|---|
-| 11.1 | The name reserved in Partner Center (question 1), the icon with the "+" theme | ⚠️ Ron |
+| 11.1 | **PLC+** (Ron, question 1) reserved in Partner Center; the icon with the "+" theme. **Free** on the Store (question 2) | ⚠️ Ron reserves the name. The name in the program changed to PLC+ 2026-11-04 |
 | 11.2 | MSIX packaging (from Gamify+ / TrafficLab+), WACK, release documents in `docs/release/` | |
 | 11.3 | Lab install: provisioned for every account on a lab PC; tested on a shared login and on separate logins | |
 | 11.4 | Privacy policy at `softwareplus.ai/plcplus/privacy/`; the program's page and help at `softwareplus.ai/plcplus/`; a row in `status.html` | |
@@ -215,56 +217,39 @@ section, with PDF reports handed in through the LMS and reviewed end to end. Bro
 ## Phase 13 — spec Phase 3: advanced and dialects
 
 Units 9, 10 and 12 (analog and PID, Structured Text and function blocks, industrial systems); the Structured Text editor
-(AvalonEdit) and the SFC editor; the first vendor dialect (question 5); optional report formats (CSV, an LMS connection);
-research analytics (question 13). Gate: advanced modules validated in the lab on the vendor's hardware.
+(AvalonEdit) and the SFC editor; the first vendor dialect, **Allen-Bradley (Rockwell)**, as in the lab (question 5); optional report formats (CSV, an LMS
+connection). No research analytics: the grant does not require research on outcomes (question 13). Gate: advanced modules validated in the lab on the vendor's hardware.
 
 ---
 
-## Open questions for Ron (asked 2026-11-04)
+## Open questions for Ron — all 14 answered (asked and answered 2026-11-04)
 
-Each has a recommendation; "use the recommendation" is a fine answer.
-
-1. **The name.** The spec says "PLC Plus". The family's naming would make it **PLC+**, with a "+" in the icon. Shall I
-   use PLC+ in front of people (and reserve it in Partner Center), keeping `PLCPlus` in code? *Recommended: PLC+.*
-2. **Free on the Store?** The spec leaves licensing open: free to grant participants, open source, or commercial later.
-   *Recommended: free on the Microsoft Store like Gamify+, decided again if it becomes commercial.*
-3. **How a report is verified.** The spec signs each report with a key made on each computer. That proves a report was
-   not edited, but anyone's copy of PLC Plus can make a valid one. Gamify+ instead signs with a key from the teacher's own
-   file, so only the teacher's Verify page accepts the line. *Recommended: both. A report is always signed, and when the
-   instructor gives the class a **class code** (made by the verifier), the result line and the PDF are also signed with it,
-   so the instructor's verifier knows they came from their class. Without a class code everything still works.*
-4. **What is inside the progress file.** The spec says an encrypted SQLite database. With .NET's own encryption (D4) the
-   simplest file is a readable header plus one encrypted block holding the learner's records as JSON. Attempts are
-   append-only, so merging stays simple, and a year of work is a few hundred kilobytes. *Recommended: JSON in the encrypted
-   block; move to SQLite only if the files grow large.*
-5. **The lab PLC.** Which PLC is in the lab (for the comparison in 1.12, and the first vendor dialect in phase 13), and who
-   can run the reference programs on it?
-6. **Prerequisites: enforced or recommended?** FR-1 allows either. *Recommended: recommended. A locked module says what to
-   finish first but can be opened anyway, and the instructor sees that in the report.*
-7. **Lesson pages:** Markdown shown in the program's own window (fast, accessible, offline), or a built-in web view for
-   richer pages? *Recommended: the program's own window, with simulations and truth tables as built-in widgets.*
-8. **Who signs the content.** *Recommended: in Phase 1 only the content that ships with PLC Plus, signed with a key Ron
-   holds (kept out of git); outside authors later.*
-9. **AI.** The spec has none, and the program must send no learner data. *Recommended: no AI in Phase 1. An optional AI
-   tutor later would go through AI Manager and only when the learner asks.*
-10. **Lab PCs.** Are they reimaged between terms (which would wipe `%ProgramData%`)? If so, learners must export their
-    files, and the program should remind them.
-11. **The main window's layout.** *Recommended: the family's layout (Accessibility+, SMADA, BMPFast Plus, Gamify+ 1.2):
-    the learning path as a tree on the left, Learn / Assess / Reference as tabs on the right, the rail of actions, and a
-    status line saying what to do next.*
-12. **Grant outcomes.** Do the grant's outcome statements map one to one to objective IDs? A list of them would let the
-    units be written against them.
-13. **Research use of learning events** (needs IRB approval and separate consent): planned, or not for now?
-    *Recommended: not for now; the events are recorded in the file and can be exported later with consent.*
-14. **Report cover fields:** name, optional student ID, optional course and section. Also a college e-mail?
-    *Recommended: no e-mail; the LMS already knows who uploaded it.*
+1. ~~**The name.**~~ **PLC+** in front of people; `PLCPlus` in code, folders and the exe. Changed in the program 2026-11-04;
+   Ron reserves the name in Partner Center (11.1).
+2. ~~**Free on the Store?**~~ **Free on the Microsoft Store.**
+3. ~~**How a report is verified.**~~ **Both, as recommended**: always signed with the computer's key, and also with the
+   instructor's class code when there is one (8.4, 8.8).
+4. ~~**What is inside the progress file.**~~ **JSON** in the encrypted block. The files are not likely to get large (6.3).
+5. ~~**The lab PLC.**~~ **Allen-Bradley.** The lab comparison runs on it (1.12), and Rockwell is the first vendor dialect
+   (phase 13).
+6. ~~**Prerequisites.**~~ **Recommended, not enforced** (4.4).
+7. ~~**Lesson pages.**~~ **The program's own window** (4.5).
+8. ~~**Who signs the content.**~~ **Ron signs the content when it is published** (4.8).
+9. ~~**AI.**~~ **No AI in Phase 1.** If the review shows an AI part is needed, the question comes back (R.1).
+10. ~~**Lab PCs.**~~ **Not reimaged**, but students are still required to back up their files (6.10).
+11. ~~**The main window's layout.**~~ **The family's layout** (7.1).
+12. ~~**Grant outcomes.**~~ **Written as we go.** The grant asks only for faculty training on PLCs and student educational
+    resources (9.6).
+13. ~~**Research use of learning events.**~~ **Not required by the grant.** No research analytics; the event log stays in
+    the progress file only as the record behind time on task and the report.
+14. ~~**Report cover fields.**~~ **Only the name is required**; student ID, course and section, and e-mail are optional (8.4a).
 
 ---
 
 ## References
 
 - `docs/SPECIFICATION.pdf` — Ron's technical specification, the source of every requirement
-- `docs/PLAN.md` — decisions D1–D10 and how the engine and grader work
+- `docs/PLAN.md` — decisions D1–D19 and how the engine and grader work
 - `docs/MANUAL-TESTING.md` — Ron's hand-tests and the hand-test build command
 - `docs/images/architecture.png` — the architecture diagram from the spec
 - `content/plcplus-foundations/` — the first scene, challenge and example programs
