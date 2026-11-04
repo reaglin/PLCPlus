@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "name": "Motor start/stop without seal-in",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Start",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start push button (normally open)"
+    },
+    {
+      "name": "Stop",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop push button (normally closed: TRUE while not pressed)"
+    },
+    {
+      "name": "Motor",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "Motor contactor"
+    },
+    {
+      "name": "RunLight",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "Running pilot light"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Start runs the motor - but only while it is held down.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Start",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Stop",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Motor",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The Running light shows the motor is on.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Motor",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "RunLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "motor-station",
+  "title": "Motor start/stop station",
+  "description": "A motor on a contactor, a green Start button, a red Stop button wired normally closed, and a Running light.",
+  "components": [
+    { "type": "pushButton", "id": "start", "label": "Start", "tag": "Start", "normallyClosed": false, "color": "green", "x": 40, "y": 60 },
+    { "type": "pushButton", "id": "stop", "label": "Stop", "tag": "Stop", "normallyClosed": true, "color": "red", "x": 40, "y": 160 },
+    { "type": "pilotLight", "id": "running", "label": "Running", "tag": "RunLight", "color": "green", "x": 160, "y": 60 },
+    { "type": "motor", "id": "m1", "label": "Motor M1", "runTag": "Motor", "startTimeMs": 500, "x": 260, "y": 110 }
+  ]
+}

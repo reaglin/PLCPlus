@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Learning.Core/Learning.Core.csproj" />
+    <Project Path="src/Learning.Shell/Learning.Shell.csproj" />
+    <Project Path="src/Plc.Engine/Plc.Engine.csproj" />
+    <Project Path="src/Plc.Dialects.Iec/Plc.Dialects.Iec.csproj" />
+    <Project Path="src/Plc.Scenes/Plc.Scenes.csproj" />
+    <Project Path="src/Plc.Grading/Plc.Grading.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Plc.Engine.Tests/Plc.Engine.Tests.csproj" />
+    <Project Path="tests/Learning.Core.Tests/Learning.Core.Tests.csproj" />
+  </Folder>
+</Solution>

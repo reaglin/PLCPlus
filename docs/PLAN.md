@@ -1,0 +1,93 @@
+# PLC Plus — the plan: decisions and why
+
+The source is **Ron's technical specification**, `docs/SPECIFICATION.pdf` (2026-11-04, 15 pages, 13 sections). This file
+records where we follow it, where we differ and why, and Ron's decisions as they are made. The work itself is in
+`docs/DEVELOPMENT-PLAN.md`.
+
+## What PLC Plus is
+
+A Windows program that takes a learner from electrical and logic basics to advanced PLC programming, with **simulated
+machines in place of real hardware**. It is the home, self-paced half of a PLC course. The lab, with real PLCs, is the other
+half. It is for students, for faculty in the grant training cohort learning PLCs before they teach them, and for
+instructors, who receive progress reports.
+
+Three rules from the spec (section 2) are never bent:
+1. **All learning works offline.** No account and no internet.
+2. **Progress leaves the program only as files the learner chooses to save and hand in.** The program sends nothing.
+3. **One installation, many learners**, each with their own PIN-protected progress file that they can carry to another
+   computer.
+
+## The architecture (spec section 3)
+
+![Architecture](images/architecture.png)
+
+Two layers in one program:
+- **The Learning Core** has nothing to do with PLCs. It handles content, mastery, progress, learners and reports.
+- **The PLC module** supplies the engine, the editors and the scenes.
+
+Their only link is the challenge runner (`Learning.Core.IChallengeRunner`). An architecture test fails the build if
+`Learning.Core` ever references a `Plc.*` assembly.
+
+| Project | What it holds |
+|---|---|
+| `src/Learning.Core` | The shared learning engine: grading contract (built), content, mastery, learners, progress files, reports (to come) |
+| `src/Learning.Shell` | The WPF program (exe `PLCPlus.exe`). Phase 0: the first-look window |
+| `src/Plc.Engine` | The neutral program model (JSON), the scan cycle on a simulated clock, forcing, faults, validation |
+| `src/Plc.Dialects.Iec` | Generic IEC 61131-3: TON/TOF/TP, CTU/CTD/CTUD, compare, math, MOVE, bit logic |
+| `src/Plc.Scenes` | Scenes as JSON: push buttons, pilot lights and motors so far |
+| `src/Plc.Grading` | The challenge harness: scenarios, assertions, invariants, hidden tests, constraints |
+| `content/plcplus-foundations` | The first content: the motor station scene, its challenge, two example programs |
+| `tests/` | `Plc.Engine.Tests` (71) and `Learning.Core.Tests` (3, including the architecture test) |
+
+Projects still to come, from spec 11: `Plc.Editors`, `Reports.Pdf`, `Tools.ContentValidator`, `Tools.ReportVerifier`.
+
+## Decisions
+
+| # | Decision | Who / when | Why |
+|---|---|---|---|
+| D1 | **We stay with what we know works for our software** where the spec offers a newer choice | Ron, 2026-11-04 | Every one of Ron's Store programs ships this way, and the release steps, WACK and Partner Center are proven |
+| D2 | **Packaging: MSIX on the Microsoft Store**, like the other programs, not Velopack | Ron, 2026-11-04 (D1) | Same packaging, certification and updates as the family. A lab's machine-wide install uses MSIX provisioning (`Add-AppxProvisionedPackage`), so every account on a lab PC gets it |
+| D3 | **Ladder and scenes drawn with WPF's own shapes and text, not SkiaSharp** | Ron, 2026-11-04 (D1) | A Skia canvas is one picture to a screen reader. WPF elements carry their own names, so NFR-6 (keyboard and screen reader) holds in the editor itself |
+| D4 | **Progress files encrypted with .NET's built-in cryptography, not SQLCipher** | Ron, 2026-11-04 (D1) | No native library to ship or certify. AES-GCM with a key from the PIN (PBKDF2); the file layout is question 4 |
+| D5 | **The Learning Core is the shared engine for all our learning software**: reporting results, submitting them, and several learners on one machine | Ron, 2026-11-04 | Ron: *"These are all part of the engine that will be common to this learning software and the other software we produce."* Built here first as `Learning.Core`. Once a second program uses it, it becomes a versioned package in `C:\nuget-local`, as AI Manager is |
+| D6 | **Submission follows the Gamify+ games**: the final screen shows the grade, the progress and the learner's name, and the learner hands that in | Ron, 2026-11-04 | Ron: *"The current JavaScript games that we have created have worked well."* One progress snapshot gives several outputs: the PDF report (spec 9), a **signed result line** that pastes into any LMS, discussion or e-mail (like Gamify+'s `GP1\|name\|game\|8/10\|date\|code`), and sending it straight to the instructor. Together they make *"a submission path that works for all online platforms or direct submission of an assignment to the faculty"* |
+| D7 | **Every module has Learn, Assess and Reference.** Its first page shows the modules that must come first (prerequisites), its learning outcomes and its topics | Ron, 2026-11-04 | Ron: *"We do not need to worry if we do not get it correct in the early software. We will have instructors of PLC courses reviewing the software and giving feedback on the flow."* This is the first shape; the instructors' review reshapes it |
+| D8 | **Engine semantics are pinned by tests**, one or more per instruction, and the scan order is fixed: inputs → programs → outputs → clock | Spec 4.2, 4.5 | NFR-3: the same program and scenario always grade the same way |
+| D9 | **The tests a learner cannot see report pass or fail only**, not what they check | Spec 7.2 | So a program cannot be fitted to the tests |
+| D10 | **Name in front of a person: "PLC Plus"** (the spec's name), `PLCPlus` in code, folders and the exe, until question 1 is answered | 2026-11-04 | The portfolio's "+" naming would make it **PLC+** |
+
+## How the engine works (built 2026-11-04)
+
+- **A project** is JSON: tags (BOOL, INT, DINT, REAL, TIME, or a timer or counter type) and programs made of rungs.
+- **A rung** is a tree. *Series* means power passes through each element in turn (AND); *parallel* means any branch passes
+  it (OR). Contacts, coils and boxes sit inside. Every editor (ladder now, Structured Text and SFC later) produces this one
+  tree.
+- **A scan:** the machine's inputs are copied in, the programs run, the outputs are copied out, and the clock moves on
+  exactly the scan time (10 ms by default). Time never comes from the wall clock.
+- **Forcing** an input changes what the PLC sees; forcing an output changes what the machine gets, while the program's own
+  value stays as it is.
+- **Faults** (divide by zero so far) stop the PLC at the rung that caused them and turn its outputs off, as a real PLC does.
+  Reset starts it again.
+- **The validator** points to the exact rung and element (`Rung 2, element 1.1`) in words for a beginner. A program with
+  errors does not run.
+- **Live view:** the runtime records whether power flowed out of each element in the last scan.
+
+## The grader (built 2026-11-04)
+
+A challenge is a JSON file:
+- the brief and the scene;
+- constraints: required or forbidden instructions, and the most rungs allowed;
+- scenarios: timed button presses, checks at set times (`at 1.0 s, Motor is TRUE`), and things that must never happen
+  (`Fill and Drain never both on`);
+- points, a pass threshold, and hints in tiers.
+
+Each scenario starts from a clean reset and runs headless on the simulated clock, far faster than real time (the three motor
+scenarios, 5 simulated seconds, grade at the click of the button). The result names the failed check and when it failed, plus a SHA-256 fingerprint of the program.
+
+## References
+
+- `docs/SPECIFICATION.pdf` — Ron's technical specification (the source of every requirement ID: FR-1…13, NFR-1…9)
+- `docs/DEVELOPMENT-PLAN.md` — phases and tasks
+- `docs/MANUAL-TESTING.md` — Ron's hand-tests
+- `..\USABILITY-CHECKLIST.md` — the usability rules every program meets
+- `..\GamifyPlus\src\GamifyPlus.Core\Verify\` — the signed result line D6 builds on

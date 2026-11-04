@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "u5.motor-start-stop",
+  "title": "Start and stop a motor",
+  "brief": "Press Start and the motor runs, and keeps running after you let go. Press Stop and it stops. The Stop button is wired normally closed: its input is TRUE while nobody is pressing it.",
+  "scene": "motor-station",
+  "constraints": { "maxRungs": 4 },
+  "passThreshold": 1.0,
+  "hints": [
+    "A coil is only on while power reaches it. What keeps power flowing after you let go of Start?",
+    "Put a contact for the Motor tag in parallel with the Start contact. This is called a seal-in (or holding) contact.",
+    "The Stop input is TRUE while Stop is not pressed, so a normally open contact for Stop passes power until someone presses it."
+  ],
+  "scenarios": [
+    {
+      "name": "Start runs the motor, and it keeps running",
+      "points": 1,
+      "durationSeconds": 1.5,
+      "events": [ { "t": 0, "operate": "start", "active": true }, { "t": 0.2, "operate": "start", "active": false } ],
+      "assertions": [
+        { "at": 0.1, "tag": "Motor", "expect": "TRUE", "says": "The motor should be running 0.1 s after Start is pressed." },
+        { "at": 1.0, "tag": "Motor", "expect": "TRUE", "says": "The motor should keep running after Start is released." }
+      ]
+    },
+    {
+      "name": "Stop stops the motor",
+      "points": 1,
+      "durationSeconds": 2.5,
+      "events": [
+        { "t": 0, "operate": "start", "active": true }, { "t": 0.2, "operate": "start", "active": false },
+        { "t": 1.0, "operate": "stop", "active": true }, { "t": 1.2, "operate": "stop", "active": false }
+      ],
+      "assertions": [
+        { "at": 0.5, "tag": "Motor", "expect": "TRUE", "says": "The motor should be running after Start." },
+        { "at": 1.1, "tag": "Motor", "expect": "FALSE", "says": "The motor should stop 0.1 s after Stop is pressed." },
+        { "at": 2.0, "tag": "Motor", "expect": "FALSE", "says": "The motor should stay stopped after Stop is released." }
+      ]
+    },
+    {
+      "name": "Stop wins over Start",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 1.0,
+      "events": [ { "t": 0, "operate": "stop", "active": true }, { "t": 0.1, "operate": "start", "active": true } ],
+      "assertions": [ { "at": 0.5, "tag": "Motor", "expect": "FALSE", "says": "With Stop held down, Start must not run the motor." } ]
+    }
+  ]
+}

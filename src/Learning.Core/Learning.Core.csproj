@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Learning.Core</RootNamespace>
+  </PropertyGroup>
+
+  <!-- Subject-neutral (spec section 12): this project must never reference a Plc.* project.
+       An architecture test (Learning.Core.Tests) fails the build if it does. -->
+
+</Project>
