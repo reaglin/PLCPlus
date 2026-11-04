@@ -42,7 +42,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 | 0.2 | `docs/SPECIFICATION.pdf` (Ron's spec), `docs/PLAN.md` (decisions D1–D10), this plan, `docs/MANUAL-TESTING.md`, `CLAUDE.md` | ⚠️ 2026-11-04 |
 | 0.3 | Architecture test: `Learning.Core` references no `Plc.*` assembly (spec 12, NFR-5) | ⚠️ `Learning.Core.Tests`, 3 tests |
 | 0.4 | **First-look window** (`PLCPlus.exe`): the motor station live (hold Start, press Stop), the program's rungs with power flow shown in green, thick and TRUE, the simulated clock with Pause / Step one scan / Reset, and **Check this program**, which runs the challenge's tests and shows each result, with hints after a failure. Help panel (F1), Help ▸ About with "Created by Dr. Ron Eaglin" | ⚠️ **Ron: hand-test 0** in `docs/MANUAL-TESTING.md`. Photographed through PrintWindow: all 3 tests pass with the seal-in program |
-| 0.5 | GitHub repo `reaglin/PLCPlus` (private), pushed | ⚠️ 2026-11-04 |
+| 0.5 | GitHub repo `reaglin/PLCPlus` (private), pushed | ⚠️ Ron: committed locally 2026-11-04; creating the GitHub repo needs Ron's go-ahead (the session's permission check stopped it) |
 
 ---
 
