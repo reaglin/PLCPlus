@@ -23,7 +23,7 @@ public partial class MainWindow : Window
     private readonly (string Title, string File, string Note)[] _programs =
     [
         ("With seal-in (passes)", "motor-seal-in.json",
-            "Rung 1: Start, or the Motor's own contact in parallel with it (the seal-in), passes power through Stop to the Motor coil. Let go of Start and the seal-in keeps the motor running."),
+            "Rung 1: Start, or the Motor's own contact in parallel with it (the seal-in), passes power through Stop to the Motor coil. Let go of Start and the seal-in keeps the motor running. Stop is wired normally closed (TRUE until pressed), so the program checks it with a normally open contact: pressing Stop opens it and breaks the circuit."),
         ("Without seal-in (fails a test)", "motor-no-seal-in.json",
             "Rung 1 has no seal-in contact: the motor runs only while Start is held down. Check this program to see how a failed test is reported."),
     ];
@@ -44,8 +44,22 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _ladder = new LadderView(LadderCanvas);
-        _challengeJson = File.ReadAllText(Path.Combine(ContentDir, "challenges", "motor-start-stop.json"));
-        _challenge = PlcChallengeRunner.LoadChallenge(_challengeJson);
+        try
+        {
+            _challengeJson = File.ReadAllText(Path.Combine(ContentDir, "challenges", "motor-start-stop.json"));
+            _challenge = PlcChallengeRunner.LoadChallenge(_challengeJson);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            MessageBox.Show(
+                "PLC+ could not open its lesson files (the content folder beside PLCPlus.exe). " +
+                "Reinstall PLC+, or if you copied the program, copy the content folder with it.\n\nDetails: " + ex.Message,
+                "PLC+ cannot start", MessageBoxButton.OK, MessageBoxImage.Error);
+            _challengeJson = "";
+            _challenge = new PlcChallenge();
+            Loaded += (_, _) => Close();
+            return;
+        }
         BriefText.Text = "The challenge: " + _challenge.Brief;
 
         foreach (var p in _programs) ProgramPicker.Items.Add(p.Title);
@@ -61,15 +75,22 @@ public partial class MainWindow : Window
         var p = _programs[Math.Max(0, ProgramPicker.SelectedIndex)];
         _programJson = File.ReadAllText(Path.Combine(ContentDir, "programs", p.File));
         ProgramNote.Text = p.Note;
+        _failedChecks = 0;
+        ResultsList.ItemsSource = null;
+        ScoreText.Text = "";
+        ScoreText.ToolTip = null;
+        PowerUp();
+        SetStatus("Next: hold down Start to run the motor, then press Stop. Or press Check this program to run the challenge's tests.");
+    }
+
+    /// <summary>The PLC and the machine back to power-up. The test results stay until the program is changed.</summary>
+    private void PowerUp()
+    {
         _scene = Scene.Load(File.ReadAllText(Path.Combine(ContentDir, "scenes", "motor-station.json")));
         _runtime = new PlcRuntime(ProjectJson.Deserialize(_programJson), IecDialect.Instance, _scene);
         _ladder.Show(_runtime.Project);
         _owedMs = 0;
-        _failedChecks = 0;
-        ResultsList.ItemsSource = null;
-        ScoreText.Text = "";
         Refresh();
-        SetStatus("Next: hold down Start to run the motor, then press Stop. Or press Check this program to run the challenge's tests.");
     }
 
     private void Tick()
@@ -90,8 +111,8 @@ public partial class MainWindow : Window
 
     private void ReadButtons()
     {
-        _scene.Operate("start", StartButton.IsPressed);
-        _scene.Operate("stop", StopButton.IsPressed);
+        _scene.Operate("start", StartButton.IsPressed || HoldStart.IsChecked == true);
+        _scene.Operate("stop", StopButton.IsPressed || HoldStop.IsChecked == true);
     }
 
     private void Refresh()
@@ -101,7 +122,7 @@ public partial class MainWindow : Window
 
         var light = (PilotLight)_scene.Find("running")!;
         LightLamp.Fill = light.Lit ? new SolidColorBrush(Color.FromRgb(0x3C, 0xC8, 0x5A)) : new SolidColorBrush(Color.FromRgb(0x2A, 0x33, 0x2C));
-        LightText.Text = $"Running light: {(light.Lit ? "ON" : "off")}";
+        LightText.Text = $"Running light: {(light.Lit ? "on" : "off")}";
 
         var motor = (Motor)_scene.Find("m1")!;
         MotorRotation.Angle = motor.Angle;
@@ -125,13 +146,13 @@ public partial class MainWindow : Window
     private void Pause_Click(object sender, RoutedEventArgs e)
     {
         _paused = !_paused;
-        PauseButton.Content = _paused ? "_Run" : "_Pause";
+        PauseButton.Content = _paused ? "Ru_n" : "P_ause";
         PauseButton.ToolTip = _paused ? "Starts the simulated clock again." : "Stops the simulated clock. The program and the machine stay as they are.";
         StepButton.IsEnabled = _paused;
         StepButton.ToolTip = _paused ? "Runs exactly one scan (10 ms)." : "Runs exactly one scan (10 ms). Available while paused: press Pause first.";
         _owedMs = 0;
         Refresh();
-        SetStatus(_paused ? "Paused. Step one scan runs 10 ms at a time; hold a button down while you click Step to press it." : "Running.");
+        SetStatus(_paused ? "Paused. Step one scan runs 10 ms at a time. To press Start or Stop while stepping, tick Keep pressed." : "Running.");
     }
 
     private void Step_Click(object sender, RoutedEventArgs e)
@@ -144,8 +165,8 @@ public partial class MainWindow : Window
 
     private void Reset_Click(object sender, RoutedEventArgs e)
     {
-        LoadProgram();
-        SetStatus("Reset to power-up: every tag off, the motor stopped, the clock at 0.");
+        PowerUp();
+        SetStatus("Reset to power-up: every tag off, the motor stopped, the clock at 0. The test results are kept.");
     }
 
     private void Check_Click(object sender, RoutedEventArgs e)
@@ -169,7 +190,7 @@ public partial class MainWindow : Window
         if (outcome.Passed)
         {
             ScoreText.Text = $"Passed: {outcome.Score:0} of {outcome.MaxScore:0} points.";
-            SetStatus("Every test passed. In the finished program this attempt is recorded in your progress.");
+            SetStatus("Every test passed. Choose the other program to see how a failed test is reported.");
         }
         else
         {
@@ -182,13 +203,12 @@ public partial class MainWindow : Window
             var failed = outcome.Scenarios.Select((s, i) => (s, i)).FirstOrDefault(x => !x.s.Passed && !x.s.Hidden);
             if (failed.s is not null)
             {
-                var (_, trace) = runner.Replay(_challengeJson, _programJson, failed.i);
-                lines.Add($"What happened in \"{failed.s.Name}\" (each line is a moment something changed):");
-                lines.AddRange(trace.ToChangeLog().Split('\n', StringSplitOptions.RemoveEmptyEntries).Take(12).Select(l => "    " + l));
+                lines.Add($"What happened in the test \"{failed.s.Name}\":");
+                lines.AddRange(runner.Narrate(_challengeJson, _programJson, failed.i).Select(l => "    " + l));
             }
             SetStatus("Read the first failed test: it says what should have happened and when. Each further check unlocks the next hint.");
         }
-        lines.Add($"Program fingerprint (SHA-256): {outcome.WorkHash[..16]}… — recorded with each attempt.");
+        ScoreText.ToolTip = $"Program fingerprint (SHA-256): {outcome.WorkHash}";
         ResultsList.ItemsSource = lines;
     }
 

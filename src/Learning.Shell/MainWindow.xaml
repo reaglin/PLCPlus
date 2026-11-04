@@ -1,7 +1,7 @@
 <Window x:Class="Learning.Shell.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PLC+ — first look at the engine" Width="1180" Height="780" MinWidth="900" MinHeight="600"
+        Title="PLC+ — first look at the engine" Width="1180" Height="860" MinWidth="900" MinHeight="600"
         Background="{DynamicResource PageBrush}" Foreground="{DynamicResource InkBrush}"
         FontFamily="Segoe UI" FontSize="14" WindowStartupLocation="CenterScreen">
     <Window.InputBindings>
@@ -57,7 +57,7 @@
                     <TextBlock Text="The clock" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
                         The PLC runs on a simulated clock: every scan moves it on by exactly 10 ms. That is why a program and a test always give the same result.
-                        Pause stops the clock; Step runs one scan; Reset starts again from power-up.
+                        Pause stops the clock; Step one scan runs one scan; Reset starts again from power-up (your test results stay). To press Start or Stop while stepping, tick Keep pressed.
                     </TextBlock>
                     <Button Content="Hide help" HorizontalAlignment="Left" Click="Help_Executed" Margin="0,8,0,0"
                             ToolTip="Hides this panel. Press F1 or use Help ▸ Help for this screen to show it again." />
@@ -68,8 +68,8 @@
         <Grid Margin="16,12,16,12">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="3*" MinHeight="300" />
+                <RowDefinition Height="2*" MinHeight="140" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -104,11 +104,11 @@
                     <TextBlock Text="The machine" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
                     <TextBlock Style="{StaticResource Lead}" Text="Hold a button down to press it; let go to release it." />
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,12">
-                        <Button x:Name="StartButton" Content="_Start" Width="96" Height="56" FontSize="16" FontWeight="SemiBold"
+                        <Button x:Name="StartButton" Content="Start" Width="96" Height="56" FontSize="16" FontWeight="SemiBold"
                                 Background="#2E8B47" Foreground="White"
                                 AutomationProperties.HelpText="Start push button, normally open. Hold it down to press it."
                                 ToolTip="Start push button (normally open): its input is TRUE while you hold it down" />
-                        <Button x:Name="StopButton" Content="S_top" Width="96" Height="56" FontSize="16" FontWeight="SemiBold"
+                        <Button x:Name="StopButton" Content="Stop" Width="96" Height="56" FontSize="16" FontWeight="SemiBold"
                                 Background="#B3261E" Foreground="White"
                                 AutomationProperties.HelpText="Stop push button, normally closed. Hold it down to press it."
                                 ToolTip="Stop push button (normally closed): its input is TRUE until you press it" />
@@ -132,12 +132,20 @@
                         <TextBlock x:Name="MotorText" VerticalAlignment="Center" TextWrapping="Wrap" Width="190" AutomationProperties.LiveSetting="Polite" />
                     </StackPanel>
 
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Keep pressed:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <CheckBox x:Name="HoldStart" Content="Star_t" Margin="0,0,12,0" VerticalAlignment="Center"
+                                  ToolTip="While ticked, Start stays pressed, so you can watch it scan by scan with Pause and Step one scan" />
+                        <CheckBox x:Name="HoldStop" Content="St_op" VerticalAlignment="Center"
+                                  ToolTip="While ticked, Stop stays pressed (its input reads FALSE)" />
+                    </StackPanel>
+
                     <TextBlock Text="The PLC" Style="{StaticResource PanelTitle}" Margin="0,10,0,4" AutomationProperties.HeadingLevel="Level2" />
                     <TextBlock x:Name="ClockText" Margin="0,0,0,8" />
                     <WrapPanel>
-                        <Button x:Name="PauseButton" Content="_Pause" Click="Pause_Click" Margin="0,0,8,8"
+                        <Button x:Name="PauseButton" Content="P_ause" Click="Pause_Click" Margin="0,0,8,8"
                                 ToolTip="Stops the simulated clock. The program and the machine stay as they are." />
-                        <Button x:Name="StepButton" Content="Step one sca_n" Click="Step_Click" Margin="0,0,8,8" IsEnabled="False"
+                        <Button x:Name="StepButton" Content="Step one _scan" Click="Step_Click" Margin="0,0,8,8" IsEnabled="False"
                                 ToolTip="Runs exactly one scan (10 ms). Available while paused." />
                         <Button Content="_Reset" Click="Reset_Click" Margin="0,0,8,8"
                                 ToolTip="Starts again from power-up: every tag off, the motor stopped, the clock at 0." />
@@ -154,7 +162,8 @@
                                 ToolTip="Runs the challenge's tests on this program, from a clean start each time, and shows which pass" />
                         <TextBlock x:Name="ScoreText" TextWrapping="Wrap" Margin="0,8,0,0" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" />
                     </StackPanel>
-                    <ScrollViewer MaxHeight="140" VerticalScrollBarVisibility="Auto" Focusable="False">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" IsTabStop="True" AutomationProperties.Name="Test results; use the arrow keys to scroll"
+                                  ToolTip="The test results. Scroll to read them all (arrow keys or the mouse wheel)">
                     <ItemsControl x:Name="ResultsList" AutomationProperties.Name="Test results" MinHeight="70" Focusable="False">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>

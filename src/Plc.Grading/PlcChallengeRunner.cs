@@ -158,6 +158,61 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
         return (outcome, trace!);
     }
 
+    /// <summary>
+    /// What happened in one scenario, in words a beginner reads (spec 7.2 step 3): the test's own actions
+    /// ("Start pressed"), every change of an output ("Motor turned off"), and each check at its moment with
+    /// what it expected and what it found (✓ or ✗). At most <paramref name="maxLines"/> lines, then "… n more".
+    /// </summary>
+    public IReadOnlyList<string> Narrate(string challengeJson, string workJson, int scenarioIndex, int maxLines = 14)
+    {
+        var challenge = LoadChallenge(challengeJson);
+        var scenario = challenge.Scenarios[scenarioIndex];
+        var project = ProjectJson.Deserialize(workJson);
+        var scene = Scene.Load(loadSceneJson(challenge.Scene));
+        var (_, trace) = Replay(challengeJson, workJson, scenarioIndex);
+        var outputs = project.Tags.Where(t => t.Io == IoDirection.Output).Select(t => t.Name).ToList();
+
+        var moments = new List<(long Ms, int Order, string Text)>();
+        foreach (var e in scenario.Events)
+        {
+            var label = scene.Find(e.Operate)?.Label ?? e.Operate;
+            moments.Add((Ms(e.T), 0, $"{label} {(e.Active ? "pressed" : "released")}"));
+        }
+        PlcValue[]? last = null;
+        foreach (var f in trace.Frames)
+        {
+            for (var i = 0; i < trace.Tags.Count; i++)
+            {
+                if (!outputs.Contains(trace.Tags[i], StringComparer.OrdinalIgnoreCase)) continue;
+                var now = f.Values[i];
+                var before = last?[i];
+                if (before is null ? now.AsBool : !before.Value.Equals(now))
+                    moments.Add((f.TimeMs, 1, $"{trace.Tags[i]} turned {(now.AsBool ? "on" : "off")}"));
+            }
+            last = [.. f.Values];
+        }
+        foreach (var a in scenario.Assertions)
+        {
+            var actual = trace.ValueAt(a.Tag, Ms(a.At));
+            if (actual is null) continue;
+            var ok = PlcValue.TryParseLiteral(a.Expect, out var expected) && Same(actual.Value, expected);
+            moments.Add((Ms(a.At), 2, $"the test checks: {a.Tag} should be {Words(expected)}; it was {Words(actual.Value)} {(ok ? "✓" : "✗")}"));
+        }
+
+        // A test stops at its first failure: nothing after the last scan that ran is shown.
+        var lastMs = trace.Frames.Count > 0 ? trace.Frames[^1].TimeMs : 0;
+        var lines = moments.Where(m => m.Ms <= lastMs).OrderBy(m => m.Ms).ThenBy(m => m.Order)
+            .Select(m => $"{(m.Ms / 1000.0).ToString("0.00", CultureInfo.InvariantCulture)} s: {m.Text}").ToList();
+        if (lines.Count > maxLines)
+        {
+            var more = lines.Count - maxLines;
+            lines = [.. lines.Take(maxLines), $"… {more} more {(more == 1 ? "line" : "lines")}"];
+        }
+        return lines;
+    }
+
+    private static string Words(PlcValue v) => v.Type == DataType.Bool ? (v.AsBool ? "on" : "off") : v.ToString();
+
     private static ScenarioOutcome RunScenario(PlcProject project, Scene scene, Scenario scenario, Action<PlcRuntime>? attach)
     {
         var runtime = new PlcRuntime(project, IecDialect.Instance, scene);

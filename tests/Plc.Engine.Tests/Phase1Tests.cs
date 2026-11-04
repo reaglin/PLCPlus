@@ -170,4 +170,24 @@ public class TraceTests
         Assert.Equal(PlcValue.False, trace.ValueAt("Motor", 1000));
         Assert.Contains("Motor=FALSE", trace.ToChangeLog(), StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void NarrationIsInPlainWords()
+    {
+        var runner = new Plc.Grading.PlcChallengeRunner(id => Content("scenes", id + ".json"));
+        var lines = runner.Narrate(Content("challenges", "motor-start-stop.json"), Content("programs", "motor-no-seal-in.json"), 0);
+        Assert.Equal(
+        [
+            "0.00 s: Start pressed",
+            "0.00 s: Motor turned on",
+            "0.00 s: RunLight turned on",
+            "0.10 s: the test checks: Motor should be on; it was on ✓",
+            "0.20 s: Start released",
+            "0.20 s: Motor turned off",
+            "0.20 s: RunLight turned off",
+            "1.00 s: the test checks: Motor should be on; it was off ✗",
+        ], lines);
+        var cut = runner.Narrate(Content("challenges", "motor-start-stop.json"), Content("programs", "motor-no-seal-in.json"), 0, maxLines: 3);
+        Assert.Equal("… 5 more lines", cut[^1]);
+    }
 }
