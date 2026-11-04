@@ -5,7 +5,7 @@ The portfolio's shared guidance is in `..\CLAUDE.md` (loaded automatically).
 
 ## What this is
 
-**PLC+** (repo `PLCPlus`; free on the Microsoft Store, Ron 2026-11-04) teaches PLC programming at home, from electrical and logic basics to advanced ladder logic,
+**PLC+** (repo `PLCPlus`, public at https://github.com/reaglin/PLCPlus; free on the Microsoft Store, name reserved by Ron 2026-11-04) teaches PLC programming at home, from electrical and logic basics to advanced ladder logic,
 with **simulated machines in place of real hardware**. It is the self-paced half of a PLC course; the lab is the other half.
 It is for students, faculty in a grant training cohort, and the instructors who receive learners' progress reports.
 WPF on .NET 10. The source is Ron's specification, `docs/SPECIFICATION.pdf` (2026-11-04).

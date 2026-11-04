@@ -42,7 +42,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 | 0.2 | `docs/SPECIFICATION.pdf` (Ron's spec), `docs/PLAN.md` (decisions), this plan, `docs/MANUAL-TESTING.md`, `CLAUDE.md` | ⚠️ 2026-11-04 |
 | 0.3 | Architecture test: `Learning.Core` references no `Plc.*` assembly (spec 12, NFR-5) | ⚠️ `Learning.Core.Tests`, 3 tests |
 | 0.4 | **First-look window** (`PLCPlus.exe`): the motor station live (hold Start, press Stop), the program's rungs with power flow shown in green, thick and TRUE, the simulated clock with Pause / Step one scan / Reset, and **Check this program**, which runs the challenge's tests and shows each result, with hints after a failure. Help panel (F1), Help ▸ About with "Created by Dr. Ron Eaglin" | ⚠️ **Ron: hand-test 0** in `docs/MANUAL-TESTING.md`. Photographed through PrintWindow: all 3 tests pass with the seal-in program |
-| 0.5 | GitHub repo `reaglin/PLCPlus` (private), pushed | ⚠️ Ron: committed locally 2026-11-04; creating the GitHub repo needs Ron's go-ahead (the session's permission check stopped it) |
+| 0.5 | GitHub repo `reaglin/PLCPlus`, pushed | ⚠️ Ron created it (public) 2026-11-04: https://github.com/reaglin/PLCPlus; pushed the same day |
 
 ---
 
@@ -200,7 +200,7 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 
 | # | Task | Done when |
 |---|---|---|
-| 11.1 | **PLC+** (Ron, question 1) reserved in Partner Center; the icon with the "+" theme. **Free** on the Store (question 2) | ⚠️ Ron reserves the name. The name in the program changed to PLC+ 2026-11-04 |
+| 11.1 | **PLC+** (Ron, question 1) reserved in Partner Center; the icon with the "+" theme. **Free** on the Store (question 2) | ⚠️ **PLC+ reserved by Ron 2026-11-04.** The name in the program changed to PLC+ the same day; the Store ID goes in About's Store link once Partner Center shows it |
 | 11.2 | MSIX packaging (from Gamify+ / TrafficLab+), WACK, release documents in `docs/release/` | |
 | 11.3 | Lab install: provisioned for every account on a lab PC; tested on a shared login and on separate logins | |
 | 11.4 | Privacy policy at `softwareplus.ai/plcplus/privacy/`; the program's page and help at `softwareplus.ai/plcplus/`; a row in `status.html` | |
@@ -225,7 +225,7 @@ connection). No research analytics: the grant does not require research on outco
 ## Open questions for Ron — all 14 answered (asked and answered 2026-11-04)
 
 1. ~~**The name.**~~ **PLC+** in front of people; `PLCPlus` in code, folders and the exe. Changed in the program 2026-11-04;
-   Ron reserves the name in Partner Center (11.1).
+   Ron reserved it in Partner Center the same day (11.1).
 2. ~~**Free on the Store?**~~ **Free on the Microsoft Store.**
 3. ~~**How a report is verified.**~~ **Both, as recommended**: always signed with the computer's key, and also with the
    instructor's class code when there is one (8.4, 8.8).
