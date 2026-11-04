@@ -18,7 +18,7 @@ WPF on .NET 10. The source is Ron's specification, `docs/SPECIFICATION.pdf` (202
 - a first-look window.
 
 **Phase 1 (the engine) built 2026-11-04:** arrays and structures, breakpoints, traces, failure replay, and the reference
-programs R01–R11 with their traces (`tests/golden/`) and the Allen-Bradley lab guide (`docs/LAB-COMPARISON.md`). 100 tests
+programs R01–R11 with their traces (`tests/golden/`) and the Allen-Bradley lab guide (`docs/LAB-COMPARISON.md`). 101 tests
 pass. Ron answered all 14 plan questions on 2026-11-04 (`docs/PLAN.md` D10–D19). Next: phase 2 (scenes), phase 3 (ladder editor).
 
 ### Read these first
