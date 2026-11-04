@@ -59,11 +59,15 @@ public static class ProjectValidator
                 list.Add(new(Severity.Error, "Tags", 0, "", $"The starting value of '{tag.Name}' ('{tag.Initial}') is not a value this PLC understands."));
         }
 
+        // Tags something writes: coils, and boxes' outputs (a later rung may use what an earlier one wrote).
+        var written = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var rung in project.Programs.SelectMany(p => p.Rungs)) CollectWrites(rung.Logic, written, dialect);
+
         foreach (var unit in project.Programs)
         {
             for (var r = 0; r < unit.Rungs.Count; r++)
             {
-                var ctx = new Ctx(list, unit.Name, r + 1, tags, roots, types, dialect);
+                var ctx = new Ctx(list, unit.Name, r + 1, tags, roots, types, dialect) { Written = written };
                 Walk(unit.Rungs[r].Logic, "1", ctx);
                 if (!HasOutput(unit.Rungs[r].Logic))
                     list.Add(new(Severity.Warning, unit.Name, r + 1, "", "This rung has no coil or box, so it does nothing. Add a coil at the right-hand end."));
@@ -75,8 +79,23 @@ public static class ProjectValidator
     private sealed record Ctx(List<Diagnostic> List, string Program, int Rung, Dictionary<string, TagDeclaration> Tags,
         Dictionary<string, TypeRef> Roots, TypeSystem Types, IDialect Dialect)
     {
+        public HashSet<string> Written { get; init; } = [];
         public void Error(string path, string message) => List.Add(new(Severity.Error, Program, Rung, path, message));
         public void Warn(string path, string message) => List.Add(new(Severity.Warning, Program, Rung, path, message));
+    }
+
+    private static void CollectWrites(LadderElement e, HashSet<string> written, IDialect dialect)
+    {
+        switch (e)
+        {
+            case SeriesElement s: foreach (var i in s.Items) CollectWrites(i, written, dialect); break;
+            case ParallelElement p: foreach (var b in p.Branches) CollectWrites(b, written, dialect); break;
+            case CoilElement c: written.Add(c.Tag); break;
+            case BoxElement b:
+                foreach (var op in dialect.Find(b.Instruction)?.Operands.Where(o => o.Direction == OperandDirection.Out) ?? [])
+                    if (b.Operands.TryGetValue(op.Name, out var target)) written.Add(target);
+                break;
+        }
     }
 
     private static bool HasOutput(LadderElement e) => e switch
@@ -100,6 +119,12 @@ public static class ProjectValidator
                 break;
             case ContactElement c:
                 CheckBoolTag(c.Tag, "contact", path, ctx, write: false);
+                // A memory tag that nothing ever turns on: most often a typo of a wired tag's name.
+                if (ctx.Tags.TryGetValue(c.Tag, out var read) && read.Io == IoDirection.None && read.Initial is null
+                    && read.Type.Equals("BOOL", StringComparison.OrdinalIgnoreCase) && !ctx.Written.Contains(c.Tag))
+                    ctx.Warn(path, $"Nothing ever turns '{c.Tag}' on: no coil writes it and it is not wired to the machine, so this contact " +
+                        (c.Contact == ContactKind.NormallyClosed ? "always passes power" : "never passes power") +
+                        ". Check the spelling against the machine's wiring.");
                 break;
             case CoilElement coil:
                 CheckBoolTag(coil.Tag, "coil", path, ctx, write: true);
@@ -252,7 +277,7 @@ public static class ProjectValidator
         OperandKind.Bool => "a BOOL (on/off)",
         OperandKind.Number => "a number (INT, DINT or REAL)",
         OperandKind.Integer => "a whole number (INT or DINT)",
-        OperandKind.Time => "a time such as T#2s",
+        OperandKind.Time => "a time, written like T#2s (2 seconds) or T#500ms",
         _ => "a value",
     };
 }

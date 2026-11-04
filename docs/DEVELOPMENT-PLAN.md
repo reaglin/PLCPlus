@@ -100,16 +100,22 @@ test and every mistake fails a test the learner can see.
 
 ---
 
-## Phase 3 — the ladder editor (FR-2; spec 5.1)
+## Phase 3 — the ladder editor (FR-2; spec 5.1) ⚠️ built 2026-11-04
+
+The editing is `src/Plc.Editors/LadderEditor.cs` (no UI, 12 tests, including building the seal-in from a blank program and passing
+the challenge); the window shows it when Program is **My program (edit it)**. Every change runs at once: the PLC and the machine
+restart with the new program. My program is kept per challenge in `%LocalAppData%\PLCPlus\work\`.
 
 | # | Task | Done when |
 |---|---|---|
-| 3.1 | Place contacts, coils and boxes on rungs by dragging **or by keyboard**, with parallel branches | |
-| 3.2 | Tags: autocomplete, declare on first use, type checking while typing | |
-| 3.3 | Live mode: energized paths highlighted, live values beside each instruction, forced values clearly marked | The first look's read-only `LadderView` grows into this |
-| 3.4 | Rung comments, undo/redo, copy/paste of rungs | |
-| 3.5 | Validation messages shown on the rung and element they are about | The validator exists (1.8) |
-| 3.6 | Printing a rung (for the report's program evidence, spec 9.2) with the same drawing code | |
+| 3.1 | Place contacts, coils and boxes on rungs by dragging **or by keyboard**, with parallel branches | ⚠️ Built: the tool row (click, or drag onto an element), letters O C P N Q S R B and I (box menu, grouped: timers, counters, compare, math, move and bit logic), Shift+letter puts it before; Branch puts an OR around the selection (Shift+arrow selects several) or adds a path to a branch; a contact added at a coil goes before it |
+| 3.2 | Tags: autocomplete, declare on first use, type checking while typing | ⚠️ Built: the tag box lists BOOL tags and timer/counter outputs (T1.Q); a new name is declared on first use (BOOL for contacts and coils; TIME, INT or BOOL for a box's operands by what it needs); a value typed where a tag belongs is refused with a reason; the validator runs on every change. Timers and counters get their instance (T1, C1) when the box is added. A New program for a machine starts with its inputs and outputs declared from the wiring |
+| 3.3 | Live mode: energized paths highlighted, live values beside each instruction, forced values clearly marked | ⚠️ Built: right-click a contact or coil of a wired tag ▸ Force ON / OFF / Remove; a forced value shows as "FORCED TRUE" in bold orange; Reset removes every force. Works in every program, not only My program |
+| 3.4 | Rung comments, undo/redo, copy/paste of rungs | ⚠️ Built: comment box in the properties panel; Undo/Redo (200 steps, Ctrl+Z/Y); Copy rung/Paste rung (Ctrl+C/V, through the clipboard); New rung, Delete, Rung ▲/▼; Start again ▾ (empty, or a copy of the working program, or of the mistake to fix); File ▸ Open a program / Save My program as (.plcprogram) |
+| 3.5 | Validation messages shown on the rung and element they are about | ⚠️ Built: a dashed red box and a "!" on the element (its tooltip has the message), rung-level warnings under the rung's title, and the Problems list under the rungs (choose one to select the element). With problems, the PLC stays stopped and says why |
+| 3.6 | Printing a rung (for the report's program evidence, spec 9.2) with the same drawing code | ⚠️ Built: File ▸ Save the program as a picture (PNG at 192 dpi, with a title), drawn by the same `LadderView`; the PDF report (phase 8) uses it |
+| 3.6a | UX review of the editor (walkthrough + heuristics, 2026-11-04): 2 critical, 4 major, 5 minor, **fixed** — a typed tag saved against its own element even when another is clicked; keys read before the scroll area takes the arrows; a whole branch can be selected (→, or its right-hand side) so the next element goes after it; typos caught twice ("Did you mean Start?" and a warning that nothing turns the tag on); results marked stale after a change; Open asks first and, like Start again, is one Undo step; Undo says what it undid; the time format explained (T#2s); removed forces mentioned; tooltips complete; a focus border on the rungs | ⚠️ |
+| 3.7 | Hand-test 3 and the instructors' review of the editor | ⚠️ Ron: hand-test 3 in `docs/MANUAL-TESTING.md`; the review build now includes the editor |
 
 ---
 

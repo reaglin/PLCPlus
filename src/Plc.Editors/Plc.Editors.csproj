@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The ladder editor's model (spec 5.1): every editing action on the program tree, with undo, and no UI,
+       so all of it is tested. The WPF view is in Learning.Shell for now. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Plc.Editors</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Plc.Engine\Plc.Engine.csproj" />
+  </ItemGroup>
+
+</Project>

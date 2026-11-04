@@ -11,7 +11,10 @@ param(
     # Names of check boxes or toggle buttons to switch, through UI Automation, after -Select.
     [string[]]$Toggle = @(),
     # How long to let the window run after the clicks, before the picture.
-    [int]$SettleMs = 300
+    [int]$SettleMs = 300,
+    # Steps run in order after -Select/-Toggle: "value:Name=Text" types into a box (then focus moves on, which
+    # commits it), "press:Name" invokes a button. Through UI Automation only.
+    [string[]]$Steps = @()
 )
 
 Add-Type -AssemblyName System.Drawing
@@ -92,6 +95,29 @@ if ($Invoke.Count -gt 0) {
         else { Write-Output "NOT FOUND '$name'" }
         Start-Sleep -Milliseconds 700
     }
+}
+function Find-Named($name) {
+    $c = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
+    return $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $c)
+}
+foreach ($step in $Steps) {
+    $kind, $rest = $step -split ':', 2
+    if ($kind -eq 'value') {
+        $name, $text = $rest -split '=', 2
+        $el = Find-Named $name
+        if (-not $el) { Write-Output "NOT FOUND box '$name'"; continue }
+        $el.SetFocus()
+        $el.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($text)
+        Start-Sleep -Milliseconds 200
+        $away = Find-Named 'New rung'
+        if ($away) { $away.SetFocus() }
+        Write-Output "typed '$text' into '$name'"
+    } elseif ($kind -eq 'press') {
+        $el = Find-Named $rest
+        if ($el) { $el.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke(); Write-Output "pressed '$rest'" }
+        else { Write-Output "NOT FOUND '$rest'" }
+    }
+    Start-Sleep -Milliseconds 600
 }
 Start-Sleep -Milliseconds $SettleMs
 $r = New-Object Win+RECT

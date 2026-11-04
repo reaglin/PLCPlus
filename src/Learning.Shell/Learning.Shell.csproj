@@ -26,6 +26,7 @@
     <ProjectReference Include="..\Plc.Dialects.Iec\Plc.Dialects.Iec.csproj" />
     <ProjectReference Include="..\Plc.Scenes\Plc.Scenes.csproj" />
     <ProjectReference Include="..\Plc.Grading\Plc.Grading.csproj" />
+    <ProjectReference Include="..\Plc.Editors\Plc.Editors.csproj" />
   </ItemGroup>
 
 </Project>

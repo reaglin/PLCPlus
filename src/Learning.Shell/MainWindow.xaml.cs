@@ -18,6 +18,8 @@ namespace Learning.Shell;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private const string MyProgramTitle = "My program (edit it)";
+
     private static readonly string ContentDir = Path.Combine(AppContext.BaseDirectory, "content", "plcplus-foundations");
 
     private sealed record ProgramEntry(string Title, string File, string Note);
@@ -88,16 +90,27 @@ public partial class MainWindow : Window
         BriefText.Text = "The task: " + _current.Challenge.Brief;
         ProgramPicker.Items.Clear();
         foreach (var p in _current.Programs) ProgramPicker.Items.Add(p.Title);
+        ProgramPicker.Items.Add(MyProgramTitle);
         ProgramPicker.SelectedIndex = 0; // loads the program
     }
 
     private void ProgramPicker_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if (_current is null || ProgramPicker.SelectedIndex < 0) return;
+        _failedChecks = 0;
+        if (ProgramPicker.SelectedIndex >= _current.Programs.Count)
+        {
+            ResultsList.ItemsSource = null;
+            ScoreText.Text = "";
+            ScoreText.ToolTip = null;
+            if (_paused) Pause_Click(this, new RoutedEventArgs());
+            EnterEditor();
+            return;
+        }
+        LeaveEditor();
         var p = _current.Programs[ProgramPicker.SelectedIndex];
         _programJson = File.ReadAllText(Path.Combine(ContentDir, p.File));
         ProgramNote.Text = p.Note;
-        _failedChecks = 0;
         ResultsList.ItemsSource = null;
         ScoreText.Text = "";
         ScoreText.ToolTip = null;
@@ -111,11 +124,19 @@ public partial class MainWindow : Window
     {
         if (_current is null) return;
         _scene = Scene.Load(File.ReadAllText(Path.Combine(ContentDir, "scenes", _current.Challenge.Scene + ".json")));
-        _runtime = new PlcRuntime(ProjectJson.Deserialize(_programJson), IecDialect.Instance, _scene);
+        var project = ProjectJson.Deserialize(_programJson);
+        try
+        {
+            _runtime = new PlcRuntime(project, IecDialect.Instance, _scene);
+        }
+        catch (ProjectInvalidException)
+        {
+            _runtime = null; // the program has problems: the PLC stays stopped until they are fixed
+        }
         SceneTitle.Text = _scene.Title;
         _sceneView.Show(_scene);
         WiringList.ItemsSource = _scene.IoList.Select(p => $"{p.Tag} ({(p.Kind == IoKind.Input ? "input" : "output")}): {p.Meaning}").ToList();
-        _ladder.Show(_runtime.Project);
+        ShowLadder(project);
         _owedMs = 0;
         Refresh();
     }
@@ -140,7 +161,12 @@ public partial class MainWindow : Window
 
     private void Refresh()
     {
-        if (_runtime is null) return;
+        if (_runtime is null)
+        {
+            _sceneView.Update();
+            ClockText.Text = "The PLC is stopped: the program has problems (listed under the rungs). Fix them and it starts again.";
+            return;
+        }
         _ladder.Update(_runtime);
         _sceneView.Update();
         var seconds = (_runtime.NowMs / 1000.0).ToString("0.00", CultureInfo.InvariantCulture);

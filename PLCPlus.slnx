@@ -6,9 +6,11 @@
     <Project Path="src/Plc.Dialects.Iec/Plc.Dialects.Iec.csproj" />
     <Project Path="src/Plc.Scenes/Plc.Scenes.csproj" />
     <Project Path="src/Plc.Grading/Plc.Grading.csproj" />
+    <Project Path="src/Plc.Editors/Plc.Editors.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Plc.Engine.Tests/Plc.Engine.Tests.csproj" />
     <Project Path="tests/Learning.Core.Tests/Learning.Core.Tests.csproj" />
+    <Project Path="tests/Plc.Editors.Tests/Plc.Editors.Tests.csproj" />
   </Folder>
 </Solution>

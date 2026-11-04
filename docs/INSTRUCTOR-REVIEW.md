@@ -20,9 +20,11 @@ students can share one computer, each with a PIN-protected progress file they ca
 - a challenge for each machine, with two programs: one that works, and one with a mistake students commonly make;
 - automatic checking with hints, and a plain-words replay of what went wrong.
 
+**It also has the ladder editor:** choose *My program (edit it)* in Program to write your own program for any of the six
+machines, or to fix the common mistake. It runs on the machine as you build it, and Check this program grades it.
+
 **It does not have yet:**
 - the lessons;
-- the ladder editor (so you cannot write your own program yet);
 - learner progress;
 - the PDF reports.
 
@@ -73,6 +75,11 @@ Press **F1** at any time for help on the screen.
 
 For each, choose *A common mistake* and press **Check this program** to see what a student sees when they get it wrong.
 
+**To try the editor:** choose *My program (edit it)*. You start with the machine's tags and one rung (a contact and a coil). Click
+an element and type its tag; the tools above the rungs add contacts, coils, branches and boxes (timers, counters, compare, math);
+the letters O, C, Q, B and I do the same from the keyboard. *Start again ▾* can give you a copy of the common mistake to fix.
+Right-click a contact or coil to force its tag on or off.
+
 ## Simplifications we know about
 
 - **The garage door only stops** when something is in the doorway. A real opener must also reverse (UL 325); that is planned
@@ -95,6 +102,7 @@ Please answer whichever you can. Short notes are fine.
    contacts and coils). Should lessons show the Allen-Bradley names beside them from the start (XIC/XIO/OTE, .PRE/.ACC/.DN)?
 7. **Your course.** Which topics and machines from your course would you most want to see?
 8. **Reports.** When students hand in a progress report, what do you need to see on it?
+9. **The editor.** Is it quick enough to build a rung? What do your students reach for that is missing?
 
 ## Sending your notes
 

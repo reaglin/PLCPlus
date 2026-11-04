@@ -22,7 +22,9 @@ programs R01–R11 with their traces (`tests/golden/`) and the Allen-Bradley lab
 pass (130 since phase 2). Ron answered all 14 plan questions on 2026-11-04 (`docs/PLAN.md` D10–D19). **Phase 2 (scenes) built 2026-11-04:** six machines (pilot lights, motor, traffic light,
 garage door, tank, conveyor sorter), each with a challenge, a working program and a common mistake; the window is now a
 preview for the PLC instructors' review (`docs/INSTRUCTOR-REVIEW.md`). The Allen-Bradley comparison waits for the lab
-instructor. Next: the instructors' notes, then phase 3 (the ladder editor).
+instructor. **Phase 3 (the ladder editor) built 2026-11-04:** `src/Plc.Editors` holds the editing (tested
+without a window); "My program (edit it)" in the preview is editable, runs live, and is kept per challenge. Next: the
+instructors' notes, then phase 4 (the Learning Core: content packages and the learning path).
 
 ### Read these first
 
@@ -45,15 +47,17 @@ src/Plc.Engine/          program model (JSON), PlcRuntime (scan cycle), validato
 src/Plc.Dialects.Iec/    Generic IEC 61131-3 instructions
 src/Plc.Scenes/          simulated machines (JSON scenes, components)
 src/Plc.Grading/         challenges and the grader (implements Learning.Core.IChallengeRunner)
+src/Plc.Editors/         the ladder editor's model: every edit, undo/redo, declare on first use (no UI)
 content/plcplus-foundations/   scenes, challenges, example programs (copied beside the exe)
 tests/Plc.Engine.Tests/  engine, instructions, scenes, grading
 tests/golden/            reference programs R01–R11 (+ .trace.txt), written by tools/make-golden-cases.py
 tools/make-phase2-content.py  wrote the six scenes, challenges and example programs (the JSON is the source now)
 tests/Learning.Core.Tests/     architecture rule
+tests/Plc.Editors.Tests/       the editor, including building a program and passing a challenge
 tools/capture-window.ps1 photographs the window (PrintWindow) and presses buttons by UI Automation
 ```
 
-**Build and test:** `dotnet build PLCPlus.slnx`, `dotnet test tests/Plc.Engine.Tests`, `dotnet test tests/Learning.Core.Tests`.
+**Build and test:** `dotnet build PLCPlus.slnx`, then `dotnet test` each of `tests/Plc.Engine.Tests`, `tests/Plc.Editors.Tests`, `tests/Learning.Core.Tests`.
 **The review build** for instructors (self-contained, gitignored `review\`): `dotnet publish src/Learning.Shell/Learning.Shell.csproj -c Release
 -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 -p:EnableCompressionInSingleFile=true -p:DebugType=none -o review/PLCPlus-preview`, copy `docs/INSTRUCTOR-REVIEW.md` in, and zip it.
