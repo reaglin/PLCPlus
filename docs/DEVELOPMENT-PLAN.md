@@ -3,13 +3,28 @@
 Numbered tasks per phase, each with what "done" means. Requirement IDs (FR-, NFR-) and section numbers refer to Ron's
 specification, `docs/SPECIFICATION.pdf`. Decisions and the reasons for them are in `docs/PLAN.md`.
 
-The spec's three delivery phases map onto this plan like this:
-- **Spec Phase 1** (core and foundations, Units 1–5) is plan phases 0–11. Its gate: the engine test suite passes, the engine
-  matches a lab PLC on the reference programs, and a pilot runs with the faculty training cohort.
-- **Spec Phase 2** (intermediate and submission) is plan phase 12.
-- **Spec Phase 3** (advanced and dialects) is plan phase 13.
-
 Started **2026-11-04** from the specification.
+
+## The goal now: the instructors' release (Ron, 2026-11-05)
+
+Ron: *"The plan is to complete most of the modules and create a release for the Windows App Store. This will be the easiest way
+to get it to the instructors who will be providing feedback. At this point we will only be releasing it to PLC instructors."*
+
+- **PLC+ 1.0 for the PLC instructors**, on the Microsoft Store, free, **hidden**: not found by searching the Store, installed only
+  from a direct link (Ron chose this over a private audience list, 2026-11-05). It can be made discoverable later.
+- **Modules 1–8 and 11 written** (Ron, 2026-11-05): the spec's Phase 1 and Phase 2 units. Modules 9, 10 and 12 show their outcomes
+  as "coming later".
+- **A testing guide for the instructors** at `softwareplus.ai/plcplus/testing/`: install from the link, what to try, how to send
+  feedback. It is the page the release is advertised with.
+
+Phases 10 to 12 below lead to it. What the instructors send back becomes phase 13.
+
+The spec's three delivery phases map onto this plan like this:
+- **Spec Phase 1** (core and foundations, Units 1–5) is plan phases 0–9, and its gate is in phase 11. Its gate: the engine test
+  suite passes, the engine matches a lab PLC on the reference programs, and a pilot runs with the faculty training cohort. The
+  instructors' release is that pilot.
+- **Spec Phase 2** (intermediate and submission): its units are phase 10; the rest is phase 13, after the instructors' feedback.
+- **Spec Phase 3** (advanced and dialects) is plan phase 14.
 
 ---
 
@@ -137,7 +152,7 @@ Reference**, **all 12 modules** in the tree, and **first drafts for modules 3 an
 | 4.5 | The lesson viewer **in the program's own window** (Ron, question 7): Markdown into a WPF FlowDocument, with live widgets; no web view | ⚠️ Built with **Gamify+'s MarkdownView, copied** (no Markdig: stay with what works), plus italics, `|` inside code in tables, and widgets on their own line: `[[ladder: programs/x.json]]` draws a program, `[[truth-table: (Start OR Motor) AND Stop]]` lists every row. The mini simulation is the Example tab |
 | 4.6 | Submission points declared in the path: which exercises they cover and what counts as complete | ⚠️ Built: the module check (`kind: assess`, `covers: […]`) is complete when every item it covers is; its Exercise tab lists them. Making the report when it is reached is phase 8 |
 | 4.7 | `Tools.ContentValidator`: checks links, IDs and challenge definitions from the command line | ⚠️ Built: `dotnet run --project tools/ContentValidator [folder]`: IDs unique, prerequisites exist and come earlier, objectives are outcomes, challenges, programs and scenes exist, reference pages, widgets, module checks. The shipped package passes (a test runs it) |
-| 4.8 | Package signing: **Ron signs the content when it is published** (question 8), with a key kept out of git; a signing step in the publish script; the program rejects unsigned or untrusted packages | Not started: the built-in package ships inside the signed MSIX, so signing matters first for packages sent separately. Before the Store release (phase 11) |
+| 4.8 | Package signing: **Ron signs the content when it is published** (question 8), with a key kept out of git; a signing step in the publish script; the program rejects unsigned or untrusted packages | Not started: the built-in package ships inside the signed MSIX, so signing matters first for packages sent separately. Before the Store release (phase 12, 12.5) |
 | 4.9 | **Review of the flow by PLC course instructors**: their comments become plan items | ⚠️ Ron arranges the reviewers; the review build and guide now show the modules |
 | 4.10 | The window **in the family layout** (pulled forward from 7.1): menu, the learning path as a tree with ✓ ◐ ○ marks and "n of m complete", the module page, the item page with its four tabs, Previous/Next, Go ▸ Continue where I left off, F1 help | ⚠️ Built (code-behind; MVVM stays in 7.1). The old challenge picker is gone: the six machines are items 5.1–5.5 and 6.1. UX: walkthrough + heuristics, see 4.13 |
 | 4.11 | Progress for one learner on this computer (`%LocalAppData%\PLCPlus\progress\preview.json`): items opened, read, attempts with score and program hash, events | ⚠️ Built: `Learning.Core.Progress.LearningProgress`; phase 6 moves the same record into each learner's PIN-protected file |
@@ -178,7 +193,7 @@ says "look again" without the answer (practice questions, such as 2.3's, show it
 | 6.5 | Remove from this computer (needs the PIN; offers to export first) | ⚠️ Built: **Remove from this computer…**: the PIN, then "Back up first?" (**Back up, then remove…** / **Remove without a backup** / **Cancel**); the file goes to the **Recycle Bin** |
 | 6.6 | Export and import ("Add learner from file"), showing which computer saved it last and when | ⚠️ Built: export is **Learner ▸ Back up my progress…** (6.10). **Add learner from file…** says whose progress it is and which computer last saved it, and when; a learner new here is copied in (the same PIN opens it) |
 | 6.7 | Merging two copies: attempts are append-only with unique IDs, so both copies' attempts are kept and mastery recalculated | ⚠️ Built: a learner already here is **combined**: every attempt and event kept once by its ID (old attempts without one get a key from their content), each item's earliest completion, My program the later of the two; mastery follows. Either copy's PIN works; this computer's PIN stays; the chosen file is never written to. Two sessions with one learner (two windows, or two Windows accounts) merge when they save. 4 tests |
-| 6.8 | The shared folder `%ProgramData%\PLCPlus\Learners`, so lab PCs work with one shared login or separate ones; changeable in settings. Lab PCs are not reimaged (Ron, question 10) | ⚠️ Built: `%ProgramData%\PLCPlus\Learners`, created so every Windows account on the computer can change the files in it; **Settings…** on the start screen (the folder and the lock time) for everyone on the computer. ⚠️ For phase 11: check the folder under the Store's MSIX install |
+| 6.8 | The shared folder `%ProgramData%\PLCPlus\Learners`, so lab PCs work with one shared login or separate ones; changeable in settings. Lab PCs are not reimaged (Ron, question 10) | ⚠️ Built: `%ProgramData%\PLCPlus\Learners`, created so every Windows account on the computer can change the files in it; **Settings…** on the start screen (the folder and the lock time) for everyone on the computer. ⚠️ For phase 12 (12.4): check the folder under the Store's MSIX install |
 | 6.10 | **Backups are required** (Ron, question 10): the program asks the learner to back up (export) their file to a drive or cloud folder they choose, shows when the last backup was made, and reminds them when it is out of date (at each submission point and when they sign out) | ⚠️ Built: **Learner ▸ Back up my progress…** and the button at the top right ("⚠ Not backed up: Back up…", "⚠ Backup out of date …", "✓ Backed up today at …"); saving into the learners' folder is refused (not a backup). PLC+ asks for a backup when there is work since the last one: on Switch learner and on closing (Cancel stays), and when a module check is complete (the submission point, until phase 8's reports) |
 | 6.9 | The event log (xAPI-style learning events) inside the progress file | ⚠️ Built: the event log in the file, as xAPI-style statements (the learner, a verb, the item or file, the result in words, a unique ID): created, signed in, signed out, locked, opened (once per item per session), read, attempted, completed, opened early, backed up, merged, PIN changed or reset |
 | 6.11 | Hand-test 6 | ⚠️ Ron: hand-test 6 in `docs/MANUAL-TESTING.md`. **UX: walkthrough + heuristics 2026-11-05, 0 critical, 6 major, 9 minor; fixed:** Switch learner chooses nobody (the next student could have typed their PIN against the last one's name and locked them out); no auto-lock while a dialog is open, and a file locked under a dialog is never saved; a backup onto an older copy of the same learner (the USB stick from home) combines it first instead of overwriting it; **Open the learners' folder** and a damaged file can be removed without a PIN (an instructor without a student's PIN: question 15); changing the folder warns how many learners stay behind, and the empty list says where PLC+ is looking; Add learner from file takes several files at once; the preview's progress is no longer ticked by default; wrong-PIN messages say "Press Forgot my PIN"; the countdown keeps "That PIN is not right" and is spoken politely; a new PIN or two combined copies are confirmed on the status line; cancelling the backup when leaving keeps PLC+ open; the recovery code is cleared from the clipboard; error details follow "Details for support:"; the start-screen banner is neutral blue. Not changed: no search in a long list of learners (a class fits), the title still says "(preview)" until the Store |
@@ -233,36 +248,52 @@ says "look again" without the answer (practice questions, such as 2.3's, show it
 
 ---
 
-## Phase 10 — the Phase 1 gate
+## Phase 10 — the content for modules 6, 7, 8 and 11 (spec 6.2, spec Phase 2 units; for the instructors' release)
+
+Each module as modules 1–5 are: lessons, an exercise or practice questions on every item, an Example on a machine like the
+exercise's (D21), a module check, Reference pages, outcomes in `docs/OUTCOMES.md`, the validator clean.
 
 | # | Task | Done when |
 |---|---|---|
-| 10.1 | UX review of every screen (`ux-reviewer`: cognitive walkthrough and heuristic evaluation) against `..\USABILITY-CHECKLIST.md`; fixes made | |
-| 10.2 | Round manual test in `docs/MANUAL-TESTING.md`; Ron's hand-test | |
-| 10.3 | The engine matches a lab PLC on the reference programs (1.12) | |
-| 10.4 | **Pilot with the faculty training cohort** | ⚠️ Ron |
+| 10.1 | **Module 6, timers and counters:** TON, TOF and TP; retentive timing (RTO on the Allen-Bradley PLC); CTU, CTD and CTUD; cascading. Exercises on machines (the traffic light is the first), each with its example machine | |
+| 10.2 | **Module 7, data and math:** compare, math, move, data types, arrays. Needs two scene components the spec lists: a **numeric display** (an INT output) and a **thumbwheel** (an INT input); a machine that counts and measures (e.g. a parts counter with a batch size) | |
+| 10.3 | **Module 8, sequencing and state machines:** step logic, sequencers, a state machine with a step number, an introduction to SFC as diagrams (the SFC editor stays in phase 14). Needs a machine with several steps (e.g. a **cylinder** component and a fill-mix-drain tank, or a stamping station) | |
+| 10.4 | **Module 11, troubleshooting:** diagnostics (watching tags, forcing, traces, the replay), and find-the-fault on faulted machines: a stuck sensor, a failed motor, a wiring error (the engine already injects them). Practice faults on every earlier machine | |
+| 10.5 | Outcomes for modules 6, 7, 8 and 11 in `docs/OUTCOMES.md` | ⚠️ Ron reviews |
+| 10.6 | UX review of the new content and components; hand-test 10 | |
 
----
-
-## Phase 11 — the Microsoft Store and softwareplus.ai
+## Phase 11 — the release gate
 
 | # | Task | Done when |
 |---|---|---|
-| 11.1 | **PLC+** (Ron, question 1) reserved in Partner Center; the icon with the "+" theme. **Free** on the Store (question 2) | ⚠️ **PLC+ reserved by Ron 2026-11-04.** The name in the program changed to PLC+ the same day; the Store ID goes in About's Store link once Partner Center shows it |
-| 11.2 | MSIX packaging (from Gamify+ / TrafficLab+), WACK, release documents in `docs/release/` | |
-| 11.3 | Lab install: provisioned for every account on a lab PC; tested on a shared login and on separate logins | |
-| 11.4 | Privacy policy at `softwareplus.ai/plcplus/privacy/`; the program's page and help at `softwareplus.ai/plcplus/`; a row in `status.html` | |
-| 11.5 | Help ▸ About's three links (page, Store, all programs) and Check for a new version | |
+| 11.1 | UX review of every screen (`ux-reviewer`: cognitive walkthrough and heuristic evaluation) against `..\USABILITY-CHECKLIST.md`; fixes made | |
+| 11.2 | The round manual test in `docs/MANUAL-TESTING.md` (the usability round's template); Ron's hand-test of the whole program | |
+| 11.3 | Ron's verdicts on hand-tests 0–10, and on the outcomes; what he returns is fixed first | ⚠️ Ron |
+| 11.4 | The words "preview" taken out where the release is meant (window title, About, status); the content package's version and note for the release | |
+| 11.5 | The engine matches a lab PLC on the reference programs (1.12). **Not needed for the instructors' release**; it waits for the lab instructor and stays in the spec's Phase 1 gate | ⚠️ waits for the lab instructor |
 
----
+## Phase 12 — the Microsoft Store, the testing guide and softwareplus.ai
 
-## Phase 12 — spec Phase 2: intermediate and submission
+| # | Task | Done when |
+|---|---|---|
+| 12.1 | **PLC+** reserved in Partner Center (Ron, question 1); the icon with the "+" theme. **Free** (question 2) | ⚠️ **PLC+ reserved by Ron 2026-11-04.** The name in the program changed to PLC+ the same day; the Store ID goes in About's Store link once Partner Center shows it |
+| 12.2 | MSIX packaging (from Gamify+ / TrafficLab+), version 1.0.0, WACK, release documents in `docs/release/` | |
+| 12.3 | **Visibility: hidden, direct link only** (Ron, 2026-11-05): Partner Center ▸ Pricing and availability ▸ Visibility, "Public audience" with "Make this product available but not discoverable in the Store"; the steps in `docs/release/` | |
+| 12.4 | Lab install: provisioned for every account on a lab PC; tested on a shared login and on separate logins; the learners' folder under the Store's MSIX install (6.8) | |
+| 12.5 | Package signing of the content (4.8): the built-in package ships inside the signed MSIX, so it is enough for this release; separate packages later | |
+| 12.6 | Help ▸ About's three links (page, Store, all programs) and Check for a new version | |
+| 12.7 | Privacy policy at `softwareplus.ai/plcplus/privacy/`; the program's page and help at `softwareplus.ai/plcplus/`; a row in `status.html` | |
+| 12.8 | **The instructors' testing guide** at `softwareplus.ai/plcplus/testing/`: what PLC+ is for and what to review; install from the Store link; a guided tour (a learner, a module, an example, an exercise, a check, a report, checking a report); what to try in each module; how to send feedback (the review site's comments, or e-mail); what is known to be missing. Help ▸ **Testing guide** in the program links to it. Pictures taken from the program with PrintWindow | |
+| 12.9 | The review site and the instructors' review guide (`docs/INSTRUCTOR-REVIEW.md`) changed to the Store install (the zip of the preview goes) | |
+| 12.10 | Submitted by Ron; once live, the link goes in the testing guide and the guide is sent to the instructors | ⚠️ Ron |
 
-Units 6–8 and 11 (timers and counters, data and math, sequencing and state machines, troubleshooting), more scenes, fault
-injection, the report verifier tool, and report refinements from the faculty pilot. Gate: a student pilot in one course
-section, with PDF reports handed in through the LMS and reviewed end to end. Broken into tasks when phase 10 is done.
+## Phase 13 — after the instructors' feedback (spec Phase 2, the rest)
 
-## Phase 13 — spec Phase 3: advanced and dialects
+The instructors' notes, turned into tasks. Then: more scenes and fault injection, the report verifier as its own small tool, and
+report refinements from the faculty pilot. Gate: a student pilot in one course section, with PDF reports handed in through the
+LMS and reviewed end to end.
+
+## Phase 14 — spec Phase 3: advanced and dialects
 
 Units 9, 10 and 12 (analog and PID, Structured Text and function blocks, industrial systems); the Structured Text editor
 (AvalonEdit) and the SFC editor; the first vendor dialect, **Allen-Bradley (Rockwell)**, as in the lab (question 5); optional report formats (CSV, an LMS
@@ -279,7 +310,7 @@ connection). No research analytics: the grant does not require research on outco
    instructor's class code when there is one (8.4, 8.8).
 4. ~~**What is inside the progress file.**~~ **JSON** in the encrypted block. The files are not likely to get large (6.3).
 5. ~~**The lab PLC.**~~ **Allen-Bradley.** The lab comparison runs on it (1.12), and Rockwell is the first vendor dialect
-   (phase 13).
+   (phase 14).
 6. ~~**Prerequisites.**~~ **Recommended, not enforced** (4.4).
 7. ~~**Lesson pages.**~~ **The program's own window** (4.5).
 8. ~~**Who signs the content.**~~ **Ron signs the content when it is published** (4.8).

@@ -45,6 +45,10 @@ item, a check each), modules 3 and 5 revised; a typed-answer question kind (`tex
 Example tab runs a machine **like** its exercise's (D21; `tools/make-example-machines.py`; the motor can now run in reverse); the
 outcomes in `docs/OUTCOMES.md` (`tools/make-outcomes.py`) for Ron to review. 277 tests.
 
+**The goal now (Ron, 2026-11-05, D24): the instructors' release.** PLC+ 1.0 on the Microsoft Store, hidden (direct link only), for
+the PLC instructors who give feedback; modules 1–8 and 11 written; a testing guide at softwareplus.ai/plcplus/testing/. Plan phases
+10 (content for 6, 7, 8, 11), 11 (the release gate) and 12 (Store, testing guide, site).
+
 ### Read these first
 
 | File | What it is |
