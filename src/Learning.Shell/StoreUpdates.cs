@@ -10,13 +10,13 @@ namespace Learning.Shell;
 /// Help ▸ Check for a new version (Ron, 2026-10-30, for every Store program). Asks the Microsoft Store whether a newer version
 /// is published; if so, asks the person, then lets the Store download and install it (Windows shows its own progress). A copy
 /// not installed from the Store (a hand-test build) cannot ask, and says so, offering the Store page instead.
-/// Copied from Accessibility+ (the model). PLC+ has no Store ID yet: until it has, the check says PLC+ is not on the Store yet.
+/// Copied from Accessibility+ (the model).
 /// </summary>
 public static class StoreUpdates
 {
     public const string ProgramName = "PLC+";
-    /// <summary>Empty until Partner Center gives PLC+ its Store ID (plan 11): then https://apps.microsoft.com/detail/{ID}.</summary>
-    public const string StorePage = "";
+    /// <summary>PLC+ on the Microsoft Store (Store ID 9NK6K23SSR27, from Partner Center 2026-11-05).</summary>
+    public const string StorePage = "https://apps.microsoft.com/detail/9NK6K23SSR27";
 
     /// <summary>The version running now, as people read it (1.0.1).</summary>
     public static string CurrentVersion

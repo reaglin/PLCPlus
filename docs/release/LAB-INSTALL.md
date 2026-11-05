@@ -31,10 +31,10 @@ account.
 **Every account at once (an administrator, with winget).** In a terminal run as administrator:
 
 ```powershell
-winget install --id <Store ID> --source msstore --scope machine --accept-package-agreements --accept-source-agreements
+winget install --id 9NK6K23SSR27 --source msstore --scope machine --accept-package-agreements --accept-source-agreements
 ```
 
-`<Store ID>` is the 12-character ID in the Store link (`apps.microsoft.com/detail/<Store ID>`). If the Store does not allow a
+`9NK6K23SSR27` is PLC+'s Store ID (the end of its Store link, `apps.microsoft.com/detail/9NK6K23SSR27`). If the Store does not allow a
 machine-wide install, winget says so; then install it once per account, as above, or through Intune ("Microsoft Store app
 (new)", assigned to the device).
 

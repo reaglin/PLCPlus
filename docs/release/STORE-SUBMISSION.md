@@ -37,11 +37,11 @@ Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Sta
 
 | Field | Value | Where it lives |
 |---|---|---|
-| `Package/Identity/Name` | **NEEDS RON** — Partner Center ▸ PLC+ ▸ Product management ▸ Product identity (it looks like `DeanEaglin.PLC`) | passed to the build as `-IdentityName` |
+| `Package/Identity/Name` | `DeanEaglin.PLC` (Partner Center, 2026-11-05) | passed to the build as `-IdentityName` |
 | `Package/Identity/Publisher` | `CN=E88392BA-A722-4B3A-8372-04403A55AA63` | passed as `-Publisher`; account-wide, the same for every program |
 | `PublisherDisplayName` | `Dean Eaglin` | already in `packaging/AppxManifest.xml` |
-| Package family name | `<identity name>_xs303fgqvwdg8` | printed by `-VerifyFamilyName`; must equal Partner Center's |
-| Store ID | **NEEDS RON** — the same Product identity page (12 characters, like `9MZCBQVSSDVG`) | `StoreUpdates.StorePage` in `src/Learning.Shell/StoreUpdates.cs` |
+| Package family name | `DeanEaglin.PLC_xs303fgqvwdg8` | printed by `-VerifyFamilyName`; must equal Partner Center's |
+| Store ID | `9NK6K23SSR27` — https://apps.microsoft.com/detail/9NK6K23SSR27 | `StoreUpdates.StorePage` in `src/Learning.Shell/StoreUpdates.cs` |
 
 The package identity cannot be changed after the first submission, so copy it exactly.
 
@@ -80,8 +80,9 @@ fourth part to be 0). Every later upload needs a higher version (1.0.1, …).
 
 ```powershell
 .\packaging\make-store-assets.ps1        # only when the artwork changes
-.\packaging\make-msixupload.ps1 -IdentityName '<identity name from §2>' `
-    -Publisher 'CN=E88392BA-A722-4B3A-8372-04403A55AA63' -VerifyFamilyName
+.\packaging\make-msixupload.ps1 -IdentityName 'DeanEaglin.PLC' `
+    -Publisher 'CN=E88392BA-A722-4B3A-8372-04403A55AA63' -VerifyFamilyName `
+    -OutputDirectory artifacts\store
 ```
 
 Output: `artifacts\PLCPlus_1.0.0.0_x64_bundle.msixupload` (about 69 MB: the program, .NET, and the lessons, machines and
@@ -169,7 +170,10 @@ Do not upload `asset-contact-sheet.png`; it is the proof sheet.
 
 ### Packages
 
-Upload `artifacts\PLCPlus_1.0.0.0_x64_bundle.msixupload` (the one built with the real identity, §6).
+Upload `artifacts\store\PLCPlus_1.0.0.0_x64_bundle.msixupload` (the one built with the real identity, §6). Tick Windows 10/11 Desktop only.
+
+The Super hero art slot is left empty: the Store says it must not show the product's title, and both hero images do.
+The notes for the testers (§10) now go on Partner Center's **Additional Testing Information** page, not Submission options.
 
 ### Submission options
 
