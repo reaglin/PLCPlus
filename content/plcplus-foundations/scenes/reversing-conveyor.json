@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "reversing-conveyor",
+  "title": "Reversing conveyor motor",
+  "description": "A conveyor motor with two contactors, one to run it forward and one to run it in reverse; Forward, Reverse and Stop buttons. The two contactors must never be on together: on a real panel that shorts the supply.",
+  "width": 440,
+  "height": 300,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "fwd",
+      "label": "Forward",
+      "tag": "FwdPB",
+      "color": "green",
+      "x": 30,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "rev",
+      "label": "Reverse",
+      "tag": "RevPB",
+      "color": "green",
+      "x": 30,
+      "y": 110
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 30,
+      "y": 200
+    },
+    {
+      "type": "pilotLight",
+      "id": "fwdlight",
+      "label": "Forward",
+      "tag": "FwdLight",
+      "color": "green",
+      "x": 170,
+      "y": 20
+    },
+    {
+      "type": "pilotLight",
+      "id": "revlight",
+      "label": "Reverse",
+      "tag": "RevLight",
+      "color": "amber",
+      "x": 170,
+      "y": 110
+    },
+    {
+      "type": "motor",
+      "id": "motor",
+      "label": "Conveyor motor",
+      "runTag": "Forward",
+      "reverseTag": "Reverse",
+      "startTimeMs": 600,
+      "x": 320,
+      "y": 110
+    }
+  ]
+}

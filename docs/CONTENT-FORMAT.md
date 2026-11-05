@@ -99,11 +99,16 @@ An item names a quiz file, usually the module check: `quiz: quizzes/m5-check.jso
     { "id": "q2", "kind": "multiple", "options": [ … ], "correct": [0, 2] },
     { "id": "q3", "kind": "numeric", "answer": 100, "tolerance": 1, "unit": "mA" },
     { "id": "q4", "kind": "truthTable", "expression": "(Start OR Motor) AND Stop" },
+    { "id": "q7", "kind": "text", "base": 16, "answer": 31, "prompt": "Write 31 in hexadecimal." },
+    { "id": "q8", "kind": "text", "answers": ["0010 0101"], "prompt": "Write 25 in BCD." },
     { "id": "q5", "kind": "match", "pairs": [ { "left": "-(S)-", "right": "Turns its tag on, and leaves it on" }, … ] },
     { "id": "q6", "kind": "fault", "machine": "u5.motor-start-stop", "program": "Works", "fault": "Stop:open",
       "options": [ … ], "correct": [0] } ] }
 ```
 
+- `text` is a typed answer. With `base` (2, 8 or 16), `answer` is the number in decimal and the learner writes it in that base:
+  leading zeros, spaces and the usual marks (`2#`, `0b`, `16#`, `0x`, a trailing `h`) are accepted. Without `base`, `answers` lists
+  every answer accepted; case, spaces and underscores are ignored, and the first is the one shown as right.
 - `correct` counts options from 0. A match question offers the right-hand items in alphabetical order.
 - `fault` is `Tag:open` (a broken wire: always FALSE), `Tag:shorted` (always TRUE) or `Tag:swapped:OtherTag`; the tag must be an
   input of the machine. The learner works the faulted machine running `program` and chooses what is wrong.

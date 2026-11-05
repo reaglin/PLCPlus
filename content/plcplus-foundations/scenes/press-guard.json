@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "press-guard",
+  "title": "Press guard station",
+  "description": "A small press that must only close when both of the operator's hands are on its buttons and the guard is shut. Two hand buttons and a guard switch on the inputs; Ready, Press closing and Guard open lights on the outputs.",
+  "width": 440,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "left",
+      "label": "Left hand",
+      "tag": "LeftHand",
+      "color": "green",
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "right",
+      "label": "Right hand",
+      "tag": "RightHand",
+      "color": "green",
+      "x": 30,
+      "y": 120
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "guard",
+      "label": "Guard",
+      "tag": "GuardShut",
+      "positions": [
+        "Open",
+        "Shut"
+      ],
+      "x": 30,
+      "y": 220
+    },
+    {
+      "type": "pilotLight",
+      "id": "ready",
+      "label": "Ready",
+      "tag": "Ready",
+      "color": "green",
+      "x": 250,
+      "y": 30
+    },
+    {
+      "type": "pilotLight",
+      "id": "closing",
+      "label": "Press closing",
+      "tag": "PressClose",
+      "color": "amber",
+      "x": 250,
+      "y": 120
+    },
+    {
+      "type": "pilotLight",
+      "id": "guardopen",
+      "label": "Guard open",
+      "tag": "GuardOpen",
+      "color": "red",
+      "x": 250,
+      "y": 220
+    }
+  ]
+}

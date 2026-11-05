@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "name": "A two-hand press guard (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "LeftHand",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Left hand button: TRUE while pressed"
+    },
+    {
+      "name": "RightHand",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Right hand button: TRUE while pressed"
+    },
+    {
+      "name": "GuardShut",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Guard switch: TRUE while the guard is shut"
+    },
+    {
+      "name": "Ready",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "PressClose",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "GuardOpen",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Ready while the guard is shut.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "GuardShut",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Ready",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Close the press only with both hands on their buttons AND the guard shut: three contacts in series.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "LeftHand",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "RightHand",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "GuardShut",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "PressClose",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Guard open while the guard is NOT shut: a normally closed contact.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "GuardShut",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "GuardOpen",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

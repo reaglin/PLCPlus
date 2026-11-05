@@ -41,6 +41,42 @@ public class SceneTests
     }
 
     [Fact]
+    public void ReversingMotorRunsBackwardsAndSlowsDownToChangeDirection()
+    {
+        var motor = new Motor { RunTag = "Fwd", ReverseTag = "Rev", StartTimeMs = 100 };
+        Assert.Equal(2, motor.Points.Count());
+        motor.WriteOutput("Rev", PlcValue.True);
+        motor.Advance(100);
+        Assert.True(motor.Running);
+        Assert.True(motor.Reversing);
+        Assert.Equal(PlcValue.True, motor.Probe("reverse"));
+        Assert.Contains("in reverse", motor.StateText, StringComparison.Ordinal);
+
+        motor.WriteOutput("Rev", PlcValue.False);
+        motor.WriteOutput("Fwd", PlcValue.True);
+        motor.Advance(50);                       // half-way down to a stop, still turning backwards
+        Assert.True(motor.Reversing);
+        Assert.Contains("change direction", motor.StateText, StringComparison.Ordinal);
+        motor.Advance(150);                      // stopped, then up to speed forwards
+        Assert.True(motor.Running);
+        Assert.False(motor.Reversing);
+        Assert.False(motor.Conflict);
+    }
+
+    [Fact]
+    public void ReversingMotorToldBothWaysShowsTheConflictAndDoesNotTurn()
+    {
+        var motor = new Motor { RunTag = "Fwd", ReverseTag = "Rev", StartTimeMs = 100 };
+        motor.WriteOutput("Fwd", PlcValue.True);
+        motor.WriteOutput("Rev", PlcValue.True);
+        motor.Advance(1000);
+        Assert.False(motor.Running);
+        Assert.True(motor.Conflict);
+        Assert.Equal(PlcValue.True, motor.Probe("conflict"));
+        Assert.Contains("BOTH ways", motor.StateText, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SealInProgramRunsTheRealScene()
     {
         var scene = Scene.Load(Content("scenes", "motor-station.json"));

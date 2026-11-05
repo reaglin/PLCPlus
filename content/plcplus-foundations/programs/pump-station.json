@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "name": "Start and stop a pump (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "PumpStart",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button (normally open): TRUE while pressed"
+    },
+    {
+      "name": "PumpStop",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "OverloadOK",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Overload relay contact (normally closed): TRUE while it has NOT tripped"
+    },
+    {
+      "name": "Pump",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "PumpLight",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "(Start OR the pump already running) AND Stop not pressed AND the overload not tripped: the seal-in.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "PumpStart",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Pump",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "PumpStop",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "OverloadOK",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Pump",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The light follows the pump.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Pump",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "PumpLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

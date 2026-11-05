@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "push-on-push-off",
+  "title": "Push on, push off",
+  "description": "One push button that turns a work light on with one press and off with the next.",
+  "width": 400,
+  "height": 200,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "button",
+      "label": "Light button",
+      "tag": "LightPB",
+      "color": "green",
+      "x": 40,
+      "y": 50
+    },
+    {
+      "type": "pilotLight",
+      "id": "light",
+      "label": "Work light",
+      "tag": "WorkLight",
+      "color": "amber",
+      "x": 230,
+      "y": 50
+    }
+  ]
+}

@@ -3,7 +3,7 @@ id: plc.m5.contacts-coils
 title: Contacts and coils: a pilot light station
 minutes: 40
 objectives: [plc.m5.o1]
-example: u5.pilot-lights
+example: u5.press-guard
 exercise: u5.pilot-lights
 reference: [contacts, coils, series-parallel]
 ---
@@ -29,7 +29,7 @@ A station has two push buttons (PB1, PB2), a Mode switch and three lights. Light
 
 ## How to do it
 
-1. Open the **Example** tab and try the working program: press the buttons and turn the switch.
+1. Open the **Example** tab: a press guard station worked out with the same ideas (series contacts for AND, a normally closed contact for NOT). Press the hand buttons, turn the Guard switch, and watch the rungs. *A common mistake* (choose it in **Program**, above the machine) puts the hand buttons in parallel: try one hand alone. Then write your own program for the pilot lights:
 2. Open the **Exercise** tab. Your program starts with the station's tags and one rung. Click the contact: its **Tag** box (above the rungs) is ready for typing. Type **PB1** and press Enter. Click the coil, type **Green** and press Enter.
 3. Add a rung (**New rung**) for each of the other lights. For Amber, add a second contact after the first (select the first contact, then **Contact**).
 4. Press **Check my program**. Each test says what it expected and when.

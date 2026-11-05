@@ -21,12 +21,12 @@ public class ContentTests
     }
 
     [Fact]
-    public void ThereAreSixChallengesOneForEachSpecScene()
+    public void ThereAreTheSpecScenesAndTheirExamples()
     {
-        Assert.Equal(6, Challenges().Count());
+        Assert.Equal(11, Challenges().Count());
         var scenes = Challenges().Select(c => PlcChallengeRunner.LoadChallenge(K.Content(((string)c[0]).Split('/'))).Scene).ToHashSet();
         Assert.Equal(
-            new HashSet<string> { "pilot-station", "motor-station", "traffic-light", "garage-door", "tank", "conveyor-sorter" }, scenes);
+            new HashSet<string> { "pilot-station", "motor-station", "traffic-light", "garage-door", "tank", "conveyor-sorter", "press-guard", "pump-station", "reversing-conveyor", "overheat-alarm", "push-on-push-off" }, scenes);
     }
 
     [Theory]

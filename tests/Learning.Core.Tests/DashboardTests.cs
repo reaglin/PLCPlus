@@ -23,20 +23,22 @@ public class DashboardTests
 
     private static readonly string[] Q = ["q1", "q2", "q3", "q4", "q5", "q6"];
 
+    private static SubmissionPoint M3(DashboardSummary d) => d.Submissions.Single(s => s.Check.Id == "plc.m3.check");
+
     [Fact]
     public void A_new_learner_sees_every_module_and_nothing_done()
     {
         var d = Dashboard.Build(P, new LearningProgress(), T0);
         Assert.Equal(12, d.Modules.Count);
-        Assert.Equal(PathState.Outline, d.Modules[0].State);
-        Assert.Equal(PathState.Available, d.Modules.Single(e => e.Module.Id == "plc.m3").State);   // its prerequisites are outlines
+        Assert.Equal(PathState.Available, d.Modules[0].State);
+        Assert.Equal(PathState.Outline, d.Modules.Single(e => e.Module.Id == "plc.m6").State);
         Assert.Equal(PathState.ComingLater, d.Modules.Single(e => e.Module.Id == "plc.m7").State);
         Assert.All(d.Submissions, s => Assert.Equal(SubmissionState.NotReached, s.State));
-        Assert.Equal(["plc.m3.check", "plc.m5.check"], d.Submissions.Select(s => s.Check.Id));
+        Assert.Equal(["plc.m1.check", "plc.m2.check", "plc.m3.check", "plc.m4.check", "plc.m5.check"], d.Submissions.Select(s => s.Check.Id));
         Assert.Empty(d.ReviewSuggested);
         Assert.Equal(0, d.Totals.ItemsComplete);
-        Assert.Equal(11, d.Totals.Items);       // the written modules only: 5 in module 3, 6 in module 5
-        Assert.Equal(2, d.Totals.Modules);
+        Assert.Equal(27, d.Totals.Items);       // the written modules only: 5 + 5 + 5 + 6 + 6 in modules 1 to 5
+        Assert.Equal(5, d.Totals.Modules);
         Assert.Equal(TimeSpan.Zero, d.Totals.Time);
     }
 
@@ -50,7 +52,7 @@ public class DashboardTests
         var m3 = d.Modules.Single(e => e.Module.Id == "plc.m3");
         Assert.Equal(PathState.Mastered, m3.State);
         Assert.Equal("★", Dashboard.Mark(m3.State));
-        Assert.Equal(SubmissionState.Ready, d.Submissions[0].State);
+        Assert.Equal(SubmissionState.Ready, M3(d).State);
         Assert.Equal(1, d.Totals.ModulesComplete);
         Assert.Equal(4, d.Totals.OutcomesMastered);
     }
@@ -76,7 +78,7 @@ public class DashboardTests
         progress.MarkRead(P.FindItem("plc.m3.relays")!, T0);
         var d = Dashboard.Build(P, progress, T0);
         Assert.Equal(PathState.InProgress, d.Modules.Single(e => e.Module.Id == "plc.m3").State);
-        Assert.Equal("1 of 4 items done, questions not passed yet", d.Submissions[0].Detail);
+        Assert.Equal("1 of 4 items done, questions not passed yet", M3(d).Detail);
     }
 
     [Fact]
@@ -86,7 +88,7 @@ public class DashboardTests
         ReadModule3(progress);
         progress.Record(P.FindItem("plc.m3.check")!, Questions([.. Q.Select(q => (q, true))]), T0);
         progress.Submissions.Add(new SubmissionRecord("plc.m3.check", "r1", T0.AddHours(1), "hash"));
-        Assert.Equal(SubmissionState.Generated, Dashboard.Build(P, progress, T0).Submissions[0].State);
+        Assert.Equal(SubmissionState.Generated, M3(Dashboard.Build(P, progress, T0)).State);
     }
 
     [Fact]

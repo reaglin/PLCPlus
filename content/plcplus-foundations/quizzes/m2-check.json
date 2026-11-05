@@ -1,0 +1,135 @@
+{
+  "id": "plc.m2.check.quiz",
+  "title": "Module 2 check: logic and number systems",
+  "passThreshold": 0.8,
+  "practice": false,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "text",
+      "objective": "plc.m2.o1",
+      "prompt": "Write 89 in binary.",
+      "base": 2,
+      "answer": 89,
+      "explanation": "89 = 64 + 16 + 8 + 1, so the 64, 16, 8 and 1 places hold 1s: 101 1001 (2#0101_1001 as eight bits)."
+    },
+    {
+      "id": "q2",
+      "kind": "text",
+      "objective": "plc.m2.o1",
+      "prompt": "Write 250 in hexadecimal.",
+      "base": 16,
+      "answer": 250,
+      "explanation": "250 ÷ 16 = 15 remainder 10. 15 is F and 10 is A, so 250 is 16#FA. Check: 15 × 16 + 10 = 250."
+    },
+    {
+      "id": "q3",
+      "kind": "numeric",
+      "objective": "plc.m2.o1",
+      "prompt": "A module reports the status word `16#1A4`. What is it in decimal?",
+      "answer": 420,
+      "tolerance": 0,
+      "explanation": "1 × 256 + A (10) × 16 + 4 = 256 + 160 + 4 = 420. In binary it is 0001 1010 0100."
+    },
+    {
+      "id": "q4",
+      "kind": "text",
+      "objective": "plc.m2.o2",
+      "prompt": "Write 59 in BCD, four bits per digit.",
+      "answers": [
+        "0101 1001",
+        "101 1001",
+        "2#0101 1001",
+        "2#101 1001",
+        "16#59"
+      ],
+      "explanation": "Each digit gets its own four bits: 5 = 0101 and 9 = 1001, so 59 is 0101 1001."
+    },
+    {
+      "id": "q5",
+      "kind": "numeric",
+      "objective": "plc.m2.o2",
+      "prompt": "Three thumbwheel switches send the BCD bits 0110 0000 0100. What number is dialed?",
+      "answer": 604,
+      "tolerance": 0,
+      "explanation": "Read each group of four as one digit: 0110 = 6, 0000 = 0, 0100 = 4, so 604."
+    },
+    {
+      "id": "q6",
+      "kind": "choice",
+      "objective": "plc.m2.o2",
+      "prompt": "In plain binary, 16 bits hold 0 to 65,535. Why do the same 16 bits in BCD hold only 0 to 9,999?",
+      "options": [
+        "Each group of four bits holds only one digit, 0 to 9; the codes 1010 to 1111 are never used",
+        "BCD uses one of the 16 bits for the sign",
+        "BCD needs 8 bits for each digit",
+        "A PLC cannot count past 9,999"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Four bits have sixteen codes but BCD uses only ten of them, so 16 bits make four digits: 0000 to 9999."
+    },
+    {
+      "id": "q7",
+      "kind": "match",
+      "objective": "plc.m2.o3",
+      "prompt": "Match each logic operation to the contacts that make it in a ladder rung.",
+      "pairs": [
+        {
+          "left": "AND",
+          "right": "Contacts in series, one after the other"
+        },
+        {
+          "left": "OR",
+          "right": "Contacts in parallel, side by side"
+        },
+        {
+          "left": "NOT",
+          "right": "A normally closed contact"
+        }
+      ],
+      "explanation": "In series, power must pass every contact (AND); in parallel, any path will do (OR); a normally closed contact passes power while its tag is FALSE (NOT)."
+    },
+    {
+      "id": "q8",
+      "kind": "choice",
+      "objective": "plc.m2.o3",
+      "prompt": "The horn sounds if the tank level is high **or** someone presses Test. A **normally open** contact of each tag is used. How are the two contacts wired?",
+      "options": [
+        "In series",
+        "In parallel",
+        "Test as a normally closed contact in series with High",
+        "Only one contact is needed"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Either condition alone sounds the horn, so this is OR: contacts in parallel."
+    },
+    {
+      "id": "q9",
+      "kind": "choice",
+      "objective": "plc.m2.o4",
+      "prompt": "*The conveyor runs in two cases: when Run is on and the jam sensor is not blocked; or, on its own, while Jog is held.* The jam sensor's tag Jam is TRUE when blocked. Which expression says this?",
+      "options": [
+        "(Run AND NOT Jam) OR Jog",
+        "Run AND NOT (Jam OR Jog)",
+        "Run AND (NOT Jam OR Jog)",
+        "NOT (Run AND Jam) OR Jog"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "\"Run is on and the jam sensor is not blocked\" is Run AND NOT Jam, one condition in brackets; Jog alone also runs it: (Run AND NOT Jam) OR Jog."
+    },
+    {
+      "id": "q10",
+      "kind": "truthTable",
+      "objective": "plc.m2.o4",
+      "prompt": "Mind the order of operations: fill in A AND B OR NOT C.",
+      "expression": "A AND B OR NOT C",
+      "explanation": "NOT first, then AND, then OR: (A AND B) OR (NOT C). TRUE whenever C is FALSE, and on the row where A, B and C are all TRUE."
+    }
+  ]
+}

@@ -66,7 +66,7 @@ public sealed class QuizView : UserControl
                 Child = card, BorderBrush = Res("LineBrush"), BorderThickness = new Thickness(1), Background = Res("PanelBrush"),
                 Padding = new Thickness(14, 10, 14, 12), Margin = new Thickness(0, 0, 0, 12),
             };
-            AutomationProperties.SetName(border, $"Question {n}: {q.Prompt.Replace("**", "", StringComparison.Ordinal)}");
+            AutomationProperties.SetName(border, $"Question {n}: {q.Prompt.Replace("**", "", StringComparison.Ordinal).Replace("`", "", StringComparison.Ordinal)}");
             card.Children.Add(new TextBlock { Text = $"Question {n} of {quiz.Questions.Count}", FontWeight = FontWeights.SemiBold, Foreground = Res("MutedTextBrush") });
             card.Children.Add(Para(q.Prompt, 2, 8));
             var (read, write) = Inputs(q, card, n);
@@ -172,6 +172,22 @@ public sealed class QuizView : UserControl
                 card.Children.Add(row);
                 return (() => new QuestionAnswer { Text = box.Text }, a => box.Text = a.Text ?? "");
             }
+            case QuestionKind.Text:
+            {
+                var tip = q.Base switch
+                {
+                    2 => "Type only 0s and 1s, such as 0010 1101 (spaces, 2# or 0b are fine)",
+                    16 => "Type 0-9 and A-F, such as 1F (16#, 0x or a trailing h are fine)",
+                    8 => "Type only the digits 0-7, such as 17 (8# is fine)",
+                    _ => "Type your answer (capitals and spaces do not matter)",
+                };
+                var box = new TextBox { Width = 260, FontFamily = new FontFamily("Consolas"), FontSize = 16, ToolTip = tip, HorizontalAlignment = HorizontalAlignment.Left };
+                AutomationProperties.SetName(box, $"Answer to question {n}");
+                AutomationProperties.SetHelpText(box, tip);
+                card.Children.Add(box);
+                card.Children.Add(Para(tip + ".", 4, 0, muted: true));
+                return (() => new QuestionAnswer { Text = box.Text }, a => box.Text = a.Text ?? "");
+            }
             case QuestionKind.TruthTable:
                 return TruthTable(q, card, n);
             case QuestionKind.Match:
@@ -243,16 +259,35 @@ public sealed class QuizView : UserControl
 
     // ---- Text -----------------------------------------------------------------------------------------
 
-    private static TextBlock Wrapped(string text) => new() { Text = text, TextWrapping = TextWrapping.Wrap, MaxWidth = 760 };
+    private static TextBlock Wrapped(string text)
+    {
+        var block = new TextBlock { TextWrapping = TextWrapping.Wrap, MaxWidth = 760 };
+        AddInlines(block, text);
+        return block;
+    }
 
-    /// <summary>A paragraph with **bold** shown bold (the only Markdown a question needs).</summary>
+    /// <summary>A paragraph with **bold** shown bold and `code` in a fixed-width font (the only Markdown a question needs).</summary>
     private static TextBlock Para(string markdown, double above, double below, bool muted = false)
     {
         var block = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, above, 0, below), MaxWidth = 900, HorizontalAlignment = HorizontalAlignment.Left };
         if (muted) block.Foreground = Res("MutedTextBrush");
+        AddInlines(block, markdown);
+        return block;
+    }
+
+    private static void AddInlines(TextBlock block, string markdown)
+    {
         var parts = markdown.Split("**");
         for (var i = 0; i < parts.Length; i++)
-            if (parts[i].Length > 0) block.Inlines.Add(new Run(parts[i]) { FontWeight = i % 2 == 1 ? FontWeights.SemiBold : FontWeights.Normal });
-        return block;
+        {
+            var code = parts[i].Split('`');
+            for (var j = 0; j < code.Length; j++)
+            {
+                if (code[j].Length == 0) continue;
+                var run = new Run(code[j]) { FontWeight = i % 2 == 1 ? FontWeights.SemiBold : FontWeights.Normal };
+                if (j % 2 == 1) run.FontFamily = new FontFamily("Consolas");
+                block.Inlines.Add(run);
+            }
+        }
     }
 }

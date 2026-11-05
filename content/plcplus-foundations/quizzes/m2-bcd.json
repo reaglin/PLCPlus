@@ -1,0 +1,80 @@
+{
+  "id": "plc.m2.bcd.quiz",
+  "title": "BCD: binary-coded decimal",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "text",
+      "objective": "plc.m2.o2",
+      "prompt": "Write 47 in BCD, four bits per digit.",
+      "answers": [
+        "0100 0111",
+        "100 0111",
+        "2#0100 0111",
+        "2#100 0111",
+        "16#47"
+      ],
+      "explanation": "Each digit gets its own four bits: 4 = 0100 and 7 = 0111, so 47 is 0100 0111."
+    },
+    {
+      "id": "q2",
+      "kind": "numeric",
+      "objective": "plc.m2.o2",
+      "prompt": "A BCD word reads 1001 0011. What decimal number is it?",
+      "answer": 93,
+      "tolerance": 0,
+      "explanation": "Read each group of four as one digit: 1001 = 9 and 0011 = 3, so it is 93."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m2.o2",
+      "prompt": "Which group of four bits can **never** be a BCD digit?",
+      "options": [
+        "0111",
+        "1001",
+        "1100",
+        "0000"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "1100 is 12. A BCD digit is 0 to 9 (0000 to 1001); the codes 1010 to 1111 are never used."
+    },
+    {
+      "id": "q4",
+      "kind": "numeric",
+      "objective": "plc.m2.o2",
+      "prompt": "An operator panel has four BCD thumbwheel switches (0000 to 9999). How many PLC inputs do they need?",
+      "answer": 16,
+      "tolerance": 0,
+      "unit": "inputs",
+      "explanation": "Each thumbwheel digit has four wires (worth 1, 2, 4 and 8), and each wire needs an input: 4 × 4 = 16."
+    },
+    {
+      "id": "q5",
+      "kind": "numeric",
+      "objective": "plc.m2.o2",
+      "prompt": "A thumbwheel is set to 25, so the PLC reads BCD 0010 0101. A program forgets to convert it and reads the bits as plain binary. What number does the program get?",
+      "answer": 37,
+      "tolerance": 0,
+      "explanation": "As plain binary, 0010 0101 has 1s in the 32, 4 and 1 places: 32 + 4 + 1 = 37. That is why a BCD input is converted (FRD, or BCD_TO_INT) before it is used."
+    },
+    {
+      "id": "q6",
+      "kind": "text",
+      "objective": "plc.m2.o2",
+      "prompt": "Write 1950 in BCD, four bits per digit.",
+      "answers": [
+        "0001 1001 0101 0000",
+        "1 1001 0101 0000",
+        "2#0001 1001 0101 0000",
+        "2#1 1001 0101 0000",
+        "16#1950"
+      ],
+      "explanation": "1 = 0001, 9 = 1001, 5 = 0101 and 0 = 0000, side by side: 0001 1001 0101 0000."
+    }
+  ]
+}

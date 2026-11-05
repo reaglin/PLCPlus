@@ -128,11 +128,11 @@
                     </TextBlock>
                     <TextBlock Text="An item's four tabs" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Learn: read the lesson. Example: run the working program on its machine, and see a common mistake. Exercise: write your own program and check it. Reference: the symbols and rules the item uses, on one page.
+                        Learn: read the lesson. Example: run the working program on its machine, and see a common mistake. Exercise: write your own program and check it, or answer practice questions. Reference: the symbols and rules the item uses, on one page.
                     </TextBlock>
                     <TextBlock Text="Completing an item" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        An item with an exercise is complete when your program passes every test. An item without one is complete when you press I have read this. A module check is complete when every item it covers is.
+                        An item with an exercise is complete when your program passes every test; one with practice questions, when you pass them; any other item, when you press I have read this. A module check is complete when every item it covers is.
                     </TextBlock>
                     <TextBlock Text="Recommended order" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">

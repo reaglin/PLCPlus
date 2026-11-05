@@ -1,0 +1,74 @@
+{
+  "id": "plc.m2.truth-tables.quiz",
+  "title": "Truth tables for larger expressions",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "truthTable",
+      "objective": "plc.m2.o4",
+      "prompt": "Fill in (A OR B) AND NOT C.",
+      "expression": "(A OR B) AND NOT C",
+      "explanation": "Work A OR B and NOT C first, then AND them: TRUE when A or B is TRUE and C is FALSE."
+    },
+    {
+      "id": "q2",
+      "kind": "truthTable",
+      "objective": "plc.m2.o4",
+      "prompt": "Fill in A XOR B.",
+      "expression": "A XOR B",
+      "explanation": "XOR is TRUE when the two inputs are different: the middle two rows."
+    },
+    {
+      "id": "q3",
+      "kind": "numeric",
+      "objective": "plc.m2.o4",
+      "prompt": "How many rows does the truth table of an expression with four inputs have?",
+      "answer": 16,
+      "tolerance": 0,
+      "unit": "rows",
+      "explanation": "Each input doubles the rows: 2 × 2 × 2 × 2 = 16."
+    },
+    {
+      "id": "q4",
+      "kind": "choice",
+      "objective": "plc.m2.o4",
+      "prompt": "With no brackets written, what does `A OR B AND C` mean?",
+      "options": [
+        "(A OR B) AND C",
+        "A OR (B AND C)",
+        "NOT (A OR B) AND C",
+        "It cannot be worked out without brackets"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "AND is worked before OR, the way multiplying comes before adding: A OR (B AND C)."
+    },
+    {
+      "id": "q5",
+      "kind": "choice",
+      "objective": "plc.m2.o4",
+      "prompt": "*The fan runs if the room is hot and the window is closed, or whenever Override is on.* Which expression says this?",
+      "options": [
+        "(Hot AND WindowClosed) OR Override",
+        "Hot AND (WindowClosed OR Override)",
+        "Hot OR WindowClosed AND NOT Override",
+        "NOT (Hot AND WindowClosed AND Override)"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "\"Hot and window closed\" is one condition, in brackets; \"or whenever Override is on\" runs the fan on its own: (Hot AND WindowClosed) OR Override."
+    },
+    {
+      "id": "q6",
+      "kind": "truthTable",
+      "objective": "plc.m2.o4",
+      "prompt": "The alarm sounds if the tank is high or the pump has failed, unless the alarm is silenced. Fill in its table.",
+      "expression": "(High OR PumpFault) AND NOT Silenced",
+      "explanation": "Every row with Silenced TRUE is FALSE; the other rows are TRUE when High or PumpFault is TRUE."
+    }
+  ]
+}

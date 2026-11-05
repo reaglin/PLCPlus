@@ -410,7 +410,7 @@ public partial class MainWindow : Window
             {
                 var kind = i.Kind == ItemKind.Assess ? (i.Quiz is null ? "Module check" : $"Module check, with {i.Quiz.Questions.Count} questions")
                     : i.Exercise is not null ? "Lesson, example and exercise"
-                    : i.Quiz is not null ? "Lesson and questions"
+                    : i.Quiz is not null ? (i.Example is null ? "Lesson and questions" : "Lesson, example and questions")
                     : i.Example is null ? "Reading" : "Reading, with an example to run";
                 md.AppendLine($"| {i.Number} {i.Title} | {kind} | {_vm.WhereYouAre(i)} |");
             }
@@ -466,7 +466,17 @@ public partial class MainWindow : Window
         ExampleNone.Text = item.Kind == ItemKind.Assess
             ? "A module check has no example of its own: each item it covers has its own."
             : "This item has no machine to run. Its Learn tab has the pictures and tables that go with it.";
-        if (example is not null) ExampleWorkspace.Load(_plc, example, exercise: false, item.ExampleProgram);
+        if (example is not null)
+        {
+            ExampleWorkspace.Load(_plc, example, exercise: false, item.ExampleProgram);
+            // D21: the example is a machine like the exercise's, not the same one. Say so where the learner looks.
+            if (_plc.Find(item.Exercise) is { } own && own.Challenge.Id != example.Challenge.Id)
+            {
+                ExampleWorkspace.TitleText.Text = "An example: " + example.Challenge.Title;
+                ExampleWorkspace.BriefText.Text = example.Challenge.Brief + Environment.NewLine + Environment.NewLine
+                    + $"This is an example machine, like your exercise's but not the same one. Watch how it works here, then write your own program for “{own.Challenge.Title}” on the Exercise tab.";
+            }
+        }
         ExampleTab.Header = example is null ? "Exa_mple (none)" : "Exa_mple";
         ExampleTab.ToolTip = example is null ? "This item has no machine to run (Ctrl+2)" : "Run the working program on its machine (Ctrl+2)";
 

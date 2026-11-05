@@ -4,7 +4,7 @@ title: Limit switches and interlocks: a garage door
 minutes: 50
 objectives: [plc.m5.o3]
 builds-on: plc.m5.seal-in
-example: u5.garage-door
+example: u5.reversing-conveyor
 exercise: u5.garage-door
 reference: [interlocks, seal-in, sensors]
 ---
@@ -26,6 +26,8 @@ Start from your seal-in. The Up rung is:
 
 *(OpenPB OR MotorUp) AND StopPB AND NOT OpenLimit AND NOT MotorDown*, then the MotorUp coil.
 
-Write the Down rung the same way, with ClosePB, ClosedLimit, MotorUp and EyeClear. Check each rule in the **Example** tab first: open the door, close it, press Close while it is opening, and step into the doorway (the button beside the safety eye).
+Write the Down rung the same way, with ClosePB, ClosedLimit, MotorUp and EyeClear.
+
+The **Example** tab shows the interlock on a simpler machine: a conveyor motor that runs forward or in reverse. Press Forward, then Reverse while it runs: nothing happens until Stop. *A common mistake* (choose it in **Program**, above the machine) has no interlocks: try the same and read what the motor says. Your door adds the limit switches and the safety eye; test each rule on the Exercise tab as you go: open the door, close it, press Close while it is opening, and step into the doorway (the button beside the safety eye).
 
 Then write it in the **Exercise** tab and press **Check my program**. One of the tests is hidden: it checks that the door is safe in a case the brief describes but the visible tests do not.

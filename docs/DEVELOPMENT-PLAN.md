@@ -218,17 +218,18 @@ says "look again" without the answer (practice questions, such as 2.3's, show it
 
 ---
 
-## Phase 9 — the content for Units 1–5 (spec 6.2)
+## Phase 9 — the content for Units 1–5 (spec 6.2) ⚠️ first drafts 2026-11-05
 
 | # | Task | Done when |
 |---|---|---|
-| 9.1 | Unit 1 Electrical foundations: voltage, current, circuits, AC/DC, safety | |
-| 9.2 | Unit 2 Logic and number systems: binary, hex, BCD, Boolean logic, truth tables | |
-| 9.3 | Unit 3 Relay control: relays, contactors, relay ladder diagrams, seal-in circuits | |
-| 9.4 | Unit 4 PLC fundamentals: hardware, I/O modules, sensors, scan cycle, tags and addressing | |
-| 9.5 | Unit 5 Basic ladder programming: contacts, coils, latching, edge detection | The motor start/stop challenge is its first |
-| 9.7 | **Each exercise's Example is a similar machine, not the same one** (Ron, 2026-11-04, D21): the learner sees the idea worked out, then applies it. A second scene, challenge and working program per exercise (e.g. a conveyor motor for the seal-in exercise's motor station), and each item's `example:` points to it | The preview's examples are still the exercises' own answers; the review guide says so |
-| 9.6 | Objectives with stable IDs. **The grant's outcomes are written as we go** (Ron, question 12): the grant asks for faculty training on PLCs and student educational resources, so each unit's outcomes are drafted with the unit, kept in one list (`docs/OUTCOMES.md`, once there is a unit), and Ron reviews them | ⚠️ Ron reviews each unit's outcomes |
+| 9.1 | Unit 1 Electrical foundations: voltage, current, circuits, AC/DC, safety | ⚠️ First draft (2026-11-05): four lessons (voltage, current and resistance with Ohm's law; series and parallel, and why they make AND and OR; AC and DC in a panel, 480 V → 120 V AC → 24 V DC; working safely with the lockout/tagout steps in order, saying plainly it does not replace the lab's safety training), practice questions on each (19), a 10-question check, Reference pages Ohm's law, AC and DC, Lockout/tagout. ⚠️ Instructors: the LOTO steps and the verify step, the shock figure, the panel voltages, 0.5 A per output point |
+| 9.2 | Unit 2 Logic and number systems: binary, hex, BCD, Boolean logic, truth tables | ⚠️ First draft (2026-11-05): binary and hex (place values, conversions both ways, IEC `2#`/`16#`, a 16-point input module as a word), BCD (thumbwheels and displays, why 1010–1111 are wasted), AND/OR/NOT as contacts, truth tables of up to four inputs with XOR and order of operations. Practice questions on each (23), a 10-question check. **A new question kind, the typed answer** (`text`): write 45 in binary or 200 in hex, with leading zeros, spaces and `2#`, `16#`, `0x` accepted; or a BCD pattern. A fourth outcome, plc.m2.o4 (larger truth tables). ⚠️ Instructors: FRD/TOD and BCD_TO_INT names, `Status.3` bit addressing, XOR's place in the order of operations |
+| 9.3 | Unit 3 Relay control: relays, contactors, relay ladder diagrams, seal-in circuits | ⚠️ First draft (phase 4), revised: its examples now run the new machines (the press guard, the pump, the reversing conveyor), so module 3 no longer draws module 5's answers (D21); the check says it is ready to hand in |
+| 9.4 | Unit 4 PLC fundamentals: hardware, I/O modules, sensors, scan cycle, tags and addressing | ⚠️ First draft (2026-11-05): inside a PLC (compact and modular, Allen-Bradley families as examples), I/O modules (sinking and sourcing, relay/transistor/triac outputs, why an output drives a contactor coil), sensors (limit, float, inductive and capacitive proximity, the three photo-eye setups, wired to fail safe), the scan cycle (double coils, short pulses, Logix's RPI), tags and addresses (BOOL to TIME; Logix, SLC 500 and IEC addresses side by side). Each with practice questions (24) and an Example on a machine like module 5's; a 10-question check with two find-the-fault machines (a broken temperature-switch wire, a shorted guard switch: both fail unsafe). ⚠️ Instructors: sinking/sourcing, the addresses, the RPI |
+| 9.5 | Unit 5 Basic ladder programming: contacts, coils, latching, edge detection | ⚠️ First draft (phase 4), revised for D21: every Example is a similar machine (9.7); the check says it is ready to hand in |
+| 9.7 | **Each exercise's Example is a similar machine, not the same one** (Ron, 2026-11-04, D21): the learner sees the idea worked out, then applies it. A second scene, challenge and working program per exercise (e.g. a conveyor motor for the seal-in exercise's motor station), and each item's `example:` points to it | ⚠️ Built (2026-11-05): five example machines, each with a working program and a common mistake, each passing (and its mistake failing) its own tests: **a two-hand press guard** (5.1: AND, NOT; mistake: hand buttons in parallel), **a pump with an overload relay** (5.2: the seal-in, so it is not the motor exercise renamed; mistake: Stop with a normally closed contact), **a reversing conveyor motor** (5.3: interlocks; mistake: none, both contactors pull in), **an overheat alarm** (5.4: set and reset; mistake: no memory), **push on, push off** (5.5: a rising edge; mistake: a plain contact, so it flickers). The motor component can now run in reverse (spec 5.3), and shows when it is told to go both ways. Written by `tools/make-example-machines.py`. Modules 3 and 4 use them too, so no Example before module 5 runs a module 5 answer. The review site shows instructors each exercise's own working program |
+| 9.6 | Objectives with stable IDs. **The grant's outcomes are written as we go** (Ron, question 12): the grant asks for faculty training on PLCs and student educational resources, so each unit's outcomes are drafted with the unit, kept in one list (`docs/OUTCOMES.md`, once there is a unit), and Ron reviews them | ⚠️ Ron reviews **`docs/OUTCOMES.md`** (written by `tools/make-outcomes.py`): 22 outcomes for modules 1–5 with their IDs, where each is taught and how many questions give evidence for it. Wording sharpened in modules 1, 2 and 4 (IDs unchanged); one added, plc.m2.o4 |
+| 9.8 | Hand-test 9 | ⚠️ Ron: hand-test 9 in `docs/MANUAL-TESTING.md`; then the instructors' review of modules 1–5 (the review site is regenerated). UX: walkthrough + heuristics on the content (2026-11-05): 8 major fixed (how to type a binary or hex answer now shows under the box; the overheat alarm's Reset renamed Alarm reset, so it is not the Example tab's Reset; the tree and the help gave the wrong completion rule for items with questions; 2.3 pointed back to module 3; Press Pause again → Run; an ambiguous check question; the Example tab now says when it is a different machine from the exercise; the shock sentence in 1.4). 11 minor and 6 cosmetic fixed, among them: the pump got an overload relay, so it is not the motor exercise renamed; BCD answers accept 2# and 16#. Seen in the window: a typed answer marked wrong with its hint, the pump example with its note, 4.1 and 2.1 questions |
 
 ---
 
@@ -269,7 +270,7 @@ connection). No research analytics: the grant does not require research on outco
 
 ---
 
-## Open questions for Ron — 14 answered 2026-11-04; one asked 2026-11-05
+## Open questions for Ron — 14 answered 2026-11-04; one asked 2026-11-05 (waits for the faculty's use cases)
 
 1. ~~**The name.**~~ **PLC+** in front of people; `PLCPlus` in code, folders and the exe. Changed in the program 2026-11-04;
    Ron reserved it in Partner Center the same day (11.1).
@@ -290,7 +291,8 @@ connection). No research analytics: the grant does not require research on outco
 13. ~~**Research use of learning events.**~~ **Not required by the grant.** No research analytics; the event log stays in
     the progress file only as the record behind time on task and the report.
 14. ~~**Report cover fields.**~~ **Only the name is required**; student ID, course and section, and e-mail are optional (8.4a).
-15. **An instructor removing a student who has left** (asked 2026-11-05, from the UX review). The spec has Remove need the
+15. **An instructor removing a student who has left** (asked 2026-11-05, from the UX review). *Ron, 2026-11-05: to be
+    answered after working with the faculty and collecting their use cases; until then the folder stays as it is.* The spec has Remove need the
     learner's PIN, which an instructor does not have. For now the start screen has **Open the learners' folder**, and Remove's
     tooltip names the file to delete with PLC+ closed. Is that enough for lab PCs, or should PLC+ have an instructor override
     (for example an instructor PIN set in Settings that can remove any learner, never open one)? *Recommendation: the folder is

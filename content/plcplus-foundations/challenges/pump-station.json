@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "id": "u5.pump-start-stop",
+  "title": "Start and stop a pump",
+  "brief": "Press Start and the pump runs, and keeps running after you let go. Press Stop and it stops. If the overload relay trips (the pump is drawing too much current), the pump stops too, and stays stopped until someone presses Start again. The Pump running light is lit while the pump is told to run. Stop and the overload relay are wired normally closed: each input is TRUE while all is well.",
+  "scene": "pump-station",
+  "constraints": {
+    "maxRungs": 4
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "What keeps power flowing to the Pump coil after Start is let go?",
+    "Put a contact of Pump in parallel with PumpStart: the seal-in.",
+    "PumpStop and OverloadOK are TRUE while all is well, so check each with a normally open contact, in series."
+  ],
+  "scenarios": [
+    {
+      "name": "Start runs the pump, and it keeps running",
+      "points": 1,
+      "durationSeconds": 1.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "Pump",
+          "expect": "TRUE",
+          "says": "The pump should run 0.1 s after Start is pressed."
+        },
+        {
+          "at": 1.0,
+          "tag": "Pump",
+          "expect": "TRUE",
+          "says": "The pump should keep running after Start is let go."
+        },
+        {
+          "at": 1.0,
+          "tag": "PumpLight",
+          "expect": "TRUE",
+          "says": "The Pump running light should be lit while the pump runs."
+        }
+      ]
+    },
+    {
+      "name": "Stop stops the pump",
+      "points": 1,
+      "durationSeconds": 2.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.1,
+          "tag": "Pump",
+          "expect": "FALSE",
+          "says": "The pump should stop 0.1 s after Stop is pressed."
+        },
+        {
+          "at": 2.0,
+          "tag": "Pump",
+          "expect": "FALSE",
+          "says": "The pump should stay stopped after Stop is let go."
+        },
+        {
+          "at": 2.0,
+          "tag": "PumpLight",
+          "expect": "FALSE",
+          "says": "The light should go out when the pump stops."
+        }
+      ]
+    },
+    {
+      "name": "An overload trip stops the pump",
+      "points": 1,
+      "durationSeconds": 2.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "overload",
+          "active": false
+        },
+        {
+          "t": 1.5,
+          "operate": "overload",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.1,
+          "tag": "Pump",
+          "expect": "FALSE",
+          "says": "The pump should stop when the overload relay trips."
+        },
+        {
+          "at": 2.0,
+          "tag": "Pump",
+          "expect": "FALSE",
+          "says": "The pump should stay stopped after the overload relay is reset, until Start is pressed again."
+        }
+      ]
+    }
+  ]
+}

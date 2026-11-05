@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "name": "Run a conveyor forward and in reverse (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "FwdPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Forward button: TRUE while pressed"
+    },
+    {
+      "name": "RevPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Reverse button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "Forward",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Reverse",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "FwdLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "RevLight",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Forward: a seal-in and Stop, but MISTAKE: no interlock.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "FwdPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Forward",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Forward",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Reverse: no interlock either, so both contactors can pull in.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "RevPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Reverse",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Reverse",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The Forward light.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Forward",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "FwdLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The Reverse light.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Reverse",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "RevLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

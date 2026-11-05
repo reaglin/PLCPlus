@@ -4,7 +4,7 @@ title: The seal-in: start and stop a motor
 minutes: 40
 objectives: [plc.m5.o2]
 builds-on: plc.m5.contacts-coils
-example: u5.motor-start-stop
+example: u5.pump-start-stop
 exercise: u5.motor-start-stop
 reference: [seal-in, wiring-stop, contacts, coils]
 ---
@@ -31,10 +31,12 @@ A second rung lights RunLight while Motor is on.
 
 ## How to do it
 
+**First, the Example tab:** a *different* machine, a pump, running the same idea, with an overload relay in series as well. Its *A common mistake* (choose it in **Program**, above the machine) is the one students make most often: a normally *closed* contact for Stop, because the button is "a stop button". Press Start on it and see what happens; the Reference tab explains why. Then write your own program for the motor:
+
 1. In the **Exercise** tab, click the first contact. Its **Tag** box (above the rungs) is ready for typing: type **Start** and press Enter.
 2. Press **Branch**: a new contact appears below Start, in parallel with it, with its Tag box ready. Type **Motor** and press Enter.
 3. Click the coil, type **Motor** and press Enter. Then press **Contact**: with the coil selected, the new contact goes in before the coil. Type **Stop** and press Enter.
 4. **New rung**: a contact of Motor and a coil of RunLight.
 5. Hold Start, let go, then press Stop, and watch the rungs. Then press **Check my program**.
 
-The Example tab's *A common mistake* leaves out the seal-in: try it to see what the motor does when you let go of Start. Another mistake students often make is a normally *closed* contact for Stop, because the button is "a stop button". Try that too and see what the tests say; the Reference tab explains why.
+In your own program, try leaving out the seal-in contact too, and see what the motor does when you let go of Start.

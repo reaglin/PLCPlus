@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "id": "u5.press-guard",
+  "title": "A two-hand press guard",
+  "brief": "Ready is lit while the guard is shut. The press closes (Press closing is lit) only while the Left hand AND the Right hand buttons are both pressed AND the guard is shut. Guard open is lit while the guard is NOT shut.",
+  "scene": "press-guard",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Three rungs, one for each light.",
+    "Contacts one after another (in series) make AND.",
+    "A normally closed contact of GuardShut passes power while the guard is NOT shut."
+  ],
+  "scenarios": [
+    {
+      "name": "The guard shut lights Ready",
+      "points": 1,
+      "durationSeconds": 0.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "guard",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.2,
+          "tag": "Ready",
+          "expect": "TRUE",
+          "says": "Ready should be lit while the guard is shut."
+        },
+        {
+          "at": 0.2,
+          "tag": "GuardOpen",
+          "expect": "FALSE",
+          "says": "Guard open should be off while the guard is shut."
+        }
+      ]
+    },
+    {
+      "name": "Both hands with the guard shut close the press",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "guard",
+          "active": true
+        },
+        {
+          "t": 0.1,
+          "operate": "left",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "left",
+          "active": false
+        },
+        {
+          "t": 0.1,
+          "operate": "right",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "right",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "PressClose",
+          "expect": "TRUE",
+          "says": "The press should close while both hand buttons are pressed and the guard is shut."
+        },
+        {
+          "at": 0.95,
+          "tag": "PressClose",
+          "expect": "FALSE",
+          "says": "The press should stop when the hands are taken away."
+        }
+      ]
+    },
+    {
+      "name": "One hand is not enough",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "guard",
+          "active": true
+        },
+        {
+          "t": 0.1,
+          "operate": "left",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "left",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "PressClose",
+          "expect": "FALSE",
+          "says": "With only one hand on a button the press must NOT close: the other hand could be in the press."
+        }
+      ]
+    },
+    {
+      "name": "The guard open stops everything",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "left",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "left",
+          "active": false
+        },
+        {
+          "t": 0.1,
+          "operate": "right",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "right",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "PressClose",
+          "expect": "FALSE",
+          "says": "With the guard open the press must not close, even with both hands on the buttons."
+        },
+        {
+          "at": 0.5,
+          "tag": "GuardOpen",
+          "expect": "TRUE",
+          "says": "Guard open should be lit while the guard is open."
+        }
+      ]
+    }
+  ]
+}

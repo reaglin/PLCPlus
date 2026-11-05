@@ -152,6 +152,15 @@ public sealed class ContentValidator
                 case QuestionKind.Match:
                     if (q.Pairs.Count < 2) problems.Add($"{at}: a match question needs at least two pairs.");
                     break;
+                case QuestionKind.Text:
+                    if (q.Base is { } b)
+                    {
+                        if (b is not (2 or 8 or 16)) problems.Add($"{at}: base can be 2, 8 or 16.");
+                        if (q.Answer is not { } n || n < 0 || n != Math.Floor(n)) problems.Add($"{at}: a question with a base needs its answer as a whole number, 0 or more (written in decimal).");
+                    }
+                    else if (q.Answers.Count == 0 || q.Answers.Any(x => QuizGrader.Squeeze(x).Length == 0))
+                        problems.Add($"{at}: a text question needs answers (every one it accepts), or a base and an answer.");
+                    break;
             }
         }
     }

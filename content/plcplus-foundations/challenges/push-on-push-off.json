@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "u5.push-on-push-off",
+  "title": "One button: push on, push off",
+  "brief": "Press the Light button once and the work light comes on. Press it again and the light goes off. It must change once per press, however long the button is held down.",
+  "scene": "push-on-push-off",
+  "constraints": {
+    "maxRungs": 4
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "The light must change once, at the moment the button is pressed: a rising edge.",
+    "Rung 1: a rising-edge contact of LightPB turns on Pulse for one scan.",
+    "Rung 2: the light is on when (Pulse AND the light is off) OR (NOT Pulse AND the light is on)."
+  ],
+  "scenarios": [
+    {
+      "name": "One press turns it on, the next turns it off",
+      "points": 1,
+      "durationSeconds": 2.5,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "button",
+          "active": true
+        },
+        {
+          "t": 0.4,
+          "operate": "button",
+          "active": false
+        },
+        {
+          "t": 1.2,
+          "operate": "button",
+          "active": true
+        },
+        {
+          "t": 1.5,
+          "operate": "button",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "WorkLight",
+          "expect": "TRUE",
+          "says": "The light should come on with the first press, while the button is still held."
+        },
+        {
+          "at": 1.0,
+          "tag": "WorkLight",
+          "expect": "TRUE",
+          "says": "The light should stay on after the button is let go."
+        },
+        {
+          "at": 2.0,
+          "tag": "WorkLight",
+          "expect": "FALSE",
+          "says": "The second press should turn the light off."
+        }
+      ]
+    },
+    {
+      "name": "Holding the button down changes it once",
+      "points": 1,
+      "durationSeconds": 3.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "button",
+          "active": true
+        },
+        {
+          "t": 2.0,
+          "operate": "button",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "WorkLight",
+          "expect": "TRUE",
+          "says": "Holding the button down should not change the light again."
+        },
+        {
+          "at": 2.5,
+          "tag": "WorkLight",
+          "expect": "TRUE",
+          "says": "The light should still be on after a long press."
+        }
+      ]
+    }
+  ]
+}

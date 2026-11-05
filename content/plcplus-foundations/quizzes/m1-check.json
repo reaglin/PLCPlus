@@ -1,0 +1,148 @@
+{
+  "id": "plc.m1.check.quiz",
+  "title": "Module 1 check: electrical foundations",
+  "passThreshold": 0.8,
+  "practice": false,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "numeric",
+      "objective": "plc.m1.o1",
+      "prompt": "A 24 V DC relay coil has a resistance of 600 Ω. How much current does it draw, in milliamps?",
+      "answer": 40,
+      "tolerance": 0.5,
+      "unit": "mA",
+      "explanation": "Ohm's law: I = V / R = 24 V / 600 Ω = 0.04 A, which is 40 mA."
+    },
+    {
+      "id": "q2",
+      "kind": "numeric",
+      "objective": "plc.m1.o1",
+      "prompt": "A 24 V DC power supply feeds loads that draw 2.5 A in total. How much power is it delivering, in watts?",
+      "answer": 60,
+      "tolerance": 0.5,
+      "unit": "W",
+      "explanation": "P = V × I = 24 V × 2.5 A = 60 W."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m1.o1",
+      "prompt": "The two wires to a limit switch touch each other where the insulation has worn through, so the switch is bypassed. What does its PLC input read?",
+      "options": [
+        "TRUE all the time, whatever the switch does",
+        "FALSE all the time, whatever the switch does",
+        "It still follows the switch",
+        "The input card turns itself off"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The wires touching are a short across the switch: the input always has voltage, so it reads TRUE. A broken wire (an open) would read FALSE."
+    },
+    {
+      "id": "q4",
+      "kind": "numeric",
+      "objective": "plc.m1.o2",
+      "prompt": "A 300 Ω and a 900 Ω resistor are in **series** across 24 V DC. What is the voltage across the 900 Ω resistor, in volts?",
+      "answer": 18,
+      "tolerance": 0.2,
+      "unit": "V",
+      "explanation": "Total R = 300 Ω + 900 Ω = 1200 Ω, so I = 24 V / 1200 Ω = 0.02 A. Across the 900 Ω: 0.02 A × 900 Ω = 18 V (and 6 V across the 300 Ω; 18 V + 6 V = 24 V)."
+    },
+    {
+      "id": "q5",
+      "kind": "truthTable",
+      "objective": "plc.m1.o2",
+      "prompt": "Two Start buttons, A and B, are wired in **parallel** to a lamp. Fill in when the lamp is lit (TRUE = pressed, or lit).",
+      "expression": "A OR B",
+      "explanation": "In parallel either button gives the current a path, so the lamp is lit when A or B (or both) is pressed."
+    },
+    {
+      "id": "q6",
+      "kind": "choice",
+      "objective": "plc.m1.o2",
+      "prompt": "Six pilot lights are wired in **parallel** across 24 V DC. One lamp burns out (it opens). What happens to the other five?",
+      "options": [
+        "They stay lit: each has its own path",
+        "They all go out",
+        "They get brighter, because they share its voltage",
+        "They flicker"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Each parallel branch has its own path and the full 24 V, so one opening leaves the others working. In series they would all go out."
+    },
+    {
+      "id": "q7",
+      "kind": "match",
+      "objective": "plc.m1.o3",
+      "prompt": "Match each part of a control panel to the power that comes out of it.",
+      "pairs": [
+        {
+          "left": "Main disconnect",
+          "right": "480 V AC three-phase for the motors"
+        },
+        {
+          "left": "Control transformer",
+          "right": "120 V AC for coils and lights"
+        },
+        {
+          "left": "DC power supply",
+          "right": "24 V DC for PLC I/O and sensors"
+        }
+      ],
+      "explanation": "The disconnect brings in the building's three-phase power; the control transformer steps it down to 120 V AC; the DC supply turns 120 V AC into 24 V DC."
+    },
+    {
+      "id": "q8",
+      "kind": "choice",
+      "objective": "plc.m1.o3",
+      "prompt": "A PLC input card is labeled **24 V DC**. A technician wants to wire a 120 V AC button circuit to it. What is right?",
+      "options": [
+        "Don't: a 24 V DC input card must not be wired to 120 V AC; it can be destroyed",
+        "It is fine: the card will read it as TRUE",
+        "It is fine if the button is normally closed",
+        "It is fine at 60 Hz but not at 50 Hz"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "I/O cards are made for one kind of power. Read the label before wiring: 120 V AC on a 24 V DC input can destroy it."
+    },
+    {
+      "id": "q9",
+      "kind": "choice",
+      "objective": "plc.m1.o4",
+      "prompt": "You have opened the disconnect, put your lock and tag on it, and bled the air pressure. What comes next, before you start work?",
+      "options": [
+        "Verify zero energy: try the Start with everyone clear, and test for voltage with a meter, live-dead-live",
+        "Press the emergency stop to be sure",
+        "Start work: the lock makes it safe",
+        "Hand the key to the operator"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The last step of lockout/tagout is to verify zero energy. Only then is it safe to work. You keep your own key."
+    },
+    {
+      "id": "q10",
+      "kind": "multiple",
+      "objective": "plc.m1.o4",
+      "prompt": "Which of these keep a machine safe to work on? Choose every one that does.",
+      "options": [
+        "Your own lock on the disconnect, with your own key",
+        "The emergency stop pressed in",
+        "The PLC program stopped",
+        "Stored energy released or blocked, and zero energy verified"
+      ],
+      "correct": [
+        0,
+        3
+      ],
+      "explanation": "An e-stop and a stopped program are controls, not isolation: the machine can still be started and the panel is still live. Lockout with your own lock, stored energy released, and zero energy verified make it safe."
+    }
+  ]
+}

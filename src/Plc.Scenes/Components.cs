@@ -122,30 +122,42 @@ public sealed class Horn : SceneComponent
 
 /// <summary>
 /// A motor on a contactor. The run output pulls the contactor in; the motor reaches speed after
-/// <see cref="StartTimeMs"/>, and an optional running feedback input reports it.
+/// <see cref="StartTimeMs"/>, and an optional running feedback input reports it. With a
+/// <see cref="ReverseTag"/> it is a reversing motor (spec 5.3, "motor forward/reverse"): a second
+/// contactor runs it backwards, and telling it to go both ways at once is a fault it shows (on a real
+/// panel the two contactors would short the supply), so interlock lessons can see it.
 /// </summary>
 public sealed class Motor : SceneComponent
 {
     public string RunTag { get; set; } = "";
+    /// <summary>Optional: the output that runs the motor in reverse.</summary>
+    public string? ReverseTag { get; set; }
     public string? RunningTag { get; set; }
     public int StartTimeMs { get; set; } = 500;
     /// <summary>Fault injection: the motor does not turn even when told to run.</summary>
     public bool Failed { get; set; }
 
     [JsonIgnore] public bool Commanded { get; private set; }
-    /// <summary>0 (stopped) to 1 (full speed).</summary>
+    [JsonIgnore] public bool CommandedReverse { get; private set; }
+    /// <summary>Both directions were told to run at the same time (stays TRUE once it has happened, so a test sees it).</summary>
+    [JsonIgnore] public bool Conflict { get; private set; }
+    /// <summary>0 (stopped) to 1 (full speed), in whichever direction it turns.</summary>
     [JsonIgnore] public double Speed { get; private set; }
     [JsonIgnore] public bool Running => Speed >= 1;
+    /// <summary>Turning backwards (only a reversing motor).</summary>
+    [JsonIgnore] public bool Reversing => _spinMs < 0;
     /// <summary>The shaft angle in degrees, for the animation.</summary>
     [JsonIgnore] public double Angle { get; private set; }
 
+    // Signed: forward is positive, reverse negative. A motor told to change direction slows to a stop, then speeds up the other way.
     private long _spinMs;
 
     public override IEnumerable<IoPoint> Points
     {
         get
         {
-            yield return new(RunTag, IoKind.Output, $"{Label}: runs while TRUE");
+            yield return new(RunTag, IoKind.Output, ReverseTag is null ? $"{Label}: runs while TRUE" : $"{Label}: runs forward while TRUE");
+            if (ReverseTag is not null) yield return new(ReverseTag, IoKind.Output, $"{Label}: runs in reverse while TRUE (never with forward)");
             if (RunningTag is not null) yield return new(RunningTag, IoKind.Input, $"{Label} running feedback: TRUE once it is up to speed");
         }
     }
@@ -155,26 +167,37 @@ public sealed class Motor : SceneComponent
     public override void WriteOutput(string tag, PlcValue value)
     {
         if (Is(tag, RunTag)) Commanded = value.AsBool;
+        else if (Is(tag, ReverseTag)) CommandedReverse = value.AsBool;
     }
 
     public override void Advance(long ms)
     {
         // Whole milliseconds, so speed reaches exactly 1 at StartTimeMs (no rounding drift).
         var full = Math.Max(0, StartTimeMs);
-        _spinMs = Commanded && !Failed ? Math.Min(full, _spinMs + ms) : Math.Max(0, _spinMs - ms);
-        Speed = full == 0 ? (Commanded && !Failed ? 1 : 0) : (double)_spinMs / full;
-        Angle = (Angle + Speed * 0.72 * ms) % 360; // 2 turns a second at full speed
+        var both = Commanded && CommandedReverse;
+        if (both) Conflict = true;
+        var target = Failed || both ? 0 : Commanded ? full : CommandedReverse ? -full : 0;
+        _spinMs = target > _spinMs ? Math.Min(target, _spinMs + ms) : Math.Max(target, _spinMs - ms);
+        Speed = full == 0 ? (target == 0 ? 0 : 1) : Math.Abs((double)_spinMs) / full;
+        if (full == 0) _spinMs = Math.Sign(target);
+        Angle = ((Angle + (Reversing ? -1 : 1) * Speed * 0.72 * ms) % 360 + 360) % 360; // 2 turns a second at full speed
     }
 
     public override PlcValue? Probe(string property) => property switch
     {
-        "running" => PlcValue.FromBool(Running),
+        "running" => PlcValue.FromBool(Running && !Reversing),
+        "reverse" => PlcValue.FromBool(Running && Reversing),
         "speed" => PlcValue.FromReal(Speed),
+        "conflict" => PlcValue.FromBool(Conflict),
         _ => null,
     };
 
-    public override string StateText => Running ? $"{Label}: running"
-        : Commanded ? (Failed ? $"{Label}: told to run, but not turning" : $"{Label}: starting ({Pct(Speed)} speed)")
+    public override string StateText =>
+        Commanded && CommandedReverse ? $"{Label}: told to run BOTH ways at once (the contactors would short the supply)"
+        : Failed && (Commanded || CommandedReverse) ? $"{Label}: told to run, but not turning"
+        : Running ? $"{Label}: running" + (ReverseTag is null ? "" : Reversing ? " in reverse" : " forward")
+        : (Commanded || CommandedReverse) && Speed > 0 && Reversing == CommandedReverse ? $"{Label}: starting ({Pct(Speed)} speed)"
+        : Commanded || CommandedReverse ? (Speed > 0 ? $"{Label}: slowing down to change direction" : $"{Label}: starting ({Pct(Speed)} speed)")
         : Speed > 0 ? $"{Label}: slowing down"
         : $"{Label}: stopped";
 }

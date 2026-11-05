@@ -244,7 +244,9 @@ public sealed partial class ShellViewModel : ObservableObject
                 child.SpokenName = $"{item.Number} {item.Title}: {child.Detail}";
                 child.Tip = item.Kind == ItemKind.Assess
                     ? item.Quiz is null ? "The module check: complete when every item it covers is" : "The module check: complete when every item it covers is complete and you pass its questions"
-                    : item.Exercise is null ? "A reading: complete when you press I have read this" : "An exercise: complete when your program passes every test";
+                    : item.Exercise is not null ? "An exercise: complete when your program passes every test"
+                    : item.Quiz is not null ? "Questions: complete when you pass the practice questions on the Exercise tab"
+                    : "A reading: complete when you press I have read this";
             }
         }
         TotalsText = $"{summary.Totals.ItemsComplete} of {summary.Totals.Items} items · {summary.Totals.ModulesComplete} of {summary.Totals.Modules} modules complete (the {summary.Totals.Modules} written so far)";

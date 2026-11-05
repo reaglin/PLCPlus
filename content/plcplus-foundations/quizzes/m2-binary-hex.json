@@ -1,0 +1,76 @@
+{
+  "id": "plc.m2.binary-hex.quiz",
+  "title": "Binary and hexadecimal",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "text",
+      "objective": "plc.m2.o1",
+      "prompt": "Write 45 in binary.",
+      "base": 2,
+      "answer": 45,
+      "explanation": "45 = 32 + 8 + 4 + 1, so the 32, 8, 4 and 1 places hold 1s: 101101 (2#0010_1101 as eight bits)."
+    },
+    {
+      "id": "q2",
+      "kind": "numeric",
+      "objective": "plc.m2.o1",
+      "prompt": "What is `2#1100_1010` in decimal?",
+      "answer": 202,
+      "tolerance": 0,
+      "explanation": "The 1s are in the 128, 64, 8 and 2 places: 128 + 64 + 8 + 2 = 202. In hex it is 16#CA: 12 × 16 + 10 = 202."
+    },
+    {
+      "id": "q3",
+      "kind": "text",
+      "objective": "plc.m2.o1",
+      "prompt": "Write 200 in hexadecimal.",
+      "base": 16,
+      "answer": 200,
+      "explanation": "200 ÷ 16 = 12 remainder 8. 12 is C, so 200 is 16#C8. Check: 12 × 16 + 8 = 200."
+    },
+    {
+      "id": "q4",
+      "kind": "numeric",
+      "objective": "plc.m2.o1",
+      "prompt": "What is `16#3F` in decimal?",
+      "answer": 63,
+      "tolerance": 0,
+      "explanation": "3 × 16 + F (15) = 48 + 15 = 63. In binary it is 0011 1111."
+    },
+    {
+      "id": "q5",
+      "kind": "choice",
+      "objective": "plc.m2.o1",
+      "prompt": "A 16-point input module's word reads `16#0005`. Which inputs are on?",
+      "options": [
+        "Inputs 0 and 2",
+        "Input 5 only",
+        "Inputs 0 and 1",
+        "Inputs 1 and 3"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "16#0005 is 0000 0000 0000 0101 in binary. Counting from bit 0 on the right, bits 0 and 2 are 1, so inputs 0 and 2 are on."
+    },
+    {
+      "id": "q6",
+      "kind": "choice",
+      "objective": "plc.m2.o1",
+      "prompt": "Counted from 0 and without a sign, what is the largest number 16 bits can hold?",
+      "options": [
+        "255",
+        "32,768",
+        "65,535",
+        "99,999"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "All sixteen bits on is 16#FFFF, which is 2 to the power 16, minus 1: 65,536 − 1 = 65,535. 255 is the largest for eight bits."
+    }
+  ]
+}

@@ -4,7 +4,7 @@ title: Edges and memory: sort metal from plastic
 minutes: 60
 objectives: [plc.m5.o5]
 builds-on: plc.m5.set-reset
-example: u5.conveyor-sorter
+example: u5.push-on-push-off
 exercise: u5.conveyor-sorter
 reference: [edges, set-reset]
 ---
@@ -31,4 +31,4 @@ The sensor and the diverter are in different places, so the program must **remem
 
 ## How to do it
 
-Run the **Example** first and watch MetalSeen turn on at the sensor and off as the part leaves the eye. Then write it in the **Exercise** tab. *A common mistake* diverts using Prox directly. Try it to see why that sends metal to the wrong bin.
+Run the **Example** first: one button that turns a work light on with one press and off with the next. Its rung 1 makes a one-scan Pulse from a rising edge of the button. *A common mistake* (choose it in **Program**, above the machine) uses a plain contact instead, so the light flips on and off every scan the button is held. Then write the sorter in the **Exercise** tab. Watch MetalSeen turn on at the sensor and off as the part leaves the eye. If you are tempted to divert using Prox directly, try it, and see which bin the metal ends up in.

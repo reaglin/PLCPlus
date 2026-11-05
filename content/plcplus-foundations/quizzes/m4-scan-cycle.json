@@ -1,0 +1,74 @@
+{
+  "id": "plc.m4.scan-cycle.quiz",
+  "title": "The scan cycle",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "choice",
+      "objective": "plc.m4.o4",
+      "prompt": "In what order does a PLC do the steps of one scan?",
+      "options": [
+        "Read the inputs, run the program, write the outputs, housekeeping",
+        "Run the program, read the inputs, write the outputs, housekeeping",
+        "Write the outputs, read the inputs, run the program, housekeeping",
+        "Read the inputs and write the outputs at once, then run the program"
+      ],
+      "correct": [0],
+      "explanation": "The program works on a snapshot of the inputs, and its results go out together at the end."
+    },
+    {
+      "id": "q2",
+      "kind": "numeric",
+      "objective": "plc.m4.o4",
+      "prompt": "In PLC+ one scan is 10 ms. How many scans run in one second?",
+      "answer": 100,
+      "tolerance": 0,
+      "unit": "scans",
+      "explanation": "1 s = 1000 ms, and 1000 ms / 10 ms = 100 scans."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m4.o4",
+      "prompt": "Rung 1 is Start → Motor. Rung 5 is Jog → Motor. Start is pressed and Jog is not. What does the motor do?",
+      "options": [
+        "It stays off: rung 5 runs later and turns Motor off again in the same scan",
+        "It runs: rung 1 turned it on",
+        "It flickers on and off every scan",
+        "The PLC stops with a fault"
+      ],
+      "correct": [0],
+      "explanation": "Two coils of one tag is the double coil mistake: the later rung overwrites the earlier one, and only the last value is written out."
+    },
+    {
+      "id": "q4",
+      "kind": "choice",
+      "objective": "plc.m4.o4",
+      "prompt": "The scan is 10 ms. A sensor turns on for 3 ms between two reads of the inputs. What does the program see?",
+      "options": [
+        "Nothing: the pulse came and went between two reads",
+        "The pulse, for one scan",
+        "The pulse, for 3 ms",
+        "The pulse, for three scans"
+      ],
+      "correct": [0],
+      "explanation": "Inputs are read once per scan. A pulse shorter than a scan can fall between two reads and be missed."
+    },
+    {
+      "id": "q5",
+      "kind": "choice",
+      "objective": "plc.m4.o4",
+      "prompt": "A button is pressed while the processor is working on rung 10 of 20. When does rung 3 see it?",
+      "options": [
+        "In the next scan, after the inputs are read again",
+        "At once, in this scan",
+        "Only after a power cycle",
+        "When the outputs are written"
+      ],
+      "correct": [0],
+      "explanation": "The inputs are copied once, at the start of each scan. Every rung in one scan sees the same snapshot."
+    }
+  ]
+}

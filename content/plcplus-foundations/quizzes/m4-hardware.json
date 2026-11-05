@@ -1,0 +1,64 @@
+{
+  "id": "plc.m4.hardware.quiz",
+  "title": "Inside a PLC",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "match",
+      "objective": "plc.m4.o1",
+      "prompt": "Match each part of a PLC to what it does.",
+      "pairs": [
+        { "left": "Power supply", "right": "Turns the plant's power into the low DC voltage the electronics need" },
+        { "left": "Processor (CPU)", "right": "Runs the program, over and over" },
+        { "left": "Input module", "right": "Connects buttons, switches and sensors" },
+        { "left": "Output module", "right": "Connects lights, valves and contactor coils" },
+        { "left": "Rack (chassis)", "right": "Holds the modules in numbered slots" }
+      ],
+      "explanation": "The processor decides; the input and output modules connect it to the machine; the power supply and the rack hold it all together."
+    },
+    {
+      "id": "q2",
+      "kind": "choice",
+      "objective": "plc.m4.o1",
+      "prompt": "What is the main reason PLCs replaced relay panels?",
+      "options": [
+        "The logic is a program: to change what the machine does, you edit the program, not the wiring",
+        "A PLC needs no wiring at all",
+        "A PLC can switch a motor's full current directly",
+        "Relay panels cannot use push buttons"
+      ],
+      "correct": [0],
+      "explanation": "The buttons, sensors and contactors are still wired to the PLC, but only once. The logic between them is a program, which is quick to change and easy to watch running."
+    },
+    {
+      "id": "q3",
+      "kind": "multiple",
+      "objective": "plc.m4.o1",
+      "prompt": "Which of these are true of a **modular** PLC? Choose every one that is.",
+      "options": [
+        "You choose the processor and add the input and output modules the machine needs",
+        "A failed module can be swapped without replacing the whole PLC",
+        "The power supply, processor and a set number of inputs and outputs are always in one box",
+        "Each module sits in a numbered slot"
+      ],
+      "correct": [0, 1, 3],
+      "explanation": "Everything in one box describes a compact (fixed) PLC. A modular PLC is built up from separate modules in slots."
+    },
+    {
+      "id": "q4",
+      "kind": "choice",
+      "objective": "plc.m4.o1",
+      "prompt": "You write a program on your laptop and copy it into the PLC. What is that called?",
+      "options": [
+        "Downloading",
+        "Uploading",
+        "Scanning",
+        "Forcing"
+      ],
+      "correct": [0],
+      "explanation": "Download is from the PC to the PLC; upload is from the PLC back to the PC."
+    }
+  ]
+}

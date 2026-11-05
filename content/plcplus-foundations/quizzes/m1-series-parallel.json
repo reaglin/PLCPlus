@@ -1,0 +1,50 @@
+{
+  "id": "plc.m1.series-parallel.quiz",
+  "title": "Series and parallel circuits",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "numeric",
+      "objective": "plc.m1.o2",
+      "prompt": "A 100 Ω and a 500 Ω resistor are in **series** across 24 V DC. How much current flows, in milliamps?",
+      "answer": 40,
+      "tolerance": 0.5,
+      "unit": "mA",
+      "explanation": "In series the resistances add: 100 Ω + 500 Ω = 600 Ω. I = 24 V / 600 Ω = 0.04 A = 40 mA."
+    },
+    {
+      "id": "q2",
+      "kind": "numeric",
+      "objective": "plc.m1.o2",
+      "prompt": "Four pilot lights are wired in **parallel** across a 24 V DC supply. Each draws 30 mA. How much current does the supply provide, in milliamps?",
+      "answer": 120,
+      "tolerance": 1,
+      "unit": "mA",
+      "explanation": "In parallel each branch draws its own current, and the currents add: 4 × 30 mA = 120 mA."
+    },
+    {
+      "id": "q3",
+      "kind": "multiple",
+      "objective": "plc.m1.o2",
+      "prompt": "Which of these are true of parts wired in **parallel**? Choose every one that is.",
+      "options": [
+        "Each part has the full supply voltage across it",
+        "The same current flows through every part",
+        "If one part opens, the others keep working",
+        "The total resistance is the sum of the parts"
+      ],
+      "correct": [0, 2],
+      "explanation": "Parallel branches share the voltage, not the current: each gets the full supply, and each has its own path, so one opening leaves the rest working. Same current and resistances adding are true of series."
+    },
+    {
+      "id": "q4",
+      "kind": "truthTable",
+      "objective": "plc.m1.o2",
+      "prompt": "Two switches, A and B, are wired in **series** with a lamp. Fill in when the lamp is lit (TRUE = closed, or lit).",
+      "expression": "A AND B",
+      "explanation": "In series there is one path: the lamp is lit only when A and B are both closed."
+    }
+  ]
+}

@@ -4,7 +4,7 @@ title: Set and reset: fill and drain a tank
 minutes: 50
 objectives: [plc.m5.o4]
 builds-on: plc.m5.interlocks
-example: u5.tank
+example: u5.overheat-alarm
 exercise: u5.tank
 reference: [set-reset, sensors]
 ---
@@ -31,6 +31,6 @@ The floats alone are not enough. Halfway up, the low float is covered and the hi
 
 ## How to do it
 
-1. In the **Example** tab, watch the tank cycle, and turn Auto off and on.
-2. Choose *A common mistake*: the valves follow the high float alone. Watch the level at about 80 %.
+1. In the **Example** tab, see set and reset on an overheat alarm: turn the Thermostat to Too hot and back to Normal. The alarm stays on until you press **Alarm reset** on the machine. *A common mistake* (choose it in **Program**, above the machine) has no memory: the alarm clears itself as soon as the oven cools.
+2. Think about the tank the same way: what must the program remember between the low float and the high float? Without memory, the valves follow the high float alone, and the level chatters around 80 %.
 3. In the **Exercise** tab, type a new tag name such as **Filling** on a coil, and PLC+ declares it for you. Change the coil's kind to **Set** or **Reset** in the box beside the tag.

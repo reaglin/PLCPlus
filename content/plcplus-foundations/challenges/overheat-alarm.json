@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "id": "u5.overheat-alarm",
+  "title": "An alarm that stays on until it is reset",
+  "brief": "When the oven gets too hot, the Alarm light and the horn come on, and they stay on even after it cools down, so nobody misses that it happened. Alarm reset turns them off, but only once the temperature is Normal again.",
+  "scene": "overheat-alarm",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Remember the alarm in a memory tag, such as Alarm.",
+    "Overheat sets Alarm (a set coil). ResetPB (the Alarm reset button) AND NOT Overheat resets it (a reset coil).",
+    "The light and the horn follow Alarm."
+  ],
+  "scenarios": [
+    {
+      "name": "Too hot starts the alarm, and it stays on after it cools",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "temp",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "temp",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "AlarmLight",
+          "expect": "TRUE",
+          "says": "The alarm should come on when it is too hot."
+        },
+        {
+          "at": 0.3,
+          "tag": "Horn",
+          "expect": "TRUE",
+          "says": "The horn should sound."
+        },
+        {
+          "at": 1.5,
+          "tag": "AlarmLight",
+          "expect": "TRUE",
+          "says": "The alarm should stay on after the temperature is back to Normal, until someone resets it."
+        }
+      ]
+    },
+    {
+      "name": "Reset clears it once it is Normal",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "temp",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "temp",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "reset",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "reset",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.8,
+          "tag": "AlarmLight",
+          "expect": "TRUE",
+          "says": "The alarm should still be on before Reset."
+        },
+        {
+          "at": 1.5,
+          "tag": "AlarmLight",
+          "expect": "FALSE",
+          "says": "Reset should turn the alarm off."
+        },
+        {
+          "at": 1.5,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "Reset should silence the horn."
+        }
+      ]
+    },
+    {
+      "name": "Reset does nothing while it is still too hot",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "temp",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "reset",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "reset",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "AlarmLight",
+          "expect": "TRUE",
+          "says": "While it is still too hot, Reset must not clear the alarm."
+        }
+      ]
+    }
+  ]
+}

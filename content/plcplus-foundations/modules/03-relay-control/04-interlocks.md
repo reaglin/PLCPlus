@@ -4,7 +4,7 @@ title: Interlocks
 minutes: 25
 objectives: [plc.m3.o4]
 builds-on: plc.m3.seal-in
-example: u5.garage-door
+example: u5.reversing-conveyor
 reference: [interlocks]
 ---
 
@@ -24,6 +24,6 @@ Each direction also needs to stop on its own at the end of its travel. A **limit
 
 ## Try it
 
-The **Example** tab runs a garage door with an Up and a Down seal-in, an interlock, two limit switches and a safety eye. Open the door, then press Close while it is still opening: nothing happens until it stops. Choose *A common mistake* to see a door that ignores the safety eye.
+The **Example** tab runs a conveyor motor that can run forward or in reverse: two seal-ins, one per direction, each with an interlock. Press Forward, then press Reverse while it is still running: nothing happens until you press Stop. Choose *A common mistake* in Program to see the same circuit without the interlocks: press Forward, then Reverse, and read what the motor says.
 
-You will write this program yourself in module 5.
+In module 5 you will write an interlocked program yourself, for a garage door, with limit switches as well.

@@ -1,0 +1,175 @@
+{
+  "id": "plc.m4.check.quiz",
+  "title": "Module 4 check: PLC fundamentals",
+  "passThreshold": 0.8,
+  "practice": false,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "choice",
+      "objective": "plc.m4.o1",
+      "prompt": "Which part of a PLC runs the program?",
+      "options": [
+        "The processor (CPU)",
+        "The power supply",
+        "The input module",
+        "The rack"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The processor reads the inputs, runs the program and writes the outputs. The modules connect it to the machine; the rack holds them."
+    },
+    {
+      "id": "q2",
+      "kind": "choice",
+      "objective": "plc.m4.o1",
+      "prompt": "A small machine needs 8 inputs and 6 outputs, and will never grow. Which kind of PLC fits best?",
+      "options": [
+        "A compact PLC: power supply, processor, inputs and outputs in one box",
+        "A modular PLC with a large rack",
+        "Two PLCs, one for inputs and one for outputs",
+        "No PLC: only relays can do this"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A compact (fixed) PLC is small and cheap, and has enough points for a small machine. A modular PLC suits larger machines that need more or different modules."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m4.o2",
+      "prompt": "A photo eye has an **NPN** (sinking) output: it connects the input to 0 V when it sees a part. Which kind of DC input does it need?",
+      "options": [
+        "A sourcing input, which supplies the current",
+        "A sinking input, which also connects to 0 V",
+        "A triac output",
+        "A 120 V AC input"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "One side sources, the other sinks. A sinking sensor needs a sourcing input to supply the current it takes to 0 V."
+    },
+    {
+      "id": "q4",
+      "kind": "multiple",
+      "objective": "plc.m4.o2",
+      "prompt": "Which of these field devices are wired to an **output** module? Choose every one.",
+      "options": [
+        "A pilot light",
+        "A solenoid valve",
+        "A motor contactor's coil",
+        "A limit switch",
+        "A float switch"
+      ],
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "explanation": "Outputs drive things the PLC controls. Limit switches and float switches tell the PLC something, so they are inputs."
+    },
+    {
+      "id": "q5",
+      "kind": "fault",
+      "objective": "plc.m4.o3",
+      "machine": "u5.overheat-alarm",
+      "program": "Works",
+      "fault": "Overheat:open",
+      "prompt": "This overheat alarm runs the working program, but one input has a wiring fault. Turn the Thermostat to Too hot, press **Alarm reset** on the machine, and watch the alarm and the rungs. Which fault does it have?",
+      "options": [
+        "The thermostat's wire is broken: Overheat always reads FALSE",
+        "The thermostat is shorted: Overheat always reads TRUE",
+        "The Alarm reset button is shorted: ResetPB always reads TRUE",
+        "The Alarm reset button's wire is broken: ResetPB always reads FALSE"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The alarm never comes on, however hot it gets: on the rungs, Overheat stays FALSE in Too hot. A broken wire reads the same as \"all is well\", so this switch fails unsafe. That is why sensors that guard against danger are wired so that a broken wire looks like the danger (normally closed), as the Stop button is."
+    },
+    {
+      "id": "q6",
+      "kind": "fault",
+      "objective": "plc.m4.o3",
+      "machine": "u5.press-guard",
+      "program": "Works",
+      "fault": "GuardShut:shorted",
+      "prompt": "This press guard runs the working program, but one input has a wiring fault. Leave the Guard switch at Open, then press both hand buttons, and watch the lights and the rungs. Which fault does it have?",
+      "options": [
+        "The guard switch is shorted: GuardShut always reads TRUE, even with the guard open",
+        "The guard switch's wire is broken: GuardShut always reads FALSE",
+        "The Left hand button is shorted: LeftHand always reads TRUE",
+        "The Right hand button's wire is broken: RightHand always reads FALSE"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "With the guard open, Ready is lit, Guard open is dark, and both hands close the press: on the rungs GuardShut reads TRUE whatever the switch does. A broken guard-switch wire would keep the press from ever closing, and a faulty hand button would change what the hands do, not the guard lights."
+    },
+    {
+      "id": "q7",
+      "kind": "numeric",
+      "objective": "plc.m4.o4",
+      "prompt": "A PLC's scan time is 5 ms. How many times does it read its inputs in one second?",
+      "answer": 200,
+      "tolerance": 0,
+      "unit": "times",
+      "explanation": "The inputs are read once per scan: 1000 ms / 5 ms = 200 scans a second."
+    },
+    {
+      "id": "q8",
+      "kind": "choice",
+      "objective": "plc.m4.o4",
+      "prompt": "A program has a coil of Pump on rung 2 and another coil of Pump on rung 9. Rung 2 passes power; rung 9 does not. What is written to the Pump output at the end of the scan?",
+      "options": [
+        "FALSE: rung 9 runs later and overwrites rung 2",
+        "TRUE: rung 2 turned it on first",
+        "TRUE for half the scan, then FALSE",
+        "Nothing: the PLC refuses to run the program"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Rungs run top to bottom, and the last coil of a tag wins. This double coil mistake is fixed by putting both conditions in parallel on one rung."
+    },
+    {
+      "id": "q9",
+      "kind": "text",
+      "objective": "plc.m4.o5",
+      "prompt": "Write the IEC address of **input** byte 0, bit 2.",
+      "answers": [
+        "%IX0.2",
+        "%I0.2"
+      ],
+      "explanation": "%I is an input, X a single bit, then byte 0, bit 2. An output would be %QX0.2."
+    },
+    {
+      "id": "q10",
+      "kind": "match",
+      "objective": "plc.m4.o5",
+      "prompt": "Match each Allen-Bradley address to what it is.",
+      "pairs": [
+        {
+          "left": "I:1/0",
+          "right": "SLC or MicroLogix: input, slot 1, bit 0"
+        },
+        {
+          "left": "O:2/3",
+          "right": "SLC or MicroLogix: output, slot 2, bit 3"
+        },
+        {
+          "left": "B3:0/1",
+          "right": "SLC or MicroLogix: a memory bit, file B3, word 0, bit 1"
+        },
+        {
+          "left": "Local:1:I.Data.0",
+          "right": "Logix: the input module in slot 1, bit 0"
+        }
+      ],
+      "explanation": "The older SLC and MicroLogix PLCs use file letters (I, O, B); Logix controllers name the module's slot and its data. Either way, a good program gives the point a readable tag name."
+    }
+  ]
+}

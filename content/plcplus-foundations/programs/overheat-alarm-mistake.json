@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "name": "An alarm that stays on until it is reset (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Overheat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Thermostat: TRUE while too hot"
+    },
+    {
+      "name": "ResetPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Alarm reset button: TRUE while pressed"
+    },
+    {
+      "name": "AlarmLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Horn",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Alarm",
+      "type": "BOOL",
+      "comment": "remembers that the oven got too hot"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "MISTAKE: the light follows the switch, with no memory.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Overheat",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "AlarmLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The horn follows the switch too, so the alarm clears itself when the oven cools.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Overheat",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Horn",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 {
   "id": "plcplus-foundations",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "title": "PLC+ — foundations (preview)",
   "dependencies": [],
   "minimumAppVersion": "0.1.0",
-  "note": "Preview content for the instructors' review: modules 3 and 5 are first drafts, 1, 2, 4 and 6 outlines, 7-12 coming later.",
+  "note": "Preview content for the instructors' review: modules 1-5 are first drafts, 6 an outline, 7-12 coming later. Challenges marked example are the machines on the Example tabs, like the exercises' machines but not the same ones (D21).",
   "challenges": [
     {
       "file": "challenges/pilot-lights.json",
@@ -93,6 +93,86 @@
           "title": "A common mistake",
           "file": "programs/conveyor-sorter-mistake.json",
           "note": "The diverter pushes every part that reaches the eye, metal or plastic."
+        }
+      ]
+    },
+    {
+      "file": "challenges/press-guard.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/press-guard.json",
+          "note": "Three rungs: Ready follows the guard; Press closing needs Left hand AND Right hand AND the guard shut (three contacts in series); Guard open uses a normally closed contact (NOT)."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/press-guard-mistake.json",
+          "note": "The two hand buttons are side by side (OR), so the press closes with one hand on a button: the other hand could be under it."
+        }
+      ]
+    },
+    {
+      "file": "challenges/pump-station.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/pump-station.json",
+          "note": "Rung 1: PumpStart, or the pump's own contact beside it (the seal-in), through PumpStop and OverloadOK to the Pump coil. Both are wired normally closed, so normally open contacts pass power until Stop is pressed or the overload trips. Rung 2 lights the lamp."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/pump-station-mistake.json",
+          "note": "PumpStop is checked with a normally closed contact. The button is wired normally closed (TRUE while not pressed), so that contact is open all the time and the pump never starts. The most common mistake with Stop buttons."
+        }
+      ]
+    },
+    {
+      "file": "challenges/reversing-conveyor.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/reversing-conveyor.json",
+          "note": "Two start/stop circuits with seal-ins. Each has a normally closed contact of the other direction (the interlock), so only one can be on."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/reversing-conveyor-mistake.json",
+          "note": "There is no interlock: press Reverse while the motor runs forward, and both contactors are told to pull in at once."
+        }
+      ]
+    },
+    {
+      "file": "challenges/overheat-alarm.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/overheat-alarm.json",
+          "note": "Overheat sets a memory tag, Alarm; ResetPB AND NOT Overheat resets it. The light and the horn follow Alarm, so the alarm stays on until someone resets it."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/overheat-alarm-mistake.json",
+          "note": "The light and the horn follow the temperature switch directly. The moment the oven cools, the alarm clears itself, and nobody knows it was ever too hot."
+        }
+      ]
+    },
+    {
+      "file": "challenges/push-on-push-off.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/push-on-push-off.json",
+          "note": "Rung 1 turns the press into a one-scan Pulse with a rising-edge contact (ONS on Allen-Bradley). Rung 2 flips the light on each Pulse."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/push-on-push-off-mistake.json",
+          "note": "Without the edge, Pulse is TRUE for every scan the button is held (one scan is 10 ms), so the light flips on and off many times a press and ends up wherever it happens to stop."
         }
       ]
     }

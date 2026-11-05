@@ -40,6 +40,10 @@ check or of everything (`Learning.Core.Reports` makes the snapshot, the seal, th
 `src/Learning.Reports.Pdf` draws it with PDFsharp and QRCoder), My details for reports, Send to my instructor, the reports made, and
 File ▸ Check a report (for instructors) with class codes (D23). `PLCPLUS_SAVE_TO=<folder>` saves reports there without the Save
 dialog (captures only).
+**Phase 9 (the content for Units 1–5) first drafts 2026-11-05:** modules 1, 2 and 4 written (lessons, practice questions on every
+item, a check each), modules 3 and 5 revised; a typed-answer question kind (`text`: binary, hex, BCD); five example machines so every
+Example tab runs a machine **like** its exercise's (D21; `tools/make-example-machines.py`; the motor can now run in reverse); the
+outcomes in `docs/OUTCOMES.md` (`tools/make-outcomes.py`) for Ron to review. 277 tests.
 
 ### Read these first
 

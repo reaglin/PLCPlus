@@ -86,7 +86,7 @@ public class ReportTests
     {
         var r = ReportBuilder.Build(P, HalfOfModule5(), null, Options, T0);
         Assert.Equal(SubmissionRecord.FullReport, r.PointId);
-        Assert.Equal(11, r.Exercises.Count);
+        Assert.Equal(27, r.Exercises.Count);   // every item of modules 1 to 5
         Assert.Equal("PLCPlus_Gomez_FullReport_2026-11-05.pdf", r.FileName("PLCPlus"));
     }
 

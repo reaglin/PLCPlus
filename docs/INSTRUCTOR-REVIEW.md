@@ -15,18 +15,20 @@ students can share one computer, each with a PIN-protected progress file they ca
 ## What this preview shows, and what it does not
 
 **It shows:**
-- **the learning path:** twelve modules, from electrical foundations to industrial systems. Modules 3 (relay control) and 5
-  (basic ladder programming) are **first drafts** for you to judge; 1, 2, 4 and 6 are outlines; 7–12 show only their outcomes
-  and topics;
+- **the learning path:** twelve modules, from electrical foundations to industrial systems. Modules 1 to 5 (electrical foundations,
+  logic and number systems, relay control, PLC fundamentals, basic ladder programming) are **first drafts** for you to judge;
+  6 is an outline; 7–12 show only their outcomes and topics;
 - **each module's first page:** what to finish first (recommended, never enforced), what the learner will be able to do, its
   topics and its items;
 - **each item in four tabs:** **Learn** (the lesson), **Example** (a simulated machine running a working program, and a
   common mistake), **Exercise** (the learner writes the program and the software checks it) and **Reference** (the symbols
   and rules, to look up);
 - the learner's progress: ✓ complete, ◐ started, ○ not started, on every module and item, and on each module's outcomes;
-- **the module checks** of modules 3 and 5: questions of five kinds, including machines with a faulty wire to diagnose
+- **practice questions** on the items of modules 1, 2 and 4, and **the module checks** of modules 1 to 5: questions of six kinds
+  (a typed answer, such as a number in binary or hex, is the sixth), including machines with a faulty wire to diagnose
   (the review site lists every question with its answer);
-- the PLC engine running ladder programs with power flow drawn live, six simulated machines, the ladder editor, and automatic
+- the PLC engine running ladder programs with power flow drawn live, six simulated machines for the exercises and five more
+  for the examples, the ladder editor, and automatic
   checking with hints and a plain-words replay of what went wrong.
 
 **It does not have yet:** several learners with PIN-protected files, and the PDF reports.
@@ -70,7 +72,9 @@ On the **Example** and **Exercise** tabs:
 
 ## The six machines — what to try
 
-They are items 5.1 to 5.5 (basic ladder) and 6.1 (timers). Open each one's **Example** tab.
+They are the **Exercise** tabs of items 5.1 to 5.5 (basic ladder) and the Example tab of 6.1 (timers). *Start again ▾* on an
+Exercise tab loads the common mistake to try; the working programs are drawn on the review site (PLC+ itself never hands a
+student the answer).
 
 | # | Challenge | Try this | The common mistake |
 |---|---|---|---|
@@ -83,6 +87,19 @@ They are items 5.1 to 5.5 (basic ladder) and 6.1 (timers). Open each one's **Exa
 
 For each, choose *A common mistake* and press **Check this program** to see what a student sees when they get it wrong.
 
+## The five example machines
+
+Each module 5 item's **Example** tab runs a machine **like** its exercise's, not the same one (Ron, 2026-11-04), so the student sees
+the idea worked out and then applies it. Module 3's examples use the same machines.
+
+| Item | Example | The idea it shows | Its common mistake |
+|---|---|---|---|
+| 5.1 contacts and coils | **A two-hand press guard** | Three contacts in series (AND); a normally closed contact (NOT) | The hand buttons in parallel: one hand closes the press |
+| 5.2 the seal-in | **Start and stop a pump** | The seal-in, with Stop and an overload relay wired normally closed | Stop checked with a normally closed contact: the pump never starts |
+| 5.3 interlocks | **A reversing conveyor motor** | Two seal-ins, each locked out by the other direction | No interlocks: both contactors told to pull in at once |
+| 5.4 set and reset | **An overheat alarm** | Set by the alarm, reset by Reset only once it is cool | No memory: the alarm clears itself when the oven cools |
+| 5.5 edges | **Push on, push off** | A rising edge makes a one-scan pulse that flips a light | A plain contact: the light flickers while the button is held |
+
 **To try the editor:** open an item's **Exercise** tab. You start with the machine's tags and one rung (a contact and a coil). Click
 an element and type its tag; the tools above the rungs add contacts, coils, branches and boxes (timers, counters, compare, math);
 the letters O, C, Q, B and I do the same from the keyboard. *Start again ▾* can give you a copy of the common mistake to fix.
@@ -90,9 +107,6 @@ Right-click a contact or coil to force its tag on or off.
 
 ## Simplifications we know about
 
-- **Examples and exercises.** In this preview, an item's Example tab runs the answer to its own Exercise. In the finished
-  modules the example will be **a similar machine, not the same one** (Ron, 2026-11-04), so the learner sees the idea worked
-  out and then applies it.
 - **The garage door only stops** when something is in the doorway. A real opener must also reverse (UL 325); that is planned
   as a later challenge. Say if you would rather have it from the start.
 - **Analog signals** (levels, temperatures, a numeric display) are not wired to the PLC yet; they come with the analog unit.
@@ -115,9 +129,10 @@ Please answer whichever you can. Short notes are fine.
 7. **Your course.** Which topics and machines from your course would you most want to see?
 8. **Reports.** When students hand in a progress report, what do you need to see on it?
 9. **The editor.** Is it quick enough to build a rung? What do your students reach for that is missing?
-10. **The drafts.** Read the Learn pages of modules 3 and 5. Is the wording right for your students? Is anything wrong, or
-    taught in a way you would not teach it?
-11. **The module checks.** Modules 3 and 5 now end with questions (choices, a truth table, matching symbols, a number, and in
+10. **The drafts.** Read the Learn pages of modules 1 to 5. Is the wording right for your students? Is anything wrong, or
+    taught in a way you would not teach it? In particular: the lockout/tagout steps (1.4), the panel voltages (1.3), sinking and
+    sourcing (4.2), and the Allen-Bradley names and addresses (2.2, 4.5). The review site lists the questions marked for you.
+11. **The module checks.** Modules 1 to 5 end with questions (choices, a truth table, matching symbols, a number, and in
     module 5 two machines with a faulty wire to diagnose). Are they the right questions? Is 80 % the right pass mark? A learner can
     retry freely and a wrong answer does not show the right one; is that how you would want it?
 

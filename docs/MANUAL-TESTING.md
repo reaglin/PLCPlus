@@ -13,6 +13,26 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 9 — the lessons of modules 1 to 5, and the example machines (plan 9.1–9.7), 2026-11-05
+
+Use a new learner (so nothing is complete yet). Read as a student would: note anything unclear, wrong, or that you would teach
+differently. The instructors will review the same pages on the review site.
+
+| # | Do this | You should see |
+|---|---|---|
+| 9.1 | Sign in. Look at the path | Modules 1 to 5 say **first draft**; "0 of 27 items". The status bar says to start with 1.1 |
+| 9.2 | Open **1.1 Voltage, current and resistance**. Read the Learn tab, then the **Exercise** tab | Practice questions with **Check my answers**. A wrong answer shows the right one and why (practice). Passing them marks 1.1 ✓ |
+| 9.3 | Read **1.4 Working safely: lockout/tagout** | The steps in order, and a plain statement that the page does not replace the lab's safety training. Is anything wrong for your lab? |
+| 9.4 | **2.1 Binary and hexadecimal**, Exercise tab. Type `101101` for "Write 45 in binary", `0010 1101` too, then `2D` for a hex question, `0x2d`, and `2G` | Each right form is accepted (✓). `2G` says it is not a hexadecimal number and which digits to use. `2#1100_1010` in a question shows in a fixed-width font, without backquotes |
+| 9.5 | **2.2 BCD**: type a BCD answer with and without spaces | Both accepted |
+| 9.6 | **4.4 The scan cycle**, Example tab (a pump): **Pause**, tick **keep pressed** under Start, **Step one scan** | In one scan Pump turns on in rung 1 and rung 2 already lights PumpLight, as the page says |
+| 9.7 | **4.6 Module check**: the two find-the-fault questions (an overheat alarm, a press guard) | Work each machine: the alarm never comes on when too hot; the press closes with the guard open. The right answers are the broken temperature-switch wire and the shorted guard switch |
+| 9.8 | **5.1** to **5.5**: open each **Example** tab | Each runs a machine **like** the exercise's, not the same one: a two-hand press guard, a pump, a reversing conveyor motor, an overheat alarm, push on/push off. Choose *A common mistake* on each and see it go wrong |
+| 9.9 | **5.3** Example (the reversing conveyor): *A common mistake*, press Forward, then Reverse | The motor says it was told to run **both ways at once**; with *Works*, Reverse does nothing until Stop |
+| 9.10 | Pass a module's check (module 1 is quickest), then **Hand in a report** | The module's check is listed ready to hand in; its report shows the practice questions' items and the check |
+
+---
+
 ## Hand-test 8 — reports: make one, hand it in, check it (plan 8.1–8.8), 2026-11-05
 
 Use a learner with module 3 finished (hand-test 7.4 makes one), or finish it first.

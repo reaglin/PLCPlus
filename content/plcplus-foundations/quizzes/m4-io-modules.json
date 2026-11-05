@@ -1,0 +1,71 @@
+{
+  "id": "plc.m4.io-modules.quiz",
+  "title": "Input and output modules",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "choice",
+      "objective": "plc.m4.o2",
+      "prompt": "A proximity sensor has a **PNP** (sourcing) output: it switches +24 V out to the input. Which kind of DC input does it need?",
+      "options": [
+        "A sinking input, which gives the current a path to 0 V",
+        "A sourcing input, which also supplies +24 V",
+        "A relay output",
+        "Any input: sinking and sourcing do not matter for DC"
+      ],
+      "correct": [0],
+      "explanation": "One side sources, the other sinks. Current flows out of the sourcing sensor, through the input point, and back to 0 V through a sinking input."
+    },
+    {
+      "id": "q2",
+      "kind": "choice",
+      "objective": "plc.m4.o2",
+      "prompt": "Why does a PLC output drive a **contactor coil** rather than the motor itself?",
+      "options": [
+        "An output point can carry only a small current; the contactor's heavy contacts switch the motor",
+        "PLC outputs can only switch DC",
+        "A motor needs a normally closed contact",
+        "The contactor makes the program run faster"
+      ],
+      "correct": [0],
+      "explanation": "An output point is rated for an amp or so at most. The contactor's coil needs little current, and its main contacts carry the motor's large current, away from the PLC."
+    },
+    {
+      "id": "q3",
+      "kind": "match",
+      "objective": "plc.m4.o2",
+      "prompt": "Match each kind of output to what it switches.",
+      "pairs": [
+        { "left": "Relay output", "right": "AC or DC; slow, and its contacts wear" },
+        { "left": "Transistor output", "right": "DC only; fast, with a long life" },
+        { "left": "Triac output", "right": "AC only; a small leakage current when off" }
+      ],
+      "explanation": "A relay is a switch, so it takes either voltage. A transistor switches DC and a triac switches AC, both with no moving parts."
+    },
+    {
+      "id": "q4",
+      "kind": "choice",
+      "objective": "plc.m4.o2",
+      "prompt": "The LED for output point 3 is lit, but the pilot light wired to point 3 is off. What does that tell you?",
+      "options": [
+        "The program has turned the point on, so look beyond the module: the fuse, the wire, the lamp",
+        "The program has not turned the point on",
+        "The input module is faulty",
+        "The PLC is not in Run mode"
+      ],
+      "correct": [0],
+      "explanation": "An output LED shows what the PLC has told the point to do. It does not prove the device got power."
+    },
+    {
+      "id": "q5",
+      "kind": "numeric",
+      "objective": "plc.m4.o2",
+      "prompt": "An input module has 16 points, numbered from 0. What is the number of its last point?",
+      "answer": 15,
+      "tolerance": 0,
+      "explanation": "Points are numbered from 0, so 16 points are 0 to 15."
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "name": "An alarm that stays on until it is reset (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Overheat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Thermostat: TRUE while too hot"
+    },
+    {
+      "name": "ResetPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Alarm reset button: TRUE while pressed"
+    },
+    {
+      "name": "AlarmLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Horn",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Alarm",
+      "type": "BOOL",
+      "comment": "remembers that the oven got too hot"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Too hot: set the alarm (it stays set).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Overheat",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Alarm",
+                "coil": "set"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Reset, but only once the temperature is Normal: reset the alarm.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "ResetPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Overheat",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Alarm",
+                "coil": "reset"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The light follows the alarm.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Alarm",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "AlarmLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The horn follows the alarm.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Alarm",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Horn",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

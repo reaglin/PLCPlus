@@ -53,6 +53,49 @@ public class QuizTests
         Assert.Equal(typed.Length > 0, r.Questions[0].Answered);
     }
 
+    [Theory]
+    [InlineData("1F", true)]
+    [InlineData("1f", true)]
+    [InlineData("16#1F", true)]
+    [InlineData("0x001F", true)]
+    [InlineData("1Fh", true)]
+    [InlineData("1E", false)]
+    [InlineData("1G", false)]
+    [InlineData("", false)]
+    public void HexAnswerIsTheNumberInBase16(string typed, bool right)
+    {
+        var q = new Question { Id = "h", Kind = QuestionKind.Text, Base = 16, Answer = 31 };
+        var r = QuizGrader.Grade(new Quiz { Questions = [q] }, new Dictionary<string, QuestionAnswer> { ["h"] = new() { Text = typed } });
+        Assert.Equal(right, r.Questions[0].Correct);
+        Assert.Equal(typed.Length > 0 && typed != "1G", r.Questions[0].Answered);   // unreadable counts as not answered, as for numbers
+        if (typed == "1G") Assert.Contains("not a hexadecimal number", r.Questions[0].Feedback, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("0000 1101", true)]
+    [InlineData("1101", true)]
+    [InlineData("2#1101", true)]
+    [InlineData("1011", false)]
+    [InlineData("1102", false)]
+    public void BinaryAnswerAllowsLeadingZerosAndSpaces(string typed, bool right)
+    {
+        var q = new Question { Id = "b", Kind = QuestionKind.Text, Base = 2, Answer = 13 };
+        Assert.Equal(right, QuizGrader.Grade(new Quiz { Questions = [q] }, new Dictionary<string, QuestionAnswer> { ["b"] = new() { Text = typed } }).Questions[0].Correct);
+    }
+
+    [Fact]
+    public void TextAnswerIgnoresCaseSpacesAndUnderscores()
+    {
+        var q = new Question { Id = "t", Kind = QuestionKind.Text, Answers = ["0010 0101"] };
+        Dictionary<string, QuestionAnswer> A(string s) => new() { ["t"] = new() { Text = s } };
+        var quiz = new Quiz { Questions = [q], Practice = true };
+        Assert.True(QuizGrader.Grade(quiz, A("00100101")).Passed);
+        Assert.True(QuizGrader.Grade(quiz, A("0010_0101")).Passed);
+        var wrong = QuizGrader.Grade(quiz, A("0001 1001")).Questions[0];
+        Assert.False(wrong.Correct);
+        Assert.Contains("\"0010 0101\"", wrong.Feedback, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void TruthTableNeedsEveryRowRight()
     {
@@ -100,6 +143,7 @@ public class QuizTests
     internal static Dictionary<string, QuestionAnswer> AllRight(Quiz quiz) => quiz.Questions.ToDictionary(q => q.Id, q => q.Kind switch
     {
         QuestionKind.Numeric => new QuestionAnswer { Text = q.Answer!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) },
+        QuestionKind.Text => new QuestionAnswer { Text = q.Base is { } b ? Convert.ToString((long)q.Answer!.Value, b) : q.Answers[0] },
         QuestionKind.TruthTable => new QuestionAnswer { Rows = [.. BooleanExpression.Parse(q.Expression!).Rows().Select(r => (bool?)r.Result)] },
         QuestionKind.Match => new QuestionAnswer { Matches = [.. q.Pairs.Select(pair => q.MatchChoices.ToList().IndexOf(pair.Right))] },
         _ => new QuestionAnswer { Chosen = [.. q.Correct] },

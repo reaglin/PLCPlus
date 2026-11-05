@@ -1,0 +1,69 @@
+{
+  "id": "plc.m4.tags.quiz",
+  "title": "Tags and addresses",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "match",
+      "objective": "plc.m4.o5",
+      "prompt": "The tank in PLC+ has these tags. Match each to its kind.",
+      "pairs": [
+        { "left": "HighFloat", "right": "An input: set by the machine" },
+        { "left": "FillValve", "right": "An output: set by the program, sent to the machine" },
+        { "left": "Filling", "right": "A memory tag: used only by the program" }
+      ],
+      "explanation": "HighFloat is wired to an input point, FillValve to an output point, and Filling is not wired to anything: it remembers that the tank is filling."
+    },
+    {
+      "id": "q2",
+      "kind": "match",
+      "objective": "plc.m4.o5",
+      "prompt": "Match each data type to what it holds.",
+      "pairs": [
+        { "left": "BOOL", "right": "TRUE or FALSE" },
+        { "left": "INT", "right": "A whole number from -32,768 to 32,767" },
+        { "left": "REAL", "right": "A number with a decimal point" },
+        { "left": "TIME", "right": "A length of time, such as T#5s" }
+      ],
+      "explanation": "Every discrete input and output is a BOOL. DINT is a larger whole number (32 bits)."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m4.o5",
+      "prompt": "On an SLC 500 or MicroLogix PLC, what is `I:1/0`?",
+      "options": [
+        "Input, slot 1, bit 0",
+        "Output, slot 1, bit 0",
+        "Input, slot 0, bit 1",
+        "Integer number 1, value 0"
+      ],
+      "correct": [0],
+      "explanation": "I is the input file, 1 is the slot, and /0 is the bit. O:2/3 would be output, slot 2, bit 3."
+    },
+    {
+      "id": "q4",
+      "kind": "text",
+      "objective": "plc.m4.o5",
+      "prompt": "Write the IEC address of **output** byte 0, bit 1.",
+      "answers": ["%QX0.1", "%Q0.1"],
+      "explanation": "%Q is an output, X a single bit, then byte 0, bit 1. An input would be %IX, a memory bit %MX."
+    },
+    {
+      "id": "q5",
+      "kind": "choice",
+      "objective": "plc.m4.o5",
+      "prompt": "Which is the best tag name for the float switch at the top of a tank?",
+      "options": [
+        "HighFloat",
+        "Input3",
+        "I:1/3",
+        "high float switch"
+      ],
+      "correct": [0],
+      "explanation": "Name a tag for what it means, not where it is wired. Many PLCs do not allow spaces in names."
+    }
+  ]
+}

@@ -9,14 +9,16 @@
       "kind": "truthTable",
       "objective": "plc.m2.o3",
       "prompt": "Fill in A AND B.",
-      "expression": "A AND B"
+      "expression": "A AND B",
+      "explanation": "AND is TRUE only when both inputs are TRUE: only the last row."
     },
     {
       "id": "q2",
       "kind": "truthTable",
       "objective": "plc.m2.o3",
       "prompt": "Fill in A OR B.",
-      "expression": "A OR B"
+      "expression": "A OR B",
+      "explanation": "OR is FALSE only when both inputs are FALSE: only the first row."
     },
     {
       "id": "q3",
@@ -25,6 +27,38 @@
       "prompt": "NOT comes first: fill in NOT A AND B.",
       "expression": "NOT A AND B",
       "explanation": "NOT applies to A alone, then AND: TRUE only when A is FALSE and B is TRUE."
+    },
+    {
+      "id": "q4",
+      "kind": "choice",
+      "objective": "plc.m2.o3",
+      "prompt": "The press may run only if both hands are on their buttons and the guard is closed. How are the contacts LeftHand, RightHand and Guard wired in the rung?",
+      "options": [
+        "All three in series, one after the other",
+        "All three in parallel, side by side",
+        "LeftHand and RightHand in parallel, then Guard in series",
+        "All three as normally closed contacts"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Every condition must be TRUE, so this is AND: LeftHand AND RightHand AND Guard. AND is contacts in series."
+    },
+    {
+      "id": "q5",
+      "kind": "choice",
+      "objective": "plc.m2.o3",
+      "prompt": "A rung has a **normally closed** contact of the tag TankFull. When does that contact pass power?",
+      "options": [
+        "While TankFull is TRUE",
+        "While TankFull is FALSE",
+        "Always",
+        "Only when TankFull changes"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A normally closed contact is NOT: it passes power while its tag is FALSE, here while the tank is not full."
     }
   ]
 }

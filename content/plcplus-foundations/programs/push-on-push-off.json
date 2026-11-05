@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "name": "One button: push on, push off (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "LightPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Light button: TRUE while pressed"
+    },
+    {
+      "name": "WorkLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Pulse",
+      "type": "BOOL",
+      "comment": "TRUE for one scan when the button is pressed"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "A rising edge of the button: Pulse is TRUE for one scan per press.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "LightPB",
+                "contact": "positiveEdge"
+              },
+              {
+                "kind": "coil",
+                "tag": "Pulse",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Toggle: on if (Pulse AND it was off) OR (NOT Pulse AND it was on). That is Pulse XOR WorkLight (item 2.4).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Pulse",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "WorkLight",
+                        "contact": "normallyClosed"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Pulse",
+                        "contact": "normallyClosed"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "WorkLight",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "WorkLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

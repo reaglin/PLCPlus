@@ -23,6 +23,11 @@ public enum QuestionKind
     Match,
     /// <summary>A machine with a fault in it (the subject module shows it); the learner chooses which fault.</summary>
     Fault,
+    /// <summary>
+    /// A typed answer, such as 1F or 0010 0101. Right when it is one of <see cref="Question.Answers"/>, ignoring case, spaces and
+    /// underscores; or, with <see cref="Question.Base"/>, when it is the number <see cref="Question.Answer"/> written in that base.
+    /// </summary>
+    Text,
 }
 
 public sealed record MatchPair(string Left, string Right);
@@ -39,6 +44,13 @@ public sealed class Question
     public double? Answer { get; set; }
     public double Tolerance { get; set; }
     public string? Unit { get; set; }
+    /// <summary>For a text question: the answers accepted (see <see cref="QuestionKind.Text"/>).</summary>
+    public List<string> Answers { get; set; } = [];
+    /// <summary>
+    /// For a text question: 2, 8 or 16 when the answer is <see cref="Answer"/> written in that base. Leading zeros, spaces and the
+    /// usual marks (2#, 0b, 8#, 16#, 0x, a trailing h) are allowed.
+    /// </summary>
+    public int? Base { get; set; }
     public string? Expression { get; set; }
     public List<MatchPair> Pairs { get; set; } = [];
     /// <summary>Why the right answer is right: shown after the learner answers.</summary>
@@ -91,7 +103,7 @@ public sealed class QuestionAnswer
 {
     /// <summary>Choice, Multiple, Fault: the options chosen, by position.</summary>
     public List<int> Chosen { get; set; } = [];
-    /// <summary>Numeric: what was typed.</summary>
+    /// <summary>Numeric, Text: what was typed.</summary>
     public string? Text { get; set; }
     /// <summary>TruthTable: the result given for each row (null: not answered).</summary>
     public List<bool?> Rows { get; set; } = [];
@@ -134,6 +146,7 @@ public static class QuizGrader
             QuestionKind.Numeric => Numeric(q, a),
             QuestionKind.TruthTable => TruthTable(q, a),
             QuestionKind.Match => Match(q, a),
+            QuestionKind.Text => Text(q, a),
             _ => (false, false, "", (string?)null),
         };
         var look = q.Kind == QuestionKind.Fault
@@ -156,6 +169,46 @@ public static class QuizGrader
             return (true, false, right, $"\"{text.Trim()}\" is not a number PLC+ can read. Type digits, with a point for decimals, such as 100 or 0.5.");
         var ok = q.Answer is { } answer && Math.Abs(value - answer) <= Math.Max(q.Tolerance, 1e-9);
         return (true, ok, right, null);
+    }
+
+    /// <summary>Upper case, without spaces or underscores: how typed answers are compared.</summary>
+    public static string Squeeze(string text) => new([.. text.Where(c => !char.IsWhiteSpace(c) && c != '_').Select(char.ToUpperInvariant)]);
+
+    /// <summary>The number <paramref name="text"/> is in <paramref name="numberBase"/>, or null if it is not one.</summary>
+    public static long? InBase(string text, int numberBase)
+    {
+        var s = Squeeze(text);
+        foreach (var mark in numberBase switch { 2 => new[] { "2#", "0B" }, 8 => ["8#", "0O"], 16 => ["16#", "0X"], _ => [] })
+            if (s.StartsWith(mark, StringComparison.Ordinal)) { s = s[mark.Length..]; break; }
+        if (numberBase == 16 && s.EndsWith('H')) s = s[..^1];
+        if (s.Length == 0 || s.Length > 63) return null;
+        long value = 0;
+        foreach (var c in s)
+        {
+            var digit = c is >= '0' and <= '9' ? c - '0' : c is >= 'A' and <= 'F' ? c - 'A' + 10 : 99;
+            if (digit >= numberBase) return null;
+            value = value * numberBase + digit;
+        }
+        return value;
+    }
+
+    private static string BaseName(int b) => b switch { 2 => "binary", 8 => "octal", 16 => "hexadecimal", _ => $"base {b}" };
+
+    private static (bool, bool, string, string?) Text(Question q, QuestionAnswer? a)
+    {
+        if (q.Base is { } b && q.Answer is { } n)
+        {
+            var right = Convert.ToString((long)n, b).ToUpperInvariant();
+            if (a?.Text is not { } typed || typed.Trim().Length == 0) return (false, false, right, null);
+            if (InBase(typed, b) is not { } value)
+                return (true, false, right, $"\"{typed.Trim()}\" is not a {BaseName(b)} number. Use only {(b == 16 ? "0-9 and A-F" : b == 2 ? "0 and 1" : $"the digits 0-{b - 1}")}."
+                                            + (b == 2 ? " (0x… and 16#… are how hexadecimal is written.)" : ""));
+            return (true, value == (long)n, right, null);
+        }
+        var answers = q.Answers.Select(Squeeze).ToHashSet(StringComparer.Ordinal);
+        var shown = q.Answers.Count == 0 ? "" : $"\"{q.Answers[0]}\"";
+        if (a?.Text is not { } text || text.Trim().Length == 0) return (false, false, shown, null);
+        return (true, answers.Contains(Squeeze(text)), shown, null);
     }
 
     private static (bool, bool, string, string?) TruthTable(Question q, QuestionAnswer? a)

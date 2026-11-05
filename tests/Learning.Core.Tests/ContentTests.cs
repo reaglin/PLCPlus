@@ -230,7 +230,8 @@ public class ProgressTests
     public void AnOutlineIsNotAMissingPrerequisite()
     {
         var p = ContentPackage.Load(Repo.Foundations);
-        Assert.Empty(new LearningProgress().MissingPrerequisites(p, p.FindModule("plc.m5")!)); // module 4 is an outline
+        Assert.Empty(new LearningProgress().MissingPrerequisites(p, p.FindModule("plc.m8")!)); // module 6 is an outline
+        Assert.Contains(new LearningProgress().MissingPrerequisites(p, p.FindModule("plc.m5")!), m => m.Id == "plc.m4"); // a draft counts
     }
 
     [Fact]
@@ -238,9 +239,11 @@ public class ProgressTests
     {
         var p = ContentPackage.Load(Repo.Foundations);
         var progress = new LearningProgress();
-        Assert.Equal("3.1", progress.Next(p)!.Number); // modules 1 and 2 are outlines
+        Assert.Equal("1.1", progress.Next(p)!.Number);
+        progress.Record(p.FindItem("plc.m1.vir")!, Outcome(true), T0);     // its practice questions passed
+        Assert.Equal("1.2", progress.Next(p)!.Number);
         foreach (var item in p.FindModule("plc.m3")!.Items) progress.MarkRead(item, T0);
-        Assert.Equal("3.5", progress.Next(p)!.Number); // the module check's questions come next
+        Assert.Equal("1.2", progress.Next(p)!.Number);                       // still the first not complete, in path order
     }
 
     [Fact]
@@ -251,7 +254,7 @@ public class ProgressTests
         progress.MarkRead(p.FindItem("plc.m3.relays")!, T0);
         progress.MarkRead(p.FindItem("plc.m3.seal-in")!, T0);
         Assert.Equal("3.4", progress.NextAfter(p, p.FindItem("plc.m3.seal-in")!)!.Number);
-        Assert.Equal("3.2", progress.NextAfter(p, p.FindItem("plc.m5.check")!)!.Number); // past the end: back to the start
+        Assert.Equal("1.1", progress.NextAfter(p, p.FindItem("plc.m5.check")!)!.Number); // past the end: back to the start
 
         progress.Opened(p, p.FindItem("plc.m5.seal-in")!, T0.AddMinutes(1));
         Assert.Equal("5.2", progress.Continue(p)!.Number);

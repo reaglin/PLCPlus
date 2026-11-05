@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "id": "u5.reversing-conveyor",
+  "title": "Run a conveyor forward and in reverse",
+  "brief": "Forward runs the motor forward and Reverse runs it backwards; each keeps running after the button is let go, and Stop stops it either way. While it runs one way, the other button does nothing (an interlock): Forward and Reverse are never on together. The lights show which way it is told to run.",
+  "scene": "reversing-conveyor",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Write two start/stop circuits with seal-ins, one for Forward and one for Reverse.",
+    "In the Forward rung, add a normally closed contact of Reverse; in the Reverse rung, one of Forward. That is the interlock."
+  ],
+  "scenarios": [
+    {
+      "name": "Forward runs, Stop stops",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "fwd",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "fwd",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "Forward",
+          "expect": "TRUE",
+          "says": "Forward should run after the Forward button."
+        },
+        {
+          "at": 1.5,
+          "tag": "Forward",
+          "expect": "FALSE",
+          "says": "Stop should stop it."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "Forward",
+            "Reverse"
+          ],
+          "says": "Forward and Reverse must never be on together: that shorts the supply."
+        }
+      ]
+    },
+    {
+      "name": "Reverse runs, Stop stops",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "rev",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "rev",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "Reverse",
+          "expect": "TRUE",
+          "says": "Reverse should run after the Reverse button."
+        },
+        {
+          "at": 0.5,
+          "tag": "RevLight",
+          "expect": "TRUE",
+          "says": "The Reverse light should be lit."
+        },
+        {
+          "at": 1.5,
+          "tag": "Reverse",
+          "expect": "FALSE",
+          "says": "Stop should stop it."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "Forward",
+            "Reverse"
+          ],
+          "says": "Forward and Reverse must never be on together: that shorts the supply."
+        }
+      ]
+    },
+    {
+      "name": "Reverse while running forward does nothing",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "fwd",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "fwd",
+          "active": false
+        },
+        {
+          "t": 0.8,
+          "operate": "rev",
+          "active": true
+        },
+        {
+          "t": 1.0,
+          "operate": "rev",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.5,
+          "tag": "Forward",
+          "expect": "TRUE",
+          "says": "The motor should keep running forward."
+        },
+        {
+          "at": 1.5,
+          "tag": "Reverse",
+          "expect": "FALSE",
+          "says": "Reverse must not come on while Forward is on."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "Forward",
+            "Reverse"
+          ],
+          "says": "Forward and Reverse must never be on together: that shorts the supply."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "plc.m4.sensors.quiz",
+  "title": "Sensors",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "match",
+      "objective": "plc.m4.o3",
+      "prompt": "Match each sensor to what it senses.",
+      "pairs": [
+        { "left": "Limit switch", "right": "A moving part pushing its lever" },
+        { "left": "Float switch", "right": "A liquid rising to its height" },
+        { "left": "Inductive proximity sensor", "right": "Metal near its face, without touching" },
+        { "left": "Photo eye", "right": "Something breaking a beam of light" }
+      ],
+      "explanation": "Limit switches touch; proximity sensors and photo eyes do not. An inductive prox senses metal only."
+    },
+    {
+      "id": "q2",
+      "kind": "choice",
+      "objective": "plc.m4.o3",
+      "prompt": "You need to sense **plastic** bottles on a conveyor, without touching them. Which sensor will **not** work?",
+      "options": [
+        "An inductive proximity sensor",
+        "A capacitive proximity sensor",
+        "A through-beam photo eye",
+        "A diffuse photo eye"
+      ],
+      "correct": [0],
+      "explanation": "An inductive prox senses only metal. That is how the conveyor sorter in PLC+ tells metal parts from plastic ones."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m4.o3",
+      "prompt": "The conveyor's photo eye turns its output on while a part is **blocking** the beam. How is it set up?",
+      "options": [
+        "Dark operate",
+        "Light operate",
+        "Normally closed",
+        "Through-beam"
+      ],
+      "correct": [0],
+      "explanation": "Dark operate: on while the receiver is dark (the beam is blocked). Light operate is on while the beam is clear, like the garage door's safety eye."
+    },
+    {
+      "id": "q4",
+      "kind": "choice",
+      "objective": "plc.m4.o3",
+      "prompt": "The garage door's safety eye is wired so that EyeClear is TRUE while the doorway is clear. What happens if its wire breaks?",
+      "options": [
+        "EyeClear reads FALSE, as if something were in the doorway, so the door will not come down: it fails safe",
+        "EyeClear reads TRUE, so the door comes down on whatever is there",
+        "The PLC stops with a fault",
+        "Nothing changes"
+      ],
+      "correct": [0],
+      "explanation": "A broken wire always reads FALSE. Wiring a safety signal so that FALSE means stop makes a broken wire stop the machine."
+    },
+    {
+      "id": "q5",
+      "kind": "multiple",
+      "objective": "plc.m4.o3",
+      "prompt": "Which of these are usually **three-wire** sensors (+24 V, 0 V and an output)? Choose every one.",
+      "options": [
+        "Inductive proximity sensor",
+        "Photo eye",
+        "Mechanical limit switch",
+        "Float switch"
+      ],
+      "correct": [0, 1],
+      "explanation": "Electronic sensors need power to run, so most have three wires. A limit switch or a float switch is just a contact: two wires."
+    }
+  ]
+}

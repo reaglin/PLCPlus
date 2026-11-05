@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "pump-station",
+  "title": "Pump start/stop station",
+  "description": "A pump on a contactor with an overload relay (it trips if the pump draws too much current), a green Start button, a red Stop button wired normally closed, and a Pump running light.",
+  "width": 440,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "PumpStart",
+      "color": "green",
+      "x": 40,
+      "y": 40
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "PumpStop",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 40,
+      "y": 140
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "overload",
+      "label": "Overload relay",
+      "tag": "OverloadOK",
+      "positions": [
+        "Tripped",
+        "OK"
+      ],
+      "on": true,
+      "x": 40,
+      "y": 240
+    },
+    {
+      "type": "pilotLight",
+      "id": "light",
+      "label": "Pump running",
+      "tag": "PumpLight",
+      "color": "green",
+      "x": 170,
+      "y": 40
+    },
+    {
+      "type": "motor",
+      "id": "pump",
+      "label": "Pump P1",
+      "runTag": "Pump",
+      "startTimeMs": 800,
+      "x": 300,
+      "y": 90
+    }
+  ]
+}

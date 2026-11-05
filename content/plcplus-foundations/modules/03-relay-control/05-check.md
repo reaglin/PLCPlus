@@ -14,4 +14,4 @@ This check covers the four items of module 3. Each of them is complete once you 
 
 The check itself is six questions, on the **Exercise** tab: choices, matching symbols, a truth table and a number. You need 80 % to pass, and you can try again as often as you like. A right answer says why; a wrong one tells you to look again, not what the answer is.
 
-When the four items are complete and you have passed the questions, the module is complete. In a later version, finishing it makes a progress report to hand in to your instructor.
+When the four items are complete and you have passed the questions, the module is complete and ready to hand in: **Hand in a report** (the second row of the path) makes the PDF progress report for your instructor.

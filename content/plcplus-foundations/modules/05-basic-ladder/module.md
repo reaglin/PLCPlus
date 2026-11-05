@@ -20,6 +20,6 @@ topics:
   - Edge detection
 ---
 
-Your first PLC programs. Each item has a machine: run the working program on the **Example** tab, then write your own on the **Exercise** tab and press **Check my program** to test it. Each item builds on the one before it.
+Your first PLC programs. Each item has two machines. The **Example** tab runs a working program on a machine like the exercise's, so you see the idea worked out, and a common mistake beside it. Then you write your own program for the exercise's machine on the **Exercise** tab and press **Check my program** to test it. Each item builds on the one before it.
 
 The relay ideas from module 3 come back here as programs: the seal-in, interlocks and limit switches.

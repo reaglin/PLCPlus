@@ -1,0 +1,72 @@
+{
+  "id": "plc.m1.ac-dc.quiz",
+  "title": "AC and DC in a control panel",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "match",
+      "objective": "plc.m1.o3",
+      "prompt": "Match each kind of power to its usual job in a control panel.",
+      "pairs": [
+        { "left": "480 V AC three-phase", "right": "Runs the motors" },
+        { "left": "120 V AC", "right": "Contactor coils and the DC power supply" },
+        { "left": "24 V DC", "right": "PLC inputs, sensors and pilot lights" }
+      ],
+      "explanation": "High voltage does the work (motors); a control transformer gives 120 V AC for coils; a DC supply gives 24 V DC for the PLC's I/O and sensors."
+    },
+    {
+      "id": "q2",
+      "kind": "numeric",
+      "objective": "plc.m1.o3",
+      "prompt": "What is the frequency of AC mains power in the United States, in hertz?",
+      "answer": 60,
+      "tolerance": 0,
+      "unit": "Hz",
+      "explanation": "US mains power is 60 Hz: 60 cycles a second. Much of the rest of the world uses 50 Hz."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m1.o3",
+      "prompt": "What does a **control transformer** in a panel do?",
+      "options": [
+        "Steps the high supply voltage down to 120 V AC for the control circuit",
+        "Turns AC into 24 V DC",
+        "Starts and stops the motor",
+        "Changes 60 Hz into 50 Hz"
+      ],
+      "correct": [0],
+      "explanation": "A transformer changes AC voltage: here, 480 V down to 120 V for coils and lights. Turning AC into DC is the job of a DC power supply."
+    },
+    {
+      "id": "q4",
+      "kind": "choice",
+      "objective": "plc.m1.o3",
+      "prompt": "On a motor's nameplate, what does **FLA** tell you?",
+      "options": [
+        "The current it draws at full load",
+        "The voltage it is wound for",
+        "Its speed at full load",
+        "How many phases it needs"
+      ],
+      "correct": [0],
+      "explanation": "FLA is full-load amps: the current at full load, used to size the motor's overload protection."
+    },
+    {
+      "id": "q5",
+      "kind": "choice",
+      "objective": "plc.m1.o3",
+      "prompt": "Why does the control circuit run at 24 V DC or 120 V AC rather than the motor's 480 V?",
+      "options": [
+        "It is much less likely to give a dangerous shock, and the parts are smaller and cheaper",
+        "A PLC cannot count above 120",
+        "Low voltage is completely safe to touch",
+        "Motors need low voltage to start"
+      ],
+      "correct": [0],
+      "explanation": "Lower control voltage reduces the shock risk and lets buttons, sensors and wiring be small. It is less dangerous, not harmless."
+    }
+  ]
+}

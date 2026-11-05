@@ -163,7 +163,8 @@ def page(title, body):
 
 
 KIND_WORDS = {'choice': 'Choose one', 'multiple': 'Choose every one that is right', 'numeric': 'A number', 'truthTable': 'Fill in a truth table',
-              'match': 'Match each one', 'fault': 'Find the fault: a machine with a faulty wire, running the working program'}
+              'match': 'Match each one', 'fault': 'Find the fault: a machine with a faulty wire, running the working program',
+              'text': 'Type the answer'}
 
 
 def questions_html(quiz, challenges):
@@ -183,6 +184,14 @@ def questions_html(quiz, challenges):
                                          for i, o in enumerate(q['options'])) + '</ul>')
         if kind == 'numeric':
             bits.append(f'<p>✓ <strong>{q.get("answer")} {html.escape(q.get("unit") or "")}</strong> (within {q.get("tolerance", 0)})</p>')
+        if kind == 'text':
+            if q.get('base'):
+                base_word = {2: 'binary', 8: 'octal', 16: 'hexadecimal'}.get(q['base'], f'base {q["base"]}')
+                written = format(int(q['answer']), {2: 'b', 8: 'o', 16: 'X'}[q['base']])
+                bits.append(f'<p>✓ <strong>{written}</strong> ({int(q["answer"])} in {base_word}; leading zeros, spaces and marks such as 16# or 0x are accepted)</p>')
+            else:
+                bits.append('<p>✓ ' + ' or '.join(f'<strong>{html.escape(a)}</strong>' for a in q.get('answers', []))
+                            + ' (case, spaces and underscores do not matter)</p>')
         if kind == 'truthTable':
             bits.append(truth_table(q['expression']))
         if kind == 'match':
@@ -264,7 +273,7 @@ def main():
                              + ', '.join(html.escape(by_id[c][0]) for c in im.get('covers', []) if c in by_id)
                              + ('. Its questions, on the Exercise tab, are below; it is complete when those items are and the questions are passed.'
                                 if im.get('quiz') else '.')
-                             + ' In a later version, finishing it makes the progress report to hand in.'))
+                             + ' Once it is complete, the learner makes the PDF progress report to hand in (Hand in a report).'))
             else:
                 if ex in challenges:
                     ch, programs = challenges[ex]
@@ -279,6 +288,8 @@ def main():
                                  f'PLC+ checks it with {len(ch["scenarios"])} tests'
                                  + (f' ({sum(1 for s in ch["scenarios"] if s.get("hidden"))} hidden)' if any(s.get('hidden') for s in ch['scenarios']) else '')
                                  + '. Passing every test completes the item.'))
+                elif im.get('quiz'):
+                    tabs.append(('Exercise', 'Practice questions (below). Passing them completes the item.'))
                 else:
                     tabs.append(('Exercise', 'None: the item is complete when the learner has read it.'))
                 if im.get('reference'):
@@ -300,7 +311,12 @@ def main():
                 prog = challenges[ex][1][0]['file']
                 name = os.path.splitext(os.path.basename(prog))[0]
                 b.append(f'<figure id="{html.escape(im["id"])}-pic"><img src="images/ladders/{name}.png" alt="The working program" loading="lazy">'
-                         f'<figcaption>The Example\'s working program. (In the finished modules the example will be a similar machine, not the exercise\'s own answer.)</figcaption></figure>')
+                         f'<figcaption>The Example\'s working program{" (a machine like the exercise’s, not the same one)" if exr and exr != ex else ""}.</figcaption></figure>')
+            if exr in challenges and exr != ex:
+                prog = challenges[exr][1][0]['file']
+                name = os.path.splitext(os.path.basename(prog))[0]
+                b.append(f'<figure><img src="images/ladders/{name}.png" alt="A working program for the exercise" loading="lazy">'
+                         f'<figcaption>For you only: a working program for the Exercise. PLC+ never shows it to the learner; theirs may differ and still pass.</figcaption></figure>')
             if im.get('quiz'):
                 b.append(questions_html(json.load(open(os.path.join(CONTENT, im['quiz']), encoding='utf-8')), challenges))
             b.append('<h3>Your comments on this item</h3>' + thread(f'/plcplus/review/module-{num:02d}.html?q={im["id"]}', f'PLC+ {n} {im["title"]}') + '</section>')

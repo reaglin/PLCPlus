@@ -1,0 +1,79 @@
+{
+  "id": "plc.m1.safety.quiz",
+  "title": "Working safely: lockout/tagout",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "match",
+      "objective": "plc.m1.o4",
+      "prompt": "Put the lockout/tagout steps in order: match each step number to its step.",
+      "pairs": [
+        { "left": "Step 1", "right": "Prepare and notify the people affected" },
+        { "left": "Step 2", "right": "Shut the machine down with its normal controls" },
+        { "left": "Step 3", "right": "Isolate it from every energy source" },
+        { "left": "Step 4", "right": "Apply your own lock and tag" },
+        { "left": "Step 5", "right": "Release or block stored energy" },
+        { "left": "Step 6", "right": "Verify zero energy" }
+      ],
+      "explanation": "Prepare and notify, shut down, isolate, lock and tag, release stored energy, then verify zero energy before you start work."
+    },
+    {
+      "id": "q2",
+      "kind": "choice",
+      "objective": "plc.m1.o4",
+      "prompt": "Why is an emergency stop **not** a lockout?",
+      "options": [
+        "It is a control: a reset, a fault or another person can start the machine again",
+        "It takes too long to press",
+        "It only works on DC machines",
+        "It turns off the lights as well"
+      ],
+      "correct": [0],
+      "explanation": "An e-stop stops the machine but does not isolate it from its energy. Only a lock on the isolating device, with your key, keeps it from starting."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m1.o4",
+      "prompt": "When you check for voltage with a meter, why do you test the meter on a known live source **again after** testing the circuit?",
+      "options": [
+        "To prove the meter did not fail during the check, so its \"dead\" reading can be trusted",
+        "To discharge the meter",
+        "Because the first test is only for AC",
+        "To reset the circuit breaker"
+      ],
+      "correct": [0],
+      "explanation": "Live-dead-live: if the meter fails, it reads \"dead\" on a live circuit. Testing it on a live source before and after proves it was working."
+    },
+    {
+      "id": "q4",
+      "kind": "multiple",
+      "objective": "plc.m1.o4",
+      "prompt": "Which of these can injure you at an electrical panel? Choose every one that is.",
+      "options": [
+        "Shock from touching a live part",
+        "Arc flash, even without touching anything",
+        "Burns",
+        "Nothing, once the PLC program is stopped"
+      ],
+      "correct": [0, 1, 2],
+      "explanation": "Shock, arc flash and burns are the main electrical hazards. Stopping the PLC program does not remove power from the panel."
+    },
+    {
+      "id": "q5",
+      "kind": "choice",
+      "objective": "plc.m1.o4",
+      "prompt": "Which OSHA regulation requires lockout/tagout when servicing machines?",
+      "options": [
+        "29 CFR 1910.147, the control of hazardous energy",
+        "NFPA 70E",
+        "IEC 61131-3",
+        "The motor's nameplate"
+      ],
+      "correct": [0],
+      "explanation": "OSHA 29 CFR 1910.147 is the lockout/tagout regulation. NFPA 70E is the electrical safety standard (a standard, not an OSHA regulation), and IEC 61131-3 is the PLC programming standard."
+    }
+  ]
+}

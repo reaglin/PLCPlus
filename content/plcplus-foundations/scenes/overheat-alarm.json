@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "id": "overheat-alarm",
+  "title": "Overheat alarm",
+  "description": "A thermostat on an oven (Normal or Too hot), an Alarm reset button, a red Alarm light and a horn.",
+  "width": 440,
+  "height": 260,
+  "components": [
+    {
+      "type": "selectorSwitch",
+      "id": "temp",
+      "label": "Thermostat",
+      "tag": "Overheat",
+      "positions": [
+        "Normal",
+        "Too hot"
+      ],
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "reset",
+      "label": "Alarm reset",
+      "tag": "ResetPB",
+      "color": "green",
+      "x": 30,
+      "y": 140
+    },
+    {
+      "type": "pilotLight",
+      "id": "alarm",
+      "label": "Alarm",
+      "tag": "AlarmLight",
+      "color": "red",
+      "x": 250,
+      "y": 30
+    },
+    {
+      "type": "horn",
+      "id": "horn",
+      "label": "Horn",
+      "tag": "Horn",
+      "x": 250,
+      "y": 140
+    }
+  ]
+}
