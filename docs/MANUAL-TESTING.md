@@ -35,6 +35,31 @@ instructors read.
 | 2.11a | Keyboard only: from the Challenge list, press Tab | The order is Program, the machine's Pause/Reset, the machine's buttons and switches, then the two lists under it, then Check this program; the help panel comes last |
 | 2.12 | Anything about the look, the words, the order of the challenges | Notes go back into the plan before the preview goes to the instructors |
 
+## Hand-test 4 — modules and items (plan 4.1–4.12), 2026-11-04
+
+The window has changed: the learning path is on the left, and the machines are now items in modules 5 and 6. Hand-tests 2 and 3
+still apply, inside an item's **Example** and **Exercise** tabs (5.1 pilot lights, 5.2 motor, 5.3 garage door, 5.4 tank, 5.5
+sorter, 6.1 traffic light). This test starts from no progress: if you have run this build before, delete
+`%LocalAppData%\PLCPlus\progress\preview.json` first.
+
+| # | Do this | You should see |
+|---|---|---|
+| 4.1 | Open `manual-test\PLCPlus.exe` | The learning path on the left: 12 modules, 1–6 with items, 7–12 "Coming later"; "0 of 32 items complete". Module 3's page on the right (the first written module): Recommended first, What you will be able to do, Topics, the items, and **Start with 3.1 …**. The status line says modules 3 and 5 are written |
+| 4.2 | Choose **1.1**, then **6. Timers and counters** | 1.1: "This page is still to be written", and **I have read this** is greyed (its tooltip says why). Module 6's page says module 5 is recommended first (orange), that you can still start, and that PLC+ notes it |
+| 4.3 | Choose **5. Basic ladder programming**, then **Start with 5.1 …** | 5.1 opens on its **Learn** tab; the header says about 40 minutes |
+| 4.4 | Open **Example** (Ctrl+2) | The pilot station runs the working program; Program has *Works* and *A common mistake*; Check this program passes. The tree does not change (examples do not count) |
+| 4.5 | Open **Exercise** (Ctrl+3). **Click** the contact and type **PB1**, Enter (the Tag box takes the typing; nothing is added to the rung). Build the three rungs and press **Check my program** (top right or under the machine) | When it passes: the status line says 5.1 is complete, "Module 5: 1 of 6 complete", and "Next: 5.2 … (Next ▸, top right)"; the tree shows ✓ 5.1. **Start again ▾** offers only an empty program and the mistake, not the working program |
+| 4.6 | Open **Reference** (Ctrl+4) | Contacts, coils, and AND/OR as truth tables. Symbols such as -\| \|- appear whole in the tables |
+| 4.7 | Choose **3.3 The seal-in circuit** | A drawn ladder diagram (not running) and a truth table in the lesson; **I have read this** at the bottom. Press it: ✓ in the tree, and module 3's count goes up |
+| 4.8 | Choose **3.5 Module check**, tab **Exercise** | The four items it covers and where you are with each |
+| 4.9 | **Next ▸** and **◂ Previous**; Go ▸ **Continue where I left off** | They move through the path in order; Continue opens the first item not complete |
+| 4.10 | On 5.2, **File ▸ Save My program as…** (from any tab) and **Save the program as a picture…** | The file is named "5.2 The seal-in… — My program"; the picture is saved. On a reading such as 3.1 these File items are greyed, and their tooltips say where they work |
+| 4.11 | Close PLC+ and open it again | It opens on the item you were on (or the one after it, if you finished it); the marks and counts are as you left them |
+| 4.13 | F1 on each tab | The help panel's first part says what this screen is for (module, Learn, Example, Exercise, Reference) |
+| 4.12 | A short window (or a laptop screen): 5.2's Exercise tab | The tab scrolls so the rungs keep their room; Problems and Check my program are below |
+
+---
+
 ## Hand-test 3 — the ladder editor (plan 3.1–3.6), 2026-11-04
 
 | # | Do this | You should see |

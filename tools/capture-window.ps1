@@ -13,7 +13,8 @@ param(
     # How long to let the window run after the clicks, before the picture.
     [int]$SettleMs = 300,
     # Steps run in order after -Select/-Toggle: "value:Name=Text" types into a box (then focus moves on, which
-    # commits it), "press:Name" invokes a button. Through UI Automation only.
+    # commits it), "press:Name" invokes a button, "pick:Name" selects a tree item or tab (name starts with),
+    # "expand:Name" opens a tree item. Through UI Automation only.
     [string[]]$Steps = @()
 )
 
@@ -112,6 +113,16 @@ foreach ($step in $Steps) {
         $away = Find-Named 'New rung'
         if ($away) { $away.SetFocus() }
         Write-Output "typed '$text' into '$name'"
+    } elseif ($kind -eq 'pick' -or $kind -eq 'expand') {
+        # pick:Name selects a tree item or tab whose name starts with Name; expand:Name opens a tree item.
+        $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+        $el = $null
+        $want = if ($kind -eq 'pick') { [System.Windows.Automation.SelectionItemPattern]::Pattern } else { [System.Windows.Automation.ExpandCollapsePattern]::Pattern }
+        foreach ($e in $all) { if ($e.Current.Name -and $e.Current.Name.StartsWith($rest) -and $e.GetSupportedPatterns() -contains $want) { $el = $e; break } }
+        if (-not $el) { Write-Output "NOT FOUND '$rest'"; continue }
+        if ($kind -eq 'pick') { $el.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select() }
+        else { $el.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand() }
+        Write-Output "$kind '$($el.Current.Name)'"
     } elseif ($kind -eq 'press') {
         $el = Find-Named $rest
         if ($el) { $el.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke(); Write-Output "pressed '$rest'" }

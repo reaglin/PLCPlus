@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tools.ContentValidator (plan 4.7): checks a content package before it is published. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Tools.ContentValidator</AssemblyName>
+    <RootNamespace>Tools.ContentValidator</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Plc.Grading\Plc.Grading.csproj" />
+  </ItemGroup>
+
+</Project>

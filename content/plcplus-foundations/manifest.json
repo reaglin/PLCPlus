@@ -1,10 +1,10 @@
 {
   "id": "plcplus-foundations",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "title": "PLC+ — foundations (preview)",
   "dependencies": [],
   "minimumAppVersion": "0.1.0",
-  "note": "Preview content for the instructors' review. The package format (spec 6.3: lessons in Markdown with front-matter, signing) is plan phase 4.",
+  "note": "Preview content for the instructors' review: modules 3 and 5 are first drafts, 1, 2, 4 and 6 outlines, 7-12 coming later.",
   "challenges": [
     {
       "file": "challenges/pilot-lights.json",
@@ -96,5 +96,19 @@
         }
       ]
     }
+  ],
+  "modules": [
+    "modules/01-electrical-foundations",
+    "modules/02-logic-and-numbers",
+    "modules/03-relay-control",
+    "modules/04-plc-fundamentals",
+    "modules/05-basic-ladder",
+    "modules/06-timers-counters",
+    "modules/07-data-math",
+    "modules/08-sequencing",
+    "modules/09-analog-process",
+    "modules/10-structured-programming",
+    "modules/11-troubleshooting",
+    "modules/12-industrial-systems"
   ]
 }

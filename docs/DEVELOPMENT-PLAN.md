@@ -119,19 +119,30 @@ restart with the new program. My program is kept per challenge in `%LocalAppData
 
 ---
 
-## Phase 4 — the Learning Core: content and the learning path (FR-1; spec 6)
+## Phase 4 — the Learning Core: content and the learning path (FR-1; spec 6) ⚠️ built 2026-11-04
+
+Ron, 2026-11-04: *"The overall interface will be similar to the Statistle/BMPFast and other interfaces and divided into
+modules. Under each module will be exercises … and they will build upon each other. … each item in a module will have
+'Learning' 'Example' 'Reference' and other tabs … The user will progress through modules and modules will indicate the status
+of the student."* His answers the same day: **Module → Item** (two levels), the tabs **Learn · Example · Exercise ·
+Reference**, **all 12 modules** in the tree, and **first drafts for modules 3 and 5** (D20). The content format is in
+`docs/CONTENT-FORMAT.md`.
 
 | # | Task | Done when |
 |---|---|---|
-| 4.1 | Content package: a folder or zip with `manifest.json`, lessons in Markdown with front-matter, scenes, challenges, media | `content/plcplus-foundations/manifest.json` is a placeholder |
-| 4.2 | The hierarchy: learning path → unit → lesson → activity (reading, guided simulation, quiz, graded challenge); stable IDs for objectives and activities | |
-| 4.3 | **Every module (unit) has Learn, Assess and Reference** (D7). Its first page shows its prerequisites, learning outcomes and topics | Ron's first shape; PLC instructors review the flow (4.9) |
-| 4.4 | Prerequisites are **recommended, not enforced** (Ron, question 6): a module whose prerequisites are not mastered says what to finish first but opens anyway, and the report shows the instructor it was opened early | |
-| 4.5 | The lesson viewer **in the program's own window** (Ron, question 7): Markdown (Markdig) into a WPF FlowDocument, with live widgets (a mini simulation, a truth table, a diagram); no web view | |
-| 4.6 | Submission points declared in the path: which exercises they cover and what counts as complete | |
-| 4.7 | `Tools.ContentValidator`: checks links, IDs and challenge definitions from the command line | |
-| 4.8 | Package signing: **Ron signs the content when it is published** (question 8), with a key kept out of git; a signing step in the publish script; the program rejects unsigned or untrusted packages | |
-| 4.9 | **Review of the flow by PLC course instructors**: their comments become plan items | ⚠️ Ron arranges the reviewers |
+| 4.1 | Content package: a folder or zip with `manifest.json`, lessons in Markdown with front-matter, scenes, challenges, media | ⚠️ Built: `manifest.json` lists the module folders; each has `module.md` and one Markdown file per item (front-matter + the Learn page); `reference/` holds shared Reference pages. Loaded by `Learning.Core.Content.ContentPackage`; the front-matter reader is a small YAML subset of our own (no library). A zip comes with signing (4.8) |
+| 4.2 | The hierarchy, **Module → Item** (Ron, 2026-11-04; the spec's unit → lesson → activity folded into two levels), with stable IDs for modules, outcomes and items | ⚠️ Built: an item is a reading (complete when read), a lesson with an exercise (complete when it passes), or the module check. Progress keys off the IDs, so a content update keeps it |
+| 4.3 | **Every item has the tabs Learn, Example, Exercise and Reference** (Ron, 2026-11-04; D7, D20); a module's first page shows its prerequisites, learning outcomes, topics and items | ⚠️ Built: Example runs the working program on its machine (and the common mistake), Exercise is My program with Check; a module's last item is its **module check**. Ron's first shape; the instructors review the flow (4.9) |
+| 4.4 | Prerequisites are **recommended, not enforced** (Ron, question 6): a module whose prerequisites are not complete says what to finish first but opens anyway, and the report shows the instructor it was opened early | ⚠️ Built: the module page and the item header say so in orange; the first item opened early is recorded as an `opened-early` event for the report (phase 8) |
+| 4.5 | The lesson viewer **in the program's own window** (Ron, question 7): Markdown into a WPF FlowDocument, with live widgets; no web view | ⚠️ Built with **Gamify+'s MarkdownView, copied** (no Markdig: stay with what works), plus italics, `|` inside code in tables, and widgets on their own line: `[[ladder: programs/x.json]]` draws a program, `[[truth-table: (Start OR Motor) AND Stop]]` lists every row. The mini simulation is the Example tab |
+| 4.6 | Submission points declared in the path: which exercises they cover and what counts as complete | ⚠️ Built: the module check (`kind: assess`, `covers: […]`) is complete when every item it covers is; its Exercise tab lists them. Making the report when it is reached is phase 8 |
+| 4.7 | `Tools.ContentValidator`: checks links, IDs and challenge definitions from the command line | ⚠️ Built: `dotnet run --project tools/ContentValidator [folder]`: IDs unique, prerequisites exist and come earlier, objectives are outcomes, challenges, programs and scenes exist, reference pages, widgets, module checks. The shipped package passes (a test runs it) |
+| 4.8 | Package signing: **Ron signs the content when it is published** (question 8), with a key kept out of git; a signing step in the publish script; the program rejects unsigned or untrusted packages | Not started: the built-in package ships inside the signed MSIX, so signing matters first for packages sent separately. Before the Store release (phase 11) |
+| 4.9 | **Review of the flow by PLC course instructors**: their comments become plan items | ⚠️ Ron arranges the reviewers; the review build and guide now show the modules |
+| 4.10 | The window **in the family layout** (pulled forward from 7.1): menu, the learning path as a tree with ✓ ◐ ○ marks and "n of m complete", the module page, the item page with its four tabs, Previous/Next, Go ▸ Continue where I left off, F1 help | ⚠️ Built (code-behind; MVVM stays in 7.1). The old challenge picker is gone: the six machines are items 5.1–5.5 and 6.1. UX: walkthrough + heuristics, see 4.13 |
+| 4.11 | Progress for one learner on this computer (`%LocalAppData%\PLCPlus\progress\preview.json`): items opened, read, attempts with score and program hash, events | ⚠️ Built: `Learning.Core.Progress.LearningProgress`; phase 6 moves the same record into each learner's PIN-protected file |
+| 4.12 | Content: **first drafts of modules 3 (relay control) and 5 (basic ladder)**, outlines of 1, 2, 4 and 6, and 7–12 as "coming later" with their outcomes and topics; 14 Reference pages | ⚠️ For the instructors' review. The garage door, tank and sorter use only Unit 5's instructions, so they are 5.3–5.5; the traffic light (TON) is 6.1 |
+| 4.13 | Hand-test 4 | ⚠️ Ron: hand-test 4 in `docs/MANUAL-TESTING.md`. **UX: walkthrough + heuristics 2026-11-04, 1 critical, 6 major, 8 minor; fixed:** clicking a part (or adding one with a tool button) puts the typing in its Tag box, so "click and type Start" no longer adds parts; "Next" after finishing an item is the next one after it, and Continue goes back to where the learner was; a returning learner opens on that item; a new learner starts on module 3 (the first written one); outline modules are not counted as missing prerequisites and their unwritten pages cannot be "read"; the early-start note is on the module page and the status line (not a fourth header line) and no longer promises a report; a second **Check my program** at the top of the Exercise tab; Start again no longer offers a copy of the working program; an unreadable progress file is reported and never overwritten; "Check my program" in every lesson; Save works from any tab of an item with an exercise, with a name like "5.2 … — My program"; F1 help says what each screen is for; message titles "PLC+ — …" with a cause and a next step; tabs say "(none)" when empty. Not done: Help on the web and Check for a new version wait for the softwareplus.ai page and the Store (7.6); "coming in a later phase" wording goes before the Store. Asked the instructors whether the Example should show the exercise's own answer (review question 11) |
 
 ---
 
@@ -169,7 +180,7 @@ restart with the new program. My program is kept per challenge in `%LocalAppData
 
 | # | Task | Done when |
 |---|---|---|
-| 7.1 | The shell in MVVM (CommunityToolkit.Mvvm), **in the family's layout** (Ron, question 11): menu bar, rail of actions, the learning path as a tree (units → lessons), Learn / Assess / Reference as tabs on the right, a status line saying what to do next | |
+| 7.1 | The shell in MVVM (CommunityToolkit.Mvvm), **in the family's layout** (Ron, question 11): menu bar, rail of actions, the learning path as a tree (modules → items), the item's tabs on the right, a status line saying what to do next | The layout is built (4.10, code-behind); this moves it to MVVM with the learners |
 | 7.2 | Path map: each unit and lesson locked, available, in progress or mastered (with a mark as well as a colour) | |
 | 7.3 | Submission points: not reached, ready to generate, generated (with the date) | |
 | 7.4 | Objectives view with evidence, and a "review suggested" list | |
@@ -272,12 +283,13 @@ connection). No research analytics: the grant does not require research on outco
 ## References
 
 - `docs/SPECIFICATION.pdf` — Ron's technical specification, the source of every requirement
-- `docs/PLAN.md` — decisions D1–D19 and how the engine and grader work
+- `docs/PLAN.md` — decisions D1–D20 and how the engine and grader work
+- `docs/CONTENT-FORMAT.md` — how modules, items, Reference pages and widgets are written, and the validator (4.1, 4.7)
 - `docs/MANUAL-TESTING.md` — Ron's hand-tests and the hand-test build command
 - `docs/LAB-COMPARISON.md` — running the reference programs on the lab's Allen-Bradley PLC (1.12)
 - `docs/INSTRUCTOR-REVIEW.md` — the guide for the PLC instructors reviewing the preview (2.11)
 - `tests/golden/` — the reference programs R01–R11 and their expected traces (1.11)
 - `docs/images/architecture.png` — the architecture diagram from the spec
-- `content/plcplus-foundations/` — the first scene, challenge and example programs
+- `content/plcplus-foundations/` — the learning path (modules, items, Reference pages) and the machines
 - `..\USABILITY-CHECKLIST.md` — the usability rules every Store program meets
 - `..\GamifyPlus\CLAUDE.md` — the signed result line and the Verify page that D6 and question 3 follow

@@ -16,7 +16,7 @@ namespace Learning.Shell;
 // editing itself is Plc.Editors.LadderEditor (tested without a window); this part shows it and passes
 // the learner's clicks and keys to it. Every change runs straight away: the PLC and the machine restart
 // with the new program, so a learner sees what their change does.
-public partial class MainWindow
+public partial class MachineWorkspace
 {
     private LadderEditor? _editor;
     private string _editedJson = "";
@@ -44,11 +44,9 @@ public partial class MainWindow
             project = BlankForScene();
         }
         StartEditing(project);
-        var helpHidden = HelpPanel.Visibility == Visibility.Visible;
-        HelpPanel.Visibility = Visibility.Collapsed;
-        SetStatus((helpHidden ? "The help panel is hidden to make room for the rungs (F1 shows it). " : "") + (resumed
+        SetStatus((resumed
             ? "My program, as you left it. Select an element (click it, or Tab to the rungs and use the arrow keys), then use the tools above the rungs."
-            : "My program starts with the machine's tags and one rung: a contact and a coil. Click the contact, type its tag, and build from there."));
+            : "My program starts with the machine's tags and one rung: a contact and a coil. Click the contact: its Tag box is ready. Type the tag, press Enter, and build from there."));
     }
 
     private void StartEditing(PlcProject project)
@@ -63,7 +61,9 @@ public partial class MainWindow
         LadderScroller.Focusable = true;
         LadderScroller.IsTabStop = true;
         AutomationPropertiesHelper.SetName(LadderScroller, "Ladder editor: arrow keys select, letters add elements (O contact, C closed contact, Q coil, B branch, I box)");
-        ProgramNote.Text = "Your own program. Every change runs straight away: the PLC and the machine restart with it. It is kept on this computer for this challenge.";
+        // The note is short here: the rungs need the room. The rest is in the ladder's tooltip.
+        ProgramNote.Text = "My program: every change runs straight away.";
+        LadderScroller.ToolTip = "Your own program. Every change runs straight away: the PLC and the machine restart with it. It is kept on this computer for this exercise.";
         PowerUp();
         UpdateEditorPanels();
     }
@@ -75,13 +75,14 @@ public partial class MainWindow
         _editor = null;
         EditorTools.Visibility = Visibility.Collapsed;
         ProblemsExpander.Visibility = Visibility.Collapsed;
+        LadderScroller.ToolTip = null;
         LadderScroller.Focusable = false;
         LadderScroller.IsTabStop = false;
     }
 
     private PlcProject BlankForScene()
     {
-        var scene = Scene.Load(File.ReadAllText(Path.Combine(ContentDir, "scenes", _current!.Challenge.Scene + ".json")));
+        var scene = Scene.Load(File.ReadAllText(_content!.ScenePath(_current!.Challenge.Scene)));
         return LadderEditor.Blank("My program", scene.IoList.Select(p => (p.Tag, p.Kind == IoKind.Input, p.Meaning)));
     }
 
@@ -99,7 +100,7 @@ public partial class MainWindow
             PowerUp();
             if (ResultsList.ItemsSource is not null)
             {
-                ResultsList.ItemsSource = new[] { "The program has changed since this check. Press Check this program again to test the new one." };
+                ResultsList.ItemsSource = new[] { "The program has changed since this check. Press Check my program again to test the new one." };
                 ScoreText.Text = "";
                 ScoreText.ToolTip = null;
             }
@@ -137,7 +138,7 @@ public partial class MainWindow
             {
                 CommitPending();
                 _editor?.Select(new LadderSelection(rung, path));
-                LadderScroller.Focus();
+                FocusFirstProperty(selectText: true); // click, then type: the tag goes in the Tag box
             },
             RungClicked = _editor is null ? null : rung =>
             {
@@ -326,6 +327,9 @@ public partial class MainWindow
         return box;
     }
 
+    /// <summary>Saves what is being typed in a property box, before the window moves to another item or tab.</summary>
+    public void CommitPendingEdit() => CommitPending();
+
     private void CommitPending()
     {
         var commit = _pendingCommit;
@@ -353,7 +357,24 @@ public partial class MainWindow
     {
         CommitPending();
         if (sender is FrameworkElement { Tag: string tool }) Do(tool);
-        LadderScroller.Focus();
+        FocusAfterAdding();
+    }
+
+    /// <summary>
+    /// After a tool button or a drop adds a part that still needs its tag, the Tag box is ready for typing, so
+    /// "press Branch, type Motor" does what the lessons say. Otherwise the rungs keep the focus (and the letter keys).
+    /// </summary>
+    private void FocusAfterAdding()
+    {
+        var needsTag = _editor?.SelectedElement switch
+        {
+            ContactElement c => string.IsNullOrEmpty(c.Tag),
+            CoilElement c => string.IsNullOrEmpty(c.Tag),
+            BoxElement => true,
+            _ => false,
+        };
+        if (needsTag) FocusFirstProperty(selectText: true);
+        else LadderScroller.Focus();
     }
 
     /// <summary>One editor action, from a tool button, a key or a drop.</summary>
@@ -437,7 +458,8 @@ public partial class MainWindow
             menu.Items.Add(item);
         }
         Add("_Empty: just the machine's tags", "One rung with a contact and a coil, and every input and output of the machine declared", BlankForScene);
-        foreach (var p in _current.Programs)
+        // Not the working program: a copy of the answer would pass the exercise without the learner's own work.
+        foreach (var p in _current.Programs.Skip(1))
         {
             var file = p.File;
             Add($"A copy of \"{p.Title}\"", p.Note, () => ProjectJson.Deserialize(File.ReadAllText(Path.Combine(ContentDir, file))));
@@ -478,10 +500,23 @@ public partial class MainWindow
         e.Handled = handled;
     }
 
-    private void FocusFirstProperty()
+    private void FocusFirstProperty(bool selectText = false)
     {
         var first = PropertiesHost.Children.OfType<Control>().FirstOrDefault();
-        first?.Focus();
+        if (first is null)
+        {
+            LadderScroller.Focus();
+            return;
+        }
+        first.Focus();
+        if (!selectText) return;
+        // After layout, so an editable ComboBox has its text box: select what is there, so typing replaces it.
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () =>
+        {
+            first.Focus();
+            if (first is TextBox text) text.SelectAll();
+            else if (first is ComboBox combo && combo.Template?.FindName("PART_EditableTextBox", combo) is TextBox inner) inner.SelectAll();
+        });
     }
 
     // ---- Drag a tool onto an element ------------------------------------------------------------------
@@ -510,10 +545,15 @@ public partial class MainWindow
         if (_ladder.ElementAt(e.GetPosition(LadderCanvas)) is { } at)
             _editor.Select(new LadderSelection(at.Rung, at.Path));
         Do(tool);
-        LadderScroller.Focus();
+        FocusAfterAdding();
     }
 
     // ---- Files ----------------------------------------------------------------------------------------
+
+    /// <summary>What a saved file is called by default, e.g. "5.2 Start and stop a motor — My program".</summary>
+    public string? SaveName { get; set; }
+
+    private static string SafeName(string name) => string.Concat(name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '-' : c));
 
     private static string DocumentsFolder()
     {
@@ -521,14 +561,16 @@ public partial class MainWindow
         return Directory.Exists(docs) ? docs : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
     }
 
-    private void OpenProgram_Click(object sender, RoutedEventArgs e)
+    /// <summary>File ▸ Open a program: replaces My program (Undo can bring the old one back).</summary>
+    public void OpenProgram()
     {
+        if (_editor is null) return;
         var dialog = new OpenFileDialog
         {
             Title = "Open a program", Filter = "PLC+ programs (*.plcprogram)|*.plcprogram|All files (*.*)|*.*",
             InitialDirectory = DocumentsFolder(),
         };
-        if (dialog.ShowDialog(this) != true) return;
+        if (dialog.ShowDialog(HostWindow) != true) return;
         PlcProject project;
         try
         {
@@ -536,30 +578,25 @@ public partial class MainWindow
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
-            MessageBox.Show(this, $"PLC+ could not open that file as a program.\n\n{ex.Message}", "Open a program", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(HostWindow, $"PLC+ could not open that file as a program. It may not be a PLC+ program (.plcprogram), or it may be damaged or open in another program. Choose another file.\n\nDetails: {ex.Message}", "PLC+ — Open a program", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
-        if ((_editor is not null || File.Exists(WorkFile)) &&
-            MessageBox.Show(this, $"Open {Path.GetFileName(dialog.FileName)} as My program for this challenge? It replaces My program; Undo (Ctrl+Z) can bring it back while PLC+ is open.",
-                "Open a program", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
-        ProgramPicker.SelectedIndex = ProgramPicker.Items.Count - 1; // My program
-        Report(_editor!.ReplaceProgram(project, $"Opened {Path.GetFileName(dialog.FileName)}"));
+        if (MessageBox.Show(HostWindow, $"Open {Path.GetFileName(dialog.FileName)} as My program for this exercise? It replaces My program; Undo (Ctrl+Z) can bring it back while PLC+ is open.",
+                "PLC+ — Open a program", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        Report(_editor.ReplaceProgram(project, $"Opened {Path.GetFileName(dialog.FileName)}"));
     }
 
-    private void SaveProgram_Click(object sender, RoutedEventArgs e)
+    /// <summary>File ▸ Save My program as.</summary>
+    public void SaveProgram()
     {
-        if (_editor is null)
-        {
-            MessageBox.Show(this, "Choose \"My program (edit it)\" in Program first: that is the program you can save.", "Save My program",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
+        CommitPending();
+        if (_editor is null) return;
         var dialog = new SaveFileDialog
         {
             Title = "Save My program", Filter = "PLC+ programs (*.plcprogram)|*.plcprogram",
-            FileName = (_current?.Challenge.Title ?? "My program") + ".plcprogram", InitialDirectory = DocumentsFolder(),
+            FileName = SafeName(SaveName ?? _current?.Challenge.Title ?? "My program") + ".plcprogram", InitialDirectory = DocumentsFolder(),
         };
-        if (dialog.ShowDialog(this) != true) return;
+        if (dialog.ShowDialog(HostWindow) != true) return;
         try
         {
             File.WriteAllText(dialog.FileName, _editedJson);
@@ -567,27 +604,28 @@ public partial class MainWindow
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(this, $"PLC+ could not save there.\n\n{ex.Message}", "Save My program", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(HostWindow, $"PLC+ could not save there. The folder may be read-only, or the file open in another program. Choose another folder or name.\n\nDetails: {ex.Message}", "PLC+ — Save My program", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
     /// <summary>Saves the rungs on the left as a picture (plan 3.6: the same drawing, so it can go in a report).</summary>
-    private void SavePicture_Click(object sender, RoutedEventArgs e)
+    public void SavePicture()
     {
+        CommitPending();
         var dialog = new SaveFileDialog
         {
             Title = "Save the program as a picture", Filter = "PNG picture (*.png)|*.png",
             FileName = (_current?.Challenge.Title ?? "Program") + ".png", InitialDirectory = DocumentsFolder(),
         };
-        if (dialog.ShowDialog(this) != true) return;
+        if (dialog.ShowDialog(HostWindow) != true) return;
         try
         {
-            LadderPrinter.SavePng(ProjectJson.Deserialize(_programJson), $"{_current?.Challenge.Title} — {ProgramPicker.SelectedItem}", dialog.FileName);
+            LadderPrinter.SavePng(ProjectJson.Deserialize(_programJson), $"{_current?.Challenge.Title} — {(IsExercise ? "My program" : ProgramPicker.SelectedItem)}", dialog.FileName);
             SetStatus($"Saved the picture to {dialog.FileName}.");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(this, $"PLC+ could not save the picture there.\n\n{ex.Message}", "Save as a picture", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(HostWindow, $"PLC+ could not save the picture there. The folder may be read-only, or the file open in another program. Choose another folder or name.\n\nDetails: {ex.Message}", "PLC+ — Save the program as a picture", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 }

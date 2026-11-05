@@ -15,23 +15,20 @@ students can share one computer, each with a PIN-protected progress file they ca
 ## What this preview shows, and what it does not
 
 **It shows:**
-- the PLC engine running ladder programs, with power flow drawn live;
-- six simulated machines;
-- a challenge for each machine, with two programs: one that works, and one with a mistake students commonly make;
-- automatic checking with hints, and a plain-words replay of what went wrong.
+- **the learning path:** twelve modules, from electrical foundations to industrial systems. Modules 3 (relay control) and 5
+  (basic ladder programming) are **first drafts** for you to judge; 1, 2, 4 and 6 are outlines; 7–12 show only their outcomes
+  and topics;
+- **each module's first page:** what to finish first (recommended, never enforced), what the learner will be able to do, its
+  topics and its items;
+- **each item in four tabs:** **Learn** (the lesson), **Example** (a simulated machine running a working program, and a
+  common mistake), **Exercise** (the learner writes the program and the software checks it) and **Reference** (the symbols
+  and rules, to look up);
+- the learner's progress: ✓ complete, ◐ started, ○ not started, on every module and item;
+- the PLC engine running ladder programs with power flow drawn live, six simulated machines, the ladder editor, and automatic
+  checking with hints and a plain-words replay of what went wrong.
 
-**It also has the ladder editor:** choose *My program (edit it)* in Program to write your own program for any of the six
-machines, or to fix the common mistake. It runs on the machine as you build it, and Check this program grades it.
-
-**It does not have yet:**
-- the lessons;
-- learner progress;
-- the PDF reports.
-
+**It does not have yet:** several learners with PIN-protected files, questions in the module checks, and the PDF reports.
 Those come next, and your notes decide their shape.
-
-The plan for each topic (module): **Learn** (the lesson), **Assess** (the challenges), and **Reference** (the instructions
-and ideas, to look things up). Each module opens with its prerequisites, its learning outcomes and its topics.
 
 ## Running it
 
@@ -43,9 +40,13 @@ Press **F1** at any time for help on the screen.
 
 ## The screen
 
-- **Top:**
-  - **Challenge** picks the machine and its task.
-  - **Program** picks the program the PLC runs: *Works*, or *A common mistake*.
+- **Left: the learning path.** Choose a module to see its first page, or an item to work on it. **Next ▸** and **◂ Previous**
+  move through the path; **Go ▸ Continue where I left off** opens the first item not complete.
+- **An item's tabs:** Learn, Example, Exercise, Reference (Ctrl+1 to Ctrl+4).
+
+On the **Example** and **Exercise** tabs:
+
+- **Program** (Example only) picks the program the PLC runs: *Works*, or *A common mistake*.
 - **Left:** the program as ladder rungs, running live. A contact or wire that passes power is **green, thick and shows
   TRUE**; one that does not is grey, thin and shows FALSE.
 - **Right:** the machine. Hold a push button down to press it, or tick its *keep pressed* box. Switches stay where you turn
@@ -62,7 +63,9 @@ Press **F1** at any time for help on the screen.
 
   Some tests are **hidden**, so a program cannot be fitted to the visible ones.
 
-## The six challenges — what to try
+## The six machines — what to try
+
+They are items 5.1 to 5.5 (basic ladder) and 6.1 (timers). Open each one's **Example** tab.
 
 | # | Challenge | Try this | The common mistake |
 |---|---|---|---|
@@ -75,7 +78,7 @@ Press **F1** at any time for help on the screen.
 
 For each, choose *A common mistake* and press **Check this program** to see what a student sees when they get it wrong.
 
-**To try the editor:** choose *My program (edit it)*. You start with the machine's tags and one rung (a contact and a coil). Click
+**To try the editor:** open an item's **Exercise** tab. You start with the machine's tags and one rung (a contact and a coil). Click
 an element and type its tag; the tools above the rungs add contacts, coils, branches and boxes (timers, counters, compare, math);
 the letters O, C, Q, B and I do the same from the keyboard. *Start again ▾* can give you a copy of the common mistake to fix.
 Right-click a contact or coil to force its tag on or off.
@@ -97,12 +100,18 @@ Please answer whichever you can. Short notes are fine.
 3. **Correct practice.** Does anything teach a habit you would correct in the lab? For example: the normally closed Stop
    wiring, the door's interlock and safety eye, latching in the tank.
 4. **The checking.** Are the tests fair? Are the failure messages and hints helpful, or do they give too much away?
-5. **Learn / Assess / Reference.** Does that split suit how you teach a topic? What should a module's opening page show?
+5. **Modules and tabs.** Does Learn / Example / Exercise / Reference suit how you teach a topic? Is the order of the modules,
+   and of the items in modules 3 and 5, the order you teach them? What should a module's first page show?
 6. **Allen-Bradley.** The lab uses Allen-Bradley PLCs; PLC+ starts with the generic IEC 61131-3 names (TON with PT/ET/Q,
    contacts and coils). Should lessons show the Allen-Bradley names beside them from the start (XIC/XIO/OTE, .PRE/.ACC/.DN)?
 7. **Your course.** Which topics and machines from your course would you most want to see?
 8. **Reports.** When students hand in a progress report, what do you need to see on it?
 9. **The editor.** Is it quick enough to build a rung? What do your students reach for that is missing?
+10. **The drafts.** Read the Learn pages of modules 3 and 5. Is the wording right for your students? Is anything wrong, or
+    taught in a way you would not teach it?
+11. **Example and exercise.** In module 5 the Example tab runs the working program for the same task the learner then writes
+    on the Exercise tab: a worked example, then "now you do it". Is that right, or should the example be a similar machine, so
+    the exercise is not a copy?
 
 ## Sending your notes
 

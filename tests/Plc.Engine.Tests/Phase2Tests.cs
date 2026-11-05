@@ -214,3 +214,21 @@ public class ComponentTests
         }
     }
 }
+
+/// <summary>Phase 4: the learning path's PLC side — challenges, example programs and widgets all exist.</summary>
+public class PackageCheckTests
+{
+    [Fact]
+    public void TheFoundationsPackagePassesEveryCheck() =>
+        Assert.Empty(PackageChecks.Validate(Path.Combine(K.RepoRoot(), "content", "plcplus-foundations")));
+
+    [Fact]
+    public void ABadWidgetIsReported()
+    {
+        var folder = Path.Combine(K.RepoRoot(), "content", "plcplus-foundations");
+        Assert.Null(PackageChecks.CheckWidget(folder, new Learning.Core.Content.WidgetTag("ladder", "programs/motor-seal-in.json", 1)));
+        Assert.Contains("not in the package", PackageChecks.CheckWidget(folder, new Learning.Core.Content.WidgetTag("ladder", "programs/nope.json", 1)));
+        Assert.Contains("no widget called", PackageChecks.CheckWidget(folder, new Learning.Core.Content.WidgetTag("video", "x", 1)));
+        Assert.NotNull(PackageChecks.CheckWidget(folder, new Learning.Core.Content.WidgetTag("truth-table", "A AND", 1)));
+    }
+}

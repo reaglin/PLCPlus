@@ -1,0 +1,160 @@
+<UserControl x:Class="Learning.Shell.MachineWorkspace"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             KeyboardNavigation.TabNavigation="Local">
+    <!-- The machine screen: a program, the machine it runs, and the grader. The Example tab shows a
+         working program (and its common mistake); the Exercise tab shows My program, editable. -->
+    <Grid Margin="0,8,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="330" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.ColumnSpan="2" Margin="0,0,0,8">
+            <WrapPanel x:Name="ProgramRow" Margin="0,0,0,6">
+                <Label Content="_Program:" Target="{Binding ElementName=ProgramPicker}" Padding="0,0,8,0" VerticalAlignment="Center" />
+                <ComboBox x:Name="ProgramPicker" Width="220" SelectionChanged="ProgramPicker_SelectionChanged"
+                          AutomationProperties.Name="Program"
+                          ToolTip="Which program the PLC runs: the one that works, or one with a common mistake. Choosing another one resets the PLC and the machine." />
+            </WrapPanel>
+            <DockPanel>
+                <Button x:Name="CheckTopButton" DockPanel.Dock="Right" Content="Check my program" Click="Check_Click" Visibility="Collapsed" Margin="8,0,0,0" VerticalAlignment="Top"
+                        ToolTip="Runs the task's tests on My program. The results are under the machine; the status line says how it went." />
+                <TextBlock x:Name="TitleText" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" TextWrapping="Wrap" />
+            </DockPanel>
+            <TextBlock x:Name="BriefText" Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}" />
+        </StackPanel>
+
+        <!-- The program -->
+        <Border Grid.Row="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="12" Margin="0,0,12,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="The program" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
+                <TextBlock DockPanel.Dock="Top" x:Name="ProgramNote" Style="{StaticResource Lead}" />
+
+                <!-- The ladder editor's tools: shown for My program (plan 3.1, 3.4). -->
+                <StackPanel DockPanel.Dock="Top" x:Name="EditorTools" Visibility="Collapsed" Margin="0,0,0,6">
+                    <WrapPanel>
+                        <WrapPanel.Resources>
+                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                <Setter Property="Padding" Value="7,3" />
+                                <Setter Property="Margin" Value="0,0,4,4" />
+                                <Setter Property="FontSize" Value="13" />
+                            </Style>
+                        </WrapPanel.Resources>
+                        <Button Content="-| |-  Contact" Tag="O" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                                ToolTip="Adds a normally open contact after the selected element: it passes power while its tag is TRUE. Key: O. You can also drag it onto an element. Shift+O puts it before the selected element." />
+                        <Button Content="-|/|-  Closed" Tag="C" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                                ToolTip="Adds a normally closed contact: it passes power while its tag is FALSE. Key: C (Shift+C puts it before)" />
+                        <Button Content="-|P|-" Tag="P" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                                ToolTip="Adds a rising-edge contact: it passes power for one scan when its tag turns TRUE. Key: P" />
+                        <Button Content="-|N|-" Tag="N" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                                ToolTip="Adds a falling-edge contact: it passes power for one scan when its tag turns FALSE. Key: N" />
+                        <Button Content="-( )-  Coil" Tag="Q" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                                ToolTip="Adds a coil: its tag follows the power that reaches it. Key: Q. You can also drag the contact and coil tools onto an element." />
+                        <Button Content="-(S)-" Tag="S" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                                ToolTip="Adds a set (latch) coil: power turns its tag on, and it stays on. Key: S" />
+                        <Button Content="-(R)-" Tag="R" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                                ToolTip="Adds a reset (unlatch) coil: power turns its tag off. Key: R" />
+                        <Button Content="Branch" Tag="B" Click="Tool_Click"
+                                ToolTip="Puts a parallel branch (OR) around the selected element, with a new contact on it. Select several with Shift+arrow first; with a whole branch selected, adds another path. Key: B" />
+                        <Button x:Name="BoxButton" Content="Box ▾" Click="BoxButton_Click"
+                                ToolTip="Adds a timer, counter, compare, math or move box after the selected element. Key: I" />
+                        <Button Content="New rung" Tag="NewRung" Click="Tool_Click" ToolTip="Adds a rung below the selected one, with a contact and a coil. Key: Ctrl+Enter" />
+                        <Button Content="Delete" Tag="Delete" Click="Tool_Click" ToolTip="Deletes the selected element, or the rung if the rung is selected. Key: Delete" />
+                        <Button Content="Rung ▲" Tag="Up" Click="Tool_Click" ToolTip="Moves the selected rung up. Rungs run top to bottom, so order matters. Key: Alt+Up" />
+                        <Button Content="Rung ▼" Tag="Down" Click="Tool_Click" ToolTip="Moves the selected rung down. Key: Alt+Down" />
+                        <Button x:Name="UndoButton" Content="Undo" Tag="Undo" Click="Tool_Click" ToolTip="Undoes the last change. Key: Ctrl+Z" />
+                        <Button x:Name="RedoButton" Content="Redo" Tag="Redo" Click="Tool_Click" ToolTip="Puts back what Undo took away. Key: Ctrl+Y" />
+                        <Button Content="Copy rung" Tag="Copy" Click="Tool_Click" ToolTip="Copies the selected rung. Key: Ctrl+C" />
+                        <Button Content="Paste rung" Tag="Paste" Click="Tool_Click" ToolTip="Pastes a copied rung below the selected one. Key: Ctrl+V" />
+                        <Button x:Name="StartAgainButton" Content="Start again ▾" Click="StartAgain_Click"
+                                ToolTip="Replaces My program with an empty program, or with a copy of the mistake to fix. Undo brings yours back." />
+                    </WrapPanel>
+                    <Border Background="{DynamicResource PageBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="8,6" Margin="0,2,0,0">
+                        <WrapPanel x:Name="PropertiesHost" />
+                    </Border>
+                </StackPanel>
+
+                <Expander DockPanel.Dock="Bottom" x:Name="ProblemsExpander" Header="Problems" IsExpanded="True" Visibility="Collapsed" Margin="0,6,0,0"
+                          ToolTip="What is wrong with the program, rung by rung. Choose one to go to it.">
+                    <ListBox x:Name="ProblemsList" MaxHeight="70" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Margin="0,4,0,0" SelectionChanged="ProblemsList_SelectionChanged"
+                             AutomationProperties.Name="Problems in the program; choose one to select the element it is about">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Text}" TextWrapping="Wrap" /></DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Expander>
+
+                <ScrollViewer x:Name="LadderScroller" MinHeight="150" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Focusable="False"
+                              PreviewKeyDown="Ladder_KeyDown" AllowDrop="True" Drop="Ladder_Drop" DragOver="Ladder_DragOver"
+                              FocusVisualStyle="{x:Null}" BorderThickness="2" BorderBrush="Transparent"
+                              GotKeyboardFocus="Ladder_GotFocus" LostKeyboardFocus="Ladder_LostFocus">
+                    <Canvas x:Name="LadderCanvas" AutomationProperties.Name="Ladder program, live" Background="Transparent" />
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- The machine -->
+        <Border Grid.Row="1" Grid.Column="1" Width="545" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="12">
+            <DockPanel KeyboardNavigation.TabNavigation="Local">
+                <TextBlock DockPanel.Dock="Top" x:Name="SceneTitle" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6" KeyboardNavigation.TabIndex="0">
+                    <WrapPanel DockPanel.Dock="Right">
+                        <Button x:Name="PauseButton" Content="P_ause" Click="Pause_Click" Margin="0,0,6,0"
+                                ToolTip="Stops the simulated clock. The program and the machine stay as they are." />
+                        <Button x:Name="StepButton" Content="Step one _scan" Click="Step_Click" Margin="0,0,6,0" IsEnabled="False"
+                                ToolTip="Runs exactly one scan (10 ms). Available while paused: press Pause first." />
+                        <Button Content="_Reset" Click="Reset_Click" Margin="0"
+                                ToolTip="Starts again from power-up: every tag off, the machine as it began, the clock at 0. Your test results stay." />
+                    </WrapPanel>
+                    <TextBlock x:Name="ClockText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" />
+                </DockPanel>
+                <Expander DockPanel.Dock="Bottom" Header="_The wiring: which tag is which" Margin="0,6,0,0" KeyboardNavigation.TabIndex="3"
+                          ToolTip="Every input and output tag of this machine, and what it means">
+                    <ItemsControl x:Name="WiringList" Margin="18,4,0,0" AutomationProperties.Name="The wiring">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,2" /></DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Expander>
+                <Expander DockPanel.Dock="Bottom" Header="_What every part is doing" Margin="0,6,0,0" KeyboardNavigation.TabIndex="2"
+                          ToolTip="Each part of the machine and its state, in words">
+                    <ItemsControl x:Name="StateList" Margin="18,4,0,0" AutomationProperties.Name="What every part of the machine is doing">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,2" /></DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Expander>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Focusable="False" KeyboardNavigation.TabIndex="1">
+                    <Canvas x:Name="SceneCanvas" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- The grader -->
+        <Border Grid.Row="2" Grid.ColumnSpan="2" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="12" Margin="0,12,0,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left" Width="230" Margin="0,0,12,0">
+                    <Button x:Name="CheckButton" Content="_Check this program" Click="Check_Click" HorizontalAlignment="Left"
+                            ToolTip="Runs the challenge's tests on this program, from a clean start each time, and shows which pass" />
+                    <TextBlock x:Name="ScoreText" TextWrapping="Wrap" Margin="0,8,0,0" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" />
+                </StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" IsTabStop="True" MaxHeight="120" MinHeight="60" AutomationProperties.Name="Test results; use the arrow keys to scroll"
+                              ToolTip="The test results. Scroll to read them all (arrow keys or the mouse wheel)">
+                    <ItemsControl x:Name="ResultsList" AutomationProperties.Name="Test results" MinHeight="60" Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,0,0,4" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

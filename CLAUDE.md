@@ -23,8 +23,11 @@ pass (130 since phase 2). Ron answered all 14 plan questions on 2026-11-04 (`doc
 garage door, tank, conveyor sorter), each with a challenge, a working program and a common mistake; the window is now a
 preview for the PLC instructors' review (`docs/INSTRUCTOR-REVIEW.md`). The Allen-Bradley comparison waits for the lab
 instructor. **Phase 3 (the ladder editor) built 2026-11-04:** `src/Plc.Editors` holds the editing (tested
-without a window); "My program (edit it)" in the preview is editable, runs live, and is kept per challenge. Next: the
-instructors' notes, then phase 4 (the Learning Core: content packages and the learning path).
+without a window); "My program (edit it)" in the preview is editable, runs live, and is kept per challenge. **Phase 4 (the
+learning path) built 2026-11-04:** the window is now the family's tree-and-tabs layout: 12 modules, each a list of items, each
+item with Learn / Example / Exercise / Reference tabs (Ron, D20); content as Markdown with front-matter
+(`docs/CONTENT-FORMAT.md`), the validator `tools/ContentValidator`, and progress for one learner. Next: the instructors' notes,
+then phase 5 (more assessment types) or 6 (learners and progress files).
 
 ### Read these first
 
@@ -34,6 +37,7 @@ instructors' notes, then phase 4 (the Learning Core: content packages and the le
 | `docs/PLAN.md` | Decisions with Ron and why, the architecture, how the engine and grader work |
 | `docs/SPECIFICATION.pdf` | Ron's specification: requirement IDs FR-1…13, NFR-1…9 |
 | `docs/MANUAL-TESTING.md` | Ron's hand-tests and the hand-test build command |
+| `docs/CONTENT-FORMAT.md` | How modules, items, Reference pages and widgets are written |
 | `docs/LAB-COMPARISON.md` | The reference programs on the lab's Allen-Bradley PLC |
 | `docs/INSTRUCTOR-REVIEW.md` | What the instructors review in the preview, and how to send notes |
 
@@ -48,7 +52,8 @@ src/Plc.Dialects.Iec/    Generic IEC 61131-3 instructions
 src/Plc.Scenes/          simulated machines (JSON scenes, components)
 src/Plc.Grading/         challenges and the grader (implements Learning.Core.IChallengeRunner)
 src/Plc.Editors/         the ladder editor's model: every edit, undo/redo, declare on first use (no UI)
-content/plcplus-foundations/   scenes, challenges, example programs (copied beside the exe)
+content/plcplus-foundations/   modules/ (module.md + one .md per item), reference/, scenes, challenges, programs (copied beside the exe)
+tools/ContentValidator/  checks a content package: dotnet run --project tools/ContentValidator
 tests/Plc.Engine.Tests/  engine, instructions, scenes, grading
 tests/golden/            reference programs R01–R11 (+ .trace.txt), written by tools/make-golden-cases.py
 tools/make-phase2-content.py  wrote the six scenes, challenges and example programs (the JSON is the source now)
@@ -82,8 +87,10 @@ tools/capture-window.ps1 photographs the window (PrintWindow) and presses button
 - **Content is data:** lessons, scenes and challenges are files in `content/`, not code (NFR-4).
 - **Words for a beginner:** validation messages, failed tests and hints say what happened and what to do. Never show
   colour alone: power is green **and** thick **and** TRUE.
-- **Modules:** each has Learn, Assess and Reference, and its first page shows prerequisites, learning outcomes and topics
-  (Ron, 2026-11-04). PLC instructors will review the flow, so expect it to change.
+- **Modules → items** (Ron, 2026-11-04, D20): every item has the tabs Learn, Example, Exercise and Reference; a module's first
+  page shows prerequisites (recommended, not enforced), outcomes, topics and items; its last item is the module check. PLC
+  instructors will review the flow, so expect it to change. Run the content validator after editing content.
+- `PLCPLUS_PROGRESS=<file>` points a run at its own progress file (for captures and tests), so it never changes a tester's.
 - Name: **PLC+** in front of a person (Ron, 2026-11-04); `PLCPlus` in code, folders and the exe.
 - **No AI in Phase 1** (Ron). The lab PLC is **Allen-Bradley**: the engine is compared against it, and Rockwell is the
   first vendor dialect. Ron signs content packages when they are published; the key never goes in git.
