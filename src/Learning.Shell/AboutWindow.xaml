@@ -29,10 +29,20 @@
             More about PLC+, with help and examples:
             <Hyperlink ToolTip="Opens PLC+&#x27;s page on softwareplus.ai in your web browser" NavigateUri="https://softwareplus.ai/plcplus/" RequestNavigate="Link_RequestNavigate">softwareplus.ai/plcplus</Hyperlink>
         </TextBlock>
-        <TextBlock TextWrapping="Wrap" Margin="0,0,0,14">
+        <TextBlock TextWrapping="Wrap" Margin="0,0,0,4">
+            Reviewing PLC+? The testing guide, and how to send your notes:
+            <Hyperlink ToolTip="Opens the instructors&#x27; testing guide on softwareplus.ai in your web browser" NavigateUri="https://softwareplus.ai/plcplus/testing/" RequestNavigate="Link_RequestNavigate">softwareplus.ai/plcplus/testing</Hyperlink>
+        </TextBlock>
+        <TextBlock TextWrapping="Wrap" Margin="0,0,0,4">
+            Privacy policy (your progress stays on this computer; PLC+ sends it nowhere):
+            <Hyperlink ToolTip="Opens PLC+&#x27;s privacy policy on softwareplus.ai in your web browser" NavigateUri="https://softwareplus.ai/plcplus/privacy/" RequestNavigate="Link_RequestNavigate">softwareplus.ai/plcplus/privacy</Hyperlink>
+        </TextBlock>
+        <TextBlock TextWrapping="Wrap" Margin="0,0,0,4">
             All of Dr. Ron Eaglin's programs:
             <Hyperlink ToolTip="Opens the list of all Dr. Ron Eaglin&#x27;s programs on softwareplus.ai" NavigateUri="https://softwareplus.ai/#programs" RequestNavigate="Link_RequestNavigate">softwareplus.ai</Hyperlink>
         </TextBlock>
+        <TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="{DynamicResource MutedTextBrush}"
+                   Text="Published on the Microsoft Store by Dean Eaglin. Free." />
 
         <Button ToolTip="Closes this window (Esc or Enter)" Content="_Close" IsDefault="True" IsCancel="True" HorizontalAlignment="Right" Margin="0" Click="Close_Click" />
     </StackPanel>

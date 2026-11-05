@@ -189,7 +189,7 @@ public partial class MachineWorkspace : UserControl
         ScoreText.ToolTip = null;
         if (_paused) Pause_Click(this, new RoutedEventArgs());
         PowerUp();
-        SetStatus("Next: work the machine with its buttons and switches, and watch the rungs. Or press Check this program to run the challenge's tests.");
+        SetStatus("Next: work the machine with its buttons and switches, and watch the rungs. Or press Check this program to run the task's tests.");
     }
 
     /// <summary>The PLC and the machine back to power-up. The test results stay until the program is changed.</summary>

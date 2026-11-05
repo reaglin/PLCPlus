@@ -97,9 +97,11 @@
                           ToolTip="Shows or hides the help panel on the right: what this screen is for and how to use it" />
                 <MenuItem Header="Help on the _web (softwareplus.ai/plcplus)" Click="WebHelp_Click"
                           ToolTip="Opens PLC+'s help pages on softwareplus.ai in your web browser" />
+                <MenuItem Header="_Testing guide and feedback (for instructors)…" Click="TestingGuide_Click"
+                          ToolTip="Reviewing PLC+? Opens the testing guide on softwareplus.ai: what to try, and how to send your notes" />
                 <Separator />
                 <MenuItem Header="Check for a _new version…" Click="CheckForUpdate_Click"
-                          ToolTip="Says whether a newer version is out. PLC+ is not on the Microsoft Store yet; once it is, this asks the Store and offers to install it" />
+                          ToolTip="Asks the Microsoft Store whether a newer version of PLC+ is out, and offers to install it" />
                 <MenuItem Header="_About PLC+…" Click="About_Click" ToolTip="Who made PLC+, its version, and where to find more" />
             </MenuItem>
         </Menu>
@@ -122,13 +124,17 @@
                     <TextBlock Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}">
                         PLC+ teaches PLC programming in modules, with simulated machines in place of real ones. Each module is a list of items; finish them in order, or in any order you like.
                     </TextBlock>
+                    <TextBlock Style="{StaticResource Lead}" Margin="0,0,0,4">
+                        More help, with pictures:
+                        <Hyperlink NavigateUri="https://softwareplus.ai/plcplus/help/" RequestNavigate="Link_RequestNavigate" ToolTip="Opens PLC+'s help pages on softwareplus.ai in your web browser">softwareplus.ai/plcplus/help</Hyperlink>
+                    </TextBlock>
                     <TextBlock Text="The learning path (left)" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
                         The modules, in order, each with its items. My progress at the top shows the whole path. The mark says how far you have got: ○ not started, ◐ started, ✓ complete; a module can also be ★ mastered (every outcome mastered) or ↺ review suggested. Choose a module to see what it teaches and what to finish first; choose an item to work on it.
                     </TextBlock>
                     <TextBlock Text="An item's four tabs" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Learn: read the lesson. Example: run the working program on its machine, and see a common mistake. Exercise: write your own program and check it, or answer practice questions. Reference: the symbols and rules the item uses, on one page.
+                        Learn: read the lesson. Example: a working program on a machine like the exercise's (not the same one): run it, and see a common mistake. Exercise: write your own program and check it, or answer practice questions. Reference: the symbols and rules the item uses, on one page. Pop out gives a program and its machine a window of their own.
                     </TextBlock>
                     <TextBlock Text="Completing an item" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
@@ -140,7 +146,7 @@
                     </TextBlock>
                     <TextBlock Text="On a machine" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Hold a push button down to press it (or Tab to it and hold the Space bar). The rungs run live: a part that passes power is green and thick and shows TRUE. Check runs the task's tests much faster than real time.
+                        Hold a push button down to press it (or Tab to it and hold the Space bar). The rungs run live: a part that passes power is green and thick and shows TRUE. Check my program (or Check this program on the Example tab) runs the task's tests much faster than real time.
                     </TextBlock>
                     <TextBlock Text="Your progress" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
@@ -269,11 +275,11 @@
                             <Setter Property="FontSize" Value="15" />
                         </Style>
                     </TabControl.Resources>
-                    <TabItem x:Name="LearnTab" Header="_Learn" ToolTip="Read the lesson (Ctrl+1)">
+                    <TabItem x:Name="LearnTab" Header="L_earn" ToolTip="Read the lesson (Ctrl+1)">
                         <DockPanel>
                             <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="10,8">
                                 <DockPanel>
-                                    <Button x:Name="ReadButton" DockPanel.Dock="Left" Content="I have _read this" Click="Read_Click"
+                                    <Button x:Name="ReadButton" DockPanel.Dock="Left" Content="I have _read this" Click="Read_Click" ToolTipService.ShowOnDisabled="True"
                                             ToolTip="Marks this item complete. Items without an exercise are complete when you have read them." />
                                     <TextBlock x:Name="LearnFooterText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" />
                                 </DockPanel>

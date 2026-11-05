@@ -610,7 +610,7 @@ public partial class MachineWorkspace
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
-            MessageBox.Show(HostWindow, $"PLC+ could not open that file as a program. It may not be a PLC+ program (.plcprogram), or it may be damaged or open in another program. Choose another file.\n\nDetails: {ex.Message}", "PLC+ — Open a program", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(HostWindow, $"PLC+ could not open that file as a program. It may not be a PLC+ program (.plcprogram), or it may be damaged or open in another program. Choose another file.\n\nDetails for support: {ex.Message}", "PLC+ — Open a program", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         if (MessageBox.Show(HostWindow, $"Open {Path.GetFileName(dialog.FileName)} as My program for this exercise? It replaces My program; Undo (Ctrl+Z) can bring it back while PLC+ is open.",
@@ -636,7 +636,7 @@ public partial class MachineWorkspace
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(HostWindow, $"PLC+ could not save there. The folder may be read-only, or the file open in another program. Choose another folder or name.\n\nDetails: {ex.Message}", "PLC+ — Save My program", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(HostWindow, $"PLC+ could not save there. The folder may be read-only, or the file open in another program. Choose another folder or name.\n\nDetails for support: {ex.Message}", "PLC+ — Save My program", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -657,7 +657,7 @@ public partial class MachineWorkspace
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(HostWindow, $"PLC+ could not save the picture there. The folder may be read-only, or the file open in another program. Choose another folder or name.\n\nDetails: {ex.Message}", "PLC+ — Save the program as a picture", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(HostWindow, $"PLC+ could not save the picture there. The folder may be read-only, or the file open in another program. Choose another folder or name.\n\nDetails for support: {ex.Message}", "PLC+ — Save the program as a picture", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 }

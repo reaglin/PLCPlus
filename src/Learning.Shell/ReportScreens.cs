@@ -81,7 +81,7 @@ internal sealed class ReportDetailsWindow : FormWindow
         _programs = new CheckBox
         {
             Content = "Put _pictures of my programs in the report",
-            ToolTip = "Each exercise you passed is shown as the ladder program you wrote, so your instructor can see how you solved it (spec: program evidence). Untick to leave them out.",
+            ToolTip = "Each exercise you passed is shown as the ladder program you wrote, so your instructor can see how you solved it. Untick to leave them out.",
             Margin = new Thickness(0, 8, 0, 4),
         };
         Body.Children.Add(_programs);
@@ -479,7 +479,7 @@ internal sealed class ReportsView : UserControl
         try { key = ComputerKeyStore.Load(); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or CryptographicException)
         {
-            MessageBox.Show(owner, $"PLC+ could not get this computer's signing key, so it cannot sign the report. Try again; if it keeps happening, ask whoever looks after this computer.\n\nDetails: {ex.Message}",
+            MessageBox.Show(owner, $"PLC+ could not get this computer's signing key, so it cannot sign the report. Try again; if it keeps happening, ask whoever looks after this computer.\n\nDetails for support: {ex.Message}",
                 "PLC+ — Save the PDF report", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
@@ -514,7 +514,7 @@ internal sealed class ReportsView : UserControl
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                MessageBox.Show(owner, $"PLC+ could not save the report there. The folder may be read-only, or a file with that name is open in another program (close it, or choose another name).\n\nDetails: {ex.Message}",
+                MessageBox.Show(owner, $"PLC+ could not save the report there. The folder may be read-only, or a file with that name is open in another program (close it, or choose another name).\n\nDetails for support: {ex.Message}",
                     "PLC+ — Save the PDF report", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }

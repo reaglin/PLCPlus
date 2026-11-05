@@ -52,15 +52,15 @@
                                 ToolTip="Adds a normally open contact after the selected element: it passes power while its tag is TRUE. Key: O. You can also drag it onto an element. Shift+O puts it before the selected element." />
                         <Button Content="-|/|-  Closed" Tag="C" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
                                 ToolTip="Adds a normally closed contact: it passes power while its tag is FALSE. Key: C (Shift+C puts it before)" />
-                        <Button Content="-|P|-" Tag="P" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                        <Button Content="-|P|-" AutomationProperties.Name="Rising-edge contact" Tag="P" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
                                 ToolTip="Adds a rising-edge contact: it passes power for one scan when its tag turns TRUE. Key: P" />
-                        <Button Content="-|N|-" Tag="N" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                        <Button Content="-|N|-" AutomationProperties.Name="Falling-edge contact" Tag="N" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
                                 ToolTip="Adds a falling-edge contact: it passes power for one scan when its tag turns FALSE. Key: N" />
                         <Button Content="-( )-  Coil" Tag="Q" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
                                 ToolTip="Adds a coil: its tag follows the power that reaches it. Key: Q. You can also drag the contact and coil tools onto an element." />
-                        <Button Content="-(S)-" Tag="S" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                        <Button Content="-(S)-" AutomationProperties.Name="Set coil" Tag="S" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
                                 ToolTip="Adds a set (latch) coil: power turns its tag on, and it stays on. Key: S" />
-                        <Button Content="-(R)-" Tag="R" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
+                        <Button Content="-(R)-" AutomationProperties.Name="Reset coil" Tag="R" Click="Tool_Click" PreviewMouseLeftButtonDown="Tool_DragStart" PreviewMouseMove="Tool_DragMove"
                                 ToolTip="Adds a reset (unlatch) coil: power turns its tag off. Key: R" />
                         <Button Content="Branch" Tag="B" Click="Tool_Click"
                                 ToolTip="Puts a parallel branch (OR) around the selected element, with a new contact on it. Select several with Shift+arrow first; with a whole branch selected, adds another path. Key: B" />
@@ -70,8 +70,8 @@
                         <Button Content="Delete" Tag="Delete" Click="Tool_Click" ToolTip="Deletes the selected element, or the rung if the rung is selected. Key: Delete" />
                         <Button Content="Rung ▲" Tag="Up" Click="Tool_Click" ToolTip="Moves the selected rung up. Rungs run top to bottom, so order matters. Key: Alt+Up" />
                         <Button Content="Rung ▼" Tag="Down" Click="Tool_Click" ToolTip="Moves the selected rung down. Key: Alt+Down" />
-                        <Button x:Name="UndoButton" Content="Undo" Tag="Undo" Click="Tool_Click" ToolTip="Undoes the last change. Key: Ctrl+Z" />
-                        <Button x:Name="RedoButton" Content="Redo" Tag="Redo" Click="Tool_Click" ToolTip="Puts back what Undo took away. Key: Ctrl+Y" />
+                        <Button x:Name="UndoButton" ToolTipService.ShowOnDisabled="True" Content="Undo" Tag="Undo" Click="Tool_Click" ToolTip="Undoes the last change. Key: Ctrl+Z" />
+                        <Button x:Name="RedoButton" ToolTipService.ShowOnDisabled="True" Content="Redo" Tag="Redo" Click="Tool_Click" ToolTip="Puts back what Undo took away. Key: Ctrl+Y" />
                         <Button Content="Copy rung" Tag="Copy" Click="Tool_Click" ToolTip="Copies the selected rung. Key: Ctrl+C" />
                         <Button Content="Paste rung" Tag="Paste" Click="Tool_Click" ToolTip="Pastes a copied rung below the selected one. Key: Ctrl+V" />
                         <Button x:Name="StartAgainButton" Content="Start again ▾" Click="StartAgain_Click"
@@ -109,7 +109,7 @@
                     <WrapPanel DockPanel.Dock="Right">
                         <Button x:Name="PauseButton" Content="P_ause" Click="Pause_Click" Margin="0,0,6,0"
                                 ToolTip="Stops the simulated clock. The program and the machine stay as they are." />
-                        <Button x:Name="StepButton" Content="Step one _scan" Click="Step_Click" Margin="0,0,6,0" IsEnabled="False"
+                        <Button x:Name="StepButton" ToolTipService.ShowOnDisabled="True" Content="Step one _scan" Click="Step_Click" Margin="0,0,6,0" IsEnabled="False"
                                 ToolTip="Runs exactly one scan (10 ms). Available while paused: press Pause first." />
                         <Button x:Name="ResetButton" Content="_Reset" Click="Reset_Click" Margin="0"
                                 ToolTip="Starts again from power-up: every tag off, the machine as it began, the clock at 0. Your test results stay." />
@@ -143,7 +143,7 @@
             <DockPanel>
                 <StackPanel DockPanel.Dock="Left" Width="230" Margin="0,0,12,0">
                     <Button x:Name="CheckButton" Content="_Check this program" Click="Check_Click" HorizontalAlignment="Left"
-                            ToolTip="Runs the challenge's tests on this program, from a clean start each time, and shows which pass" />
+                            ToolTip="Runs the task's tests on this program, from a clean start each time, and shows which pass" />
                     <TextBlock x:Name="ScoreText" TextWrapping="Wrap" Margin="0,8,0,0" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" />
                     <Button x:Name="ReplayButton" Content="Replay the _failed test" Click="Replay_Click" HorizontalAlignment="Left" Margin="0,8,0,0" Visibility="Collapsed"
                             ToolTip="Runs the first failed test again on the machine, at its own speed (four times as fast for tests over 15 s), so you can watch the rungs and the machine up to the moment it failed" />

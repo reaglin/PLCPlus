@@ -13,6 +13,54 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Round 2026-11 — usability, the release gate (plan 11.2), 2026-11-05
+
+Build: `manual-test\PLCPlus.exe` (made 2026-11-05, version 1.0.0). Close any copy that is open first.
+Record each step as ✅ / ❌ with a note; ❌ and notes go back into docs/DEVELOPMENT-PLAN.md. This is the whole program as the
+instructors will get it; hand-tests 4–10 below go step by step through each part.
+
+### A. First start, as a new user
+A1. Start it. Does the first screen say what PLC+ is for and what to do first? (Expected: "Learn PLC programming step by step, with
+    simulated machines…"; **Who is learning?**; on the right, what each thing means, and a part for **Instructors**.)
+A2. **New learner…**: a name and a PIN; the recovery code (write it down, tick the box, **Start learning**). Expected: My progress or
+    module 1's first page, and a status line that says where to start.
+A3. Do **1.1**: read the Learn tab, then **Exercise (questions)**; answer, **Check my answers**. Expected: ✓ or ✗ on each, why, and 1.1 ✓.
+A4. Do **5.2**: the Example first (a pump), then your own program on the Exercise tab; **Pop out** it, finish it there,
+    **Check my program**, **Put it back**. Expected: every test passes; 5.2 ✓; your program is the same in both places.
+A5. Back up (top right), then **Hand in a report** for module 1 (finish 1.2–1.5 and its check first, or make it marked Incomplete).
+    Expected: a PDF to save, the result line, and the report in **Reports you have made**.
+At each step: could you tell what to do next without knowing the program?
+
+### B. This round's fixes (plan 10.6, 10.7, 11.1)
+B1. Answer a module check twice from two learners: the options come in a different order for each, the same each time for one learner.
+B2. Pop out an exercise and leave PLC+ alone past the lock time (Settings): the pop-out closes and the start screen shows.
+B3. In the pop-out, press Esc: it closes and puts the machine back. The main window cannot be clicked while it is open.
+B4. 7.1's thumbwheel: type letters and press Enter (the status line says what to type); the Up and Down keys step it.
+B5. **Help ▸ Testing guide and feedback (for instructors)…** opens softwareplus.ai/plcplus/testing (the page comes with phase 12).
+B6. The start screen: **Help on the web**, **Testing guide (for instructors)**, **Check for a new version…**, **About PLC+…**.
+B7. Nothing says "preview" or "outline": the window title is **PLC+**; About says **Version 1.0.0**; a module 9 page says "Coming in a
+    later version of PLC+".
+
+### C. Every screen (USABILITY-CHECKLIST.md 1–4)
+For each: the start screen, New learner, Forgot my PIN, Settings, Add learner from file, Remove; My progress, a module's first page, an
+item's Learn / Example / Exercise / Reference tabs, Questions, a find-the-fault question, the Pop out window; Hand in a report, My
+details for reports, Check a report (for instructors); Back up my progress, Change my PIN, About. Hover every control: a tooltip?
+Disabled ones (Open with no PIN, I have read this when complete, Step one scan while running, Undo with nothing to undo) say why?
+**F1** shows help about this screen? An empty list says what to do? A wrong value says why?
+
+### D. Same as every program (checklist 5–6)
+D1. Change My program, then Switch learner or close PLC+: is it kept? (PLC+ saves as you go; answers to questions not yet checked are not kept.)
+D2. Help menu: Help for this screen (F1) · Help on the web · Testing guide and feedback · Check for a new version… · About PLC+….
+D3. About: version 1.0.0; the links (page, testing guide, privacy, all programs) open. The Store link comes once Partner Center gives
+    the Store ID (phase 12).
+D4. Check for a new version (hand-test copy): it says it cannot check the Store yet.
+
+### E. Look (checklist 7)
+At 150 % scaling (View ▸ Larger text, and Windows display scaling) and the smallest window: anything cut off, hard to read, or colour-only?
+The numeric display's orange digits on black; the path's marks on the selected row; the machine panel beside the rungs at 1100 px wide.
+
+---
+
 ## Hand-test 10 — modules 6, 7, 8 and 11, the new machine parts, and Pop out (plan 10.1–10.8), 2026-11-05
 
 | # | Do this | You should see |

@@ -225,12 +225,12 @@ internal sealed class NewLearnerWindow : FormWindow
             {
                 Content = new TextBlock
                 {
-                    Text = $"Start with the progress from the PLC+ preview on this computer ({done} item{(done == 1 ? "" : "s")} complete, and My program for each exercise)",
+                    Text = $"Start with the progress from the earlier review copy of PLC+ on this computer ({done} item{(done == 1 ? "" : "s")} complete, and My program for each exercise)",
                     TextWrapping = TextWrapping.Wrap,
                 },
                 IsChecked = false, Margin = new Thickness(0, 8, 0, 4),
             };
-            _takePreview.ToolTip = "The preview kept one person's progress on this computer. Tick this only if it is yours: it then belongs to this learner, and no one else can take it.";
+            _takePreview.ToolTip = "The earlier review copy kept one person's progress on this computer. Tick this only if it is yours: it then belongs to this learner, and no one else can take it.";
             Body.Children.Add(_takePreview);
         }
         AddButton("Create", "Makes your progress file and shows your recovery code.", Create_Click, isDefault: true);
@@ -308,6 +308,7 @@ internal sealed class NewLearnerWindow : FormWindow
         Body.Children.Add(_kept);
         var start = AddButton("Start learning", "Opens your progress. Available once you have ticked the box above.", (_, _) => DialogResult = true, isDefault: true);
         start.IsEnabled = false;
+        ToolTipService.SetShowOnDisabled(start, true);
         _kept.Checked += (_, _) => start.IsEnabled = true;
         _kept.Unchecked += (_, _) => start.IsEnabled = false;
         code.Focus();
@@ -356,7 +357,11 @@ internal sealed class SettingsWindow : FormWindow
         row.Children.Add(usual);
         Body.Children.Add(row);
 
-        _lock = new ComboBox { Width = 160, HorizontalAlignment = HorizontalAlignment.Left };
+        _lock = new ComboBox
+        {
+            Width = 160, HorizontalAlignment = HorizontalAlignment.Left,
+            ToolTip = "After this long with no key or mouse use, PLC+ saves and locks the learner's progress; their PIN opens it again.",
+        };
         foreach (var m in new[] { 5, 10, 15, 30, 60 }) _lock.Items.Add(new ComboBoxItem { Content = $"{m} minutes", Tag = m });
         _lock.SelectedItem = _lock.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (int)i.Tag == settings.LockMinutes) ?? _lock.Items[2];
         var l = new Label { Content = "_Lock PLC+ after this long without use:", Target = _lock, Padding = new Thickness(0, 6, 0, 2), FontWeight = FontWeights.SemiBold };

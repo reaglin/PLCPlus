@@ -65,7 +65,7 @@ public partial class MainWindow : Window
         {
             MessageBox.Show(
                 "PLC+ could not open its lesson files (the content folder beside PLCPlus.exe). " +
-                "Reinstall PLC+, or if you copied the program, copy the content folder with it.\n\nDetails: " + ex.Message,
+                "Reinstall PLC+, or if you copied the program, copy the content folder with it.\n\nDetails for support: " + ex.Message,
                 "PLC+ — cannot start", MessageBoxButton.OK, MessageBoxImage.Error);
             Loaded += (_, _) => Close();
             return;
@@ -378,7 +378,7 @@ public partial class MainWindow : Window
         var p = _progress.Of(m);
         ModuleTitle.Text = $"Module {m.Number} · {m.Title}";
         ModuleStatusText.Text = m.Status == ModuleStatus.ComingLater
-            ? "Coming in a later phase of PLC+. It is in the path so you can see where it fits."
+            ? "Coming in a later version of PLC+. It is in the path so you can see where it fits."
             : $"{p.Complete} of {p.Total} items complete" + (m.Minutes > 0 ? $" · about {Hours(m.Minutes)}" : "") + m.Status switch
             {
                 ModuleStatus.Draft => " · a first draft for the instructors' review",
@@ -516,7 +516,8 @@ public partial class MainWindow : Window
         if (exercise is not null) ExerciseWorkspace.Load(_plc, exercise, exercise: true);
         else if (item.Quiz is { } quiz) LoadQuiz(item, quiz);
         else ExerciseNone.Markdown = NoExerciseMarkdown(item);
-        ExerciseTab.Header = exercise is not null || item.Quiz is not null || item.Kind == ItemKind.Assess ? "Exerc_ise" : "Exerc_ise (none)";
+        ExerciseTab.Header = exercise is null && item.Quiz is not null ? "Exerc_ise (questions)"
+            : exercise is not null || item.Kind == ItemKind.Assess ? "Exerc_ise" : "Exerc_ise (none)";
         ExerciseTab.ToolTip = exercise is not null ? "Write your own program and check it (Ctrl+3)"
             : item.Quiz is not null ? $"{item.Quiz.Questions.Count} questions to answer (Ctrl+3)"
             : item.Kind == ItemKind.Assess ? "What this module check covers, and where you are (Ctrl+3)"
@@ -712,7 +713,7 @@ public partial class MainWindow : Window
         else if (ItemTabs.SelectedItem == ExerciseTab && QuizScroll.Visibility == Visibility.Visible)
             SetStatus("Answer the questions, then press Check my answers at the bottom." + hid);
         else if (ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible)
-            SetStatus("The working program, running: work the machine and watch the rungs. Program switches to the common mistake. Examples do not count toward your progress." + hid);
+            SetStatus("The working program, running: work the machine and watch the rungs. Choose A common mistake in the Program list to see it go wrong. Examples do not count toward your progress." + hid);
     }
 
     /// <summary>The machine screen needs about this much height to show the rungs; a shorter window scrolls the tab.</summary>
@@ -867,14 +868,14 @@ public partial class MainWindow : Window
             : _item is null
             ? ("This screen: a module", "A module's first page: what to finish first, what you will be able to do, its topics and its items. Press the button under the title to start, or choose an item on the left.")
             : ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible
-                ? ("This screen: Example", "The working program runs on the machine. Work the machine and watch power flow along the rungs. Program switches to a common mistake; Check this program runs the task's tests on it. Examples do not count toward your progress.")
+                ? ("This screen: Example", "A working program, on a machine like the exercise's (not the same one). Work the machine and watch power flow along the rungs. Choose A common mistake in the Program list to see it go wrong; Check this program runs the task's tests on it. Pop out gives it a window of its own. Examples do not count toward your progress.")
             : ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible
-                ? ("This screen: Exercise", "Write your own program. Click a part and type its tag in the Tag box, then press Enter. The tools above the rungs add contacts (key O), coils (Q), branches (B) and boxes (I). Check my program runs the tests: when they all pass, the item is complete. File ▸ Save My program as… keeps a copy to hand in.")
+                ? ("This screen: Exercise", "Write your own program. Click a part and type its tag in the Tag box, then press Enter. The tools above the rungs add contacts (key O), coils (Q), branches (B) and boxes (I). Check my program runs the tests: when they all pass, the item is complete. In a find-and-fix exercise My program starts with a fault: work the machine, find it, fix it; Start again ▾ gives the program back. Pop out gives it a window of its own.")
             : ItemTabs.SelectedItem == ReferenceTab
                 ? ("This screen: Reference", "The symbols and rules this item uses, with the Allen-Bradley names, to look up while you work.")
             : ItemTabs.SelectedItem == ExerciseTab
                 ? QuizScroll.Visibility == Visibility.Visible
-                    ? ("This screen: Questions", "Answer every question, then press Check my answers at the bottom. Each answer is marked ✓ or ✗: a right one says why, a wrong one says where to look again. Change the wrong ones and check again; your answers stay while PLC+ is open. For a machine with a fault, work its buttons and watch which contact never changes.")
+                    ? ("This screen: Questions", "Answer every question, then press Check my answers at the bottom. Each answer is marked ✓ or ✗. In practice questions every answer says why, and a wrong one shows the right answer. In a module check, a wrong one says where to read again. Change the wrong ones and check again; your answers stay while PLC+ is open. For a machine with a fault, work its buttons and watch which contact or device never changes; right-click a contact or coil to force it.")
                     : ("This screen: Exercise", "What this item asks you to do. A reading has no exercise; a module check lists the items it covers.")
                 : ("This screen: Learn", "The lesson. Read it, then try the Example and Exercise tabs if the item has them. A reading is complete when you press I have read this.");
     }
@@ -888,19 +889,14 @@ public partial class MainWindow : Window
 
     private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
 
-    private const string WebHelp = "https://softwareplus.ai/plcplus/help/";
+    private void WebHelp_Click(object sender, RoutedEventArgs e) => WebLinks.Open(this, WebLinks.Help, "Help on the web");
 
-    private void WebHelp_Click(object sender, RoutedEventArgs e)
+    private void TestingGuide_Click(object sender, RoutedEventArgs e) => WebLinks.Open(this, WebLinks.Testing, "The testing guide");
+
+    private void Link_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
     {
-        try
-        {
-            Process.Start(new ProcessStartInfo(WebHelp) { UseShellExecute = true });
-        }
-        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
-        {
-            MessageBox.Show(this, $"Windows could not open your web browser. The help is at:\n\n{WebHelp}", "PLC+ — Help on the web",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-        }
+        WebLinks.Open(this, e.Uri.AbsoluteUri, "The page");
+        e.Handled = true;
     }
 
     private async void CheckForUpdate_Click(object sender, RoutedEventArgs e) => await StoreUpdates.CheckAsync(this);

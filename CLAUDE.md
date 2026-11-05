@@ -49,6 +49,9 @@ numeric display components), sequencing (cylinder component, step logic, step nu
 (`Tag:failed` device faults, find-and-fix exercises with a challenge's `startProgram`); 50 items, 40 machines. **Pop out** (Ron): the
 Example or Exercise in its own resizable modal window. The validator enforces D21 (no Example or picture shows an exercise's answer).
 374 tests.
+**Phase 11 (the release gate) built 2026-11-05:** a full UX sweep of every screen fixed; "preview" gone (title PLC+, version 1.0.0 in
+`Directory.Build.props`); Help ▸ Testing guide and feedback, and the start screen's part for instructors; the round manual test at the
+top of `docs/MANUAL-TESTING.md`. 375 tests. The links to softwareplus.ai/plcplus/testing and /privacy need those pages (phase 12).
 
 **The goal now (Ron, 2026-11-05, D24): the instructors' release.** PLC+ 1.0 on the Microsoft Store, hidden (direct link only), for
 the PLC instructors who give feedback; modules 1–8 and 11 written; a testing guide at softwareplus.ai/plcplus/testing/. Plan phases

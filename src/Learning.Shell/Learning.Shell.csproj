@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- The instructors' release (D24): 1.0.0. The Store package's version follows it (phase 12). -->
-    <Version>1.0.0</Version>
     <OutputType>WinExe</OutputType>
     <!-- A Windows version, so the program can later ask the Microsoft Store for a new version (Windows.Services.Store). -->
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>

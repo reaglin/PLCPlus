@@ -85,7 +85,7 @@ public static class StoreUpdates
 
         if (MessageBox.Show(owner,
                 $"A new version of {ProgramName} is on the Microsoft Store (you have {CurrentVersion}).\n\n" +
-                $"Download and install it now? Your work is kept: {ProgramName} saves every change as you make it. " +
+                $"Download and install it now? Your progress and programs are kept ({ProgramName} saves them as you go); answers to questions you have not checked yet are not. " +
                 $"Windows closes {ProgramName} to install it; open it again from the Start menu. " +
                 "(No: the Store usually installs it later on its own.)",
                 title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)

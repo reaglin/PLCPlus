@@ -401,6 +401,15 @@ public partial class LearnerScreen : UserControl
 
     private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = Owner }.ShowDialog();
 
+    private void WebHelp_Click(object sender, RoutedEventArgs e) => WebLinks.Open(Owner, WebLinks.Help, "Help on the web");
+
+    private void TestingGuide_Click(object sender, RoutedEventArgs e) => WebLinks.Open(Owner, WebLinks.Testing, "The testing guide");
+
+    private async void CheckForUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        if (Owner is { } w) await StoreUpdates.CheckAsync(w);
+    }
+
     private void CheckReport_Click(object sender, RoutedEventArgs e) => new VerifyWindow(Owner).ShowDialog();
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)

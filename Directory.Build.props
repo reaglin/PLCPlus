@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <!-- One version property; the MSIX identity version will be read from it. -->
-    <PlcPlusVersion>0.1.0</PlcPlusVersion>
+    <PlcPlusVersion>1.0.0</PlcPlusVersion>
     <Version>$(PlcPlusVersion)</Version>
     <AssemblyVersion>$(PlcPlusVersion).0</AssemblyVersion>
     <FileVersion>$(PlcPlusVersion).0</FileVersion>
