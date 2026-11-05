@@ -20,6 +20,11 @@ public sealed class PlcChallenge
     public string Brief { get; set; } = "";
     /// <summary>The scene the program is wired to (its ID).</summary>
     public string Scene { get; set; } = "";
+    /// <summary>
+    /// Optional: the program the learner's My program starts as, instead of a blank one (a file in the package, such as
+    /// programs/x-start.json). For "find and fix the bug" exercises (module 11).
+    /// </summary>
+    public string? StartProgram { get; set; }
     public ChallengeConstraints? Constraints { get; set; }
     public List<Scenario> Scenarios { get; set; } = [];
     /// <summary>The fraction of the points needed to pass, 0 to 1.</summary>
@@ -53,12 +58,16 @@ public sealed class Scenario
     public List<Ordering> Order { get; set; } = [];
 }
 
-/// <summary>At time T (seconds), operate a button or switch: active = pressed, released = not.</summary>
+/// <summary>
+/// At time T (seconds), operate a button or switch: active = pressed, released = not. With <see cref="Value"/>, set a
+/// number input (a thumbwheel) to that number instead.
+/// </summary>
 public sealed class ScenarioEvent
 {
     public double T { get; set; }
     public string Operate { get; set; } = "";
     public bool Active { get; set; }
+    public int? Value { get; set; }
 }
 
 /// <summary>
@@ -221,7 +230,7 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
 
         var moments = new List<(long Ms, int Order, string Text)>();
         foreach (var e in scenario.Events)
-            moments.Add((Ms(e.T), 0, ActionWords(scene, e.Operate, e.Active)));
+            moments.Add((Ms(e.T), 0, e.Value is { } v ? $"{scene.Find(e.Operate)?.Label ?? e.Operate} set to {v}" : ActionWords(scene, e.Operate, e.Active)));
         PlcValue[]? last = null;
         foreach (var f in trace.Frames)
         {
@@ -305,7 +314,8 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
             while (nextEvent < events.Count && Ms(events[nextEvent].T) <= t)
             {
                 var ev = events[nextEvent++];
-                scene.Operate(ev.Operate, ev.Active);
+                if (ev.Value is { } number) scene.SetValue(ev.Operate, number);
+                else scene.Operate(ev.Operate, ev.Active);
             }
 
             runtime.Scan();

@@ -660,10 +660,14 @@ public sealed class LadderEditor
     };
 
     /// <summary>A program for a machine with nothing written yet: its inputs and outputs declared from the wiring, one empty rung.</summary>
-    public static PlcProject Blank(string name, IEnumerable<(string Tag, bool Input, string Meaning)> wiring) => new()
+    public static PlcProject Blank(string name, IEnumerable<(string Tag, bool Input, string Meaning)> wiring) =>
+        Blank(name, wiring.Select(w => (w.Tag, w.Input, w.Meaning, "BOOL")));
+
+    /// <summary>A program with the machine's tags declared (each with its type: a thumbwheel is an INT) and one rung.</summary>
+    public static PlcProject Blank(string name, IEnumerable<(string Tag, bool Input, string Meaning, string Type)> wiring) => new()
     {
         Name = name,
-        Tags = [.. wiring.Select(w => new TagDeclaration { Name = w.Tag, Type = "BOOL", Io = w.Input ? IoDirection.Input : IoDirection.Output, Comment = w.Meaning })],
+        Tags = [.. wiring.Select(w => new TagDeclaration { Name = w.Tag, Type = w.Type, Io = w.Input ? IoDirection.Input : IoDirection.Output, Comment = w.Meaning })],
         Programs = [new ProgramUnit { Name = "Main", Rungs = [new Rung { Logic = new SeriesElement { Items = [new ContactElement(), new CoilElement()] } }] }],
     };
 }

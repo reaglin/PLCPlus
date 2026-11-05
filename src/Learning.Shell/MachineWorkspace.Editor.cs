@@ -46,16 +46,18 @@ public partial class MachineWorkspace
         try
         {
             var saved = LoadWork?.Invoke(WorkKey);
-            project = saved is not null ? ProjectJson.Deserialize(saved) : BlankForScene();
+            project = saved is not null ? ProjectJson.Deserialize(saved) : StartForExercise();
             resumed = saved is not null;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
-            project = BlankForScene();
+            project = StartForExercise();
         }
         StartEditing(project);
         SetStatus((resumed
             ? "My program, as you left it. Select an element (click it, or Tab to the rungs and use the arrow keys), then use the tools above the rungs."
+            : _current?.Challenge.StartProgram is not null
+            ? "My program starts as this exercise gives it to you. Run it, find what is wrong, and fix it with the tools above the rungs; then press Check my program."
             : "My program starts with the machine's tags and one rung: a contact and a coil. Click the contact: its Tag box is ready. Type the tag, press Enter, and build from there."));
     }
 
@@ -90,10 +92,21 @@ public partial class MachineWorkspace
         LadderScroller.IsTabStop = false;
     }
 
+    /// <summary>The program an exercise starts as: the challenge's own start program (a "find and fix" exercise), or a blank one.</summary>
+    private PlcProject StartForExercise()
+    {
+        if (_current?.Challenge.StartProgram is { } start)
+        {
+            var path = Path.Combine(ContentDir, start);
+            if (File.Exists(path)) return ProjectJson.Deserialize(File.ReadAllText(path));
+        }
+        return BlankForScene();
+    }
+
     private PlcProject BlankForScene()
     {
         var scene = Scene.Load(File.ReadAllText(_content!.ScenePath(_current!.Challenge.Scene)));
-        return LadderEditor.Blank("My program", scene.IoList.Select(p => (p.Tag, p.Kind == IoKind.Input, p.Meaning)));
+        return LadderEditor.Blank("My program", scene.IoList.Select(p => (p.Tag, p.Kind == IoKind.Input, p.Meaning, p.Type)));
     }
 
     private void Editor_Changed(object? sender, EventArgs e)
@@ -435,7 +448,7 @@ public partial class MachineWorkspace
         var menu = new ContextMenu { PlacementTarget = target };
         (string Group, string[] Names)[] groups =
         [
-            ("Timers", ["TON", "TOF", "TP"]), ("Counters", ["CTU", "CTD", "CTUD"]),
+            ("Timers", ["TON", "TOF", "TP", "TONR"]), ("Counters", ["CTU", "CTD", "CTUD"]),
             ("Compare", ["EQ", "NE", "GT", "GE", "LT", "LE"]), ("Math", ["ADD", "SUB", "MUL", "DIV", "MOD"]),
             ("Move and bit logic", ["MOVE", "AND", "OR", "XOR", "NOT"]),
         ];
@@ -470,6 +483,8 @@ public partial class MachineWorkspace
             };
             menu.Items.Add(item);
         }
+        if (_current.Challenge.StartProgram is not null)
+            Add("_The program this exercise starts with", "The program as the exercise gave it to you, with its fault still in it", StartForExercise);
         Add("_Empty: just the machine's tags", "One rung with a contact and a coil, and every input and output of the machine declared", BlankForScene);
         // Not the working program: a copy of the answer would pass the exercise without the learner's own work.
         foreach (var p in _current.Programs.Skip(1))

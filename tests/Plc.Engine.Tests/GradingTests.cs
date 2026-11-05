@@ -77,6 +77,100 @@ public class SceneTests
     }
 
     [Fact]
+    public void ThumbwheelReadsItsNumber_OrItsBcd()
+    {
+        var plain = new Thumbwheel { Tag = "Set", Digits = 2 };
+        plain.Set(147);                                        // clamped to two digits
+        Assert.Equal(99, plain.Value);
+        Assert.Equal(99, plain.ReadInput("Set")!.Value.AsLong);
+        Assert.Equal("INT", Assert.Single(plain.Points).Type);
+
+        var bcd = new Thumbwheel { Tag = "Set", Digits = 3, Bcd = true };
+        bcd.Set(259);
+        Assert.Equal(0x259, bcd.ReadInput("Set")!.Value.AsLong);
+        Assert.Contains("259", bcd.StateText, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NumericDisplayShowsTheNumber_AndErrForABadBcdCode()
+    {
+        var d = new NumericDisplay { Tag = "Show", Digits = 4 };
+        d.WriteOutput("Show", PlcValue.FromInt(42));
+        Assert.Equal("42", d.Shown);
+        d.WriteOutput("Show", PlcValue.FromInt(12345));
+        Assert.Equal("----", d.Shown);
+
+        var b = new NumericDisplay { Tag = "Show", Digits = 2, Bcd = true };
+        b.WriteOutput("Show", PlcValue.FromInt(0x47));
+        Assert.Equal("47", b.Shown);
+        b.WriteOutput("Show", PlcValue.FromInt(0x4A));
+        Assert.Equal("Err", b.Shown);
+    }
+
+    [Fact]
+    public void SingleSolenoidCylinderExtendsAndSpringsBack()
+    {
+        var c = new Cylinder { ExtendTag = "Push", ExtendedTag = "Out", RetractedTag = "In", StrokeTimeMs = 500 };
+        Assert.Equal(PlcValue.True, c.ReadInput("In"));
+        c.WriteOutput("Push", PlcValue.True);
+        c.Advance(250);
+        Assert.Equal(PlcValue.False, c.ReadInput("In"));
+        Assert.Equal(PlcValue.False, c.ReadInput("Out"));
+        c.Advance(250);
+        Assert.Equal(PlcValue.True, c.ReadInput("Out"));
+        Assert.Equal(1, c.Strokes);
+        c.WriteOutput("Push", PlcValue.False);
+        c.Advance(500);
+        Assert.Equal(PlcValue.True, c.ReadInput("In"));
+    }
+
+    [Fact]
+    public void DoubleSolenoidCylinderHoldsWhereItIs_AndAStuckOneNeverMoves()
+    {
+        var c = new Cylinder { ExtendTag = "Ext", RetractTag = "Ret", StrokeTimeMs = 400 };
+        c.WriteOutput("Ext", PlcValue.True);
+        c.Advance(200);
+        c.WriteOutput("Ext", PlcValue.False);
+        c.Advance(1000);                                        // neither solenoid: it stays half out
+        Assert.Equal(0.5, c.Position, 3);
+        c.WriteOutput("Ext", PlcValue.True);
+        c.WriteOutput("Ret", PlcValue.True);
+        c.Advance(1000);                                        // both: it does not move
+        Assert.Equal(0.5, c.Position, 3);
+        Assert.Contains("both solenoids", c.StateText, StringComparison.Ordinal);
+
+        var stuck = new Cylinder { ExtendTag = "Ext", StrokeTimeMs = 400, Stuck = true };
+        stuck.WriteOutput("Ext", PlcValue.True);
+        stuck.Advance(1000);
+        Assert.Equal(0, stuck.Position);
+        Assert.Contains("stuck", stuck.StateText, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AFailedDeviceNeverGetsItsOutput()
+    {
+        var scene = new Scene();
+        var motor = scene.Add(new Motor { Id = "m", RunTag = "Motor", StartTimeMs = 0 });
+        scene.WiringFaults.Add(WiringFault.Parse("Motor:failed")!);
+        scene.WriteOutput("Motor", PlcValue.True);
+        scene.Advance(100);
+        Assert.False(motor.Running);
+        Assert.Equal(WiringFaultKind.Failed, WiringFault.Parse("Motor:FAILED")!.Kind);
+    }
+
+    [Fact]
+    public void AScenarioCanSetAThumbwheel()
+    {
+        var scene = new Scene();
+        var tw = scene.Add(new Thumbwheel { Id = "batch", Tag = "Batch", Digits = 2 });
+        scene.SetValue("batch", 12);
+        Assert.Equal(12, tw.Value);
+        Assert.Throws<ArgumentException>(() => scene.SetValue("nothing", 1));
+        var ev = System.Text.Json.JsonSerializer.Deserialize<ScenarioEvent>("""{ "t": 0, "operate": "batch", "value": 7 }""", Scene.JsonOptions)!;
+        Assert.Equal(7, ev.Value);
+    }
+
+    [Fact]
     public void SealInProgramRunsTheRealScene()
     {
         var scene = Scene.Load(Content("scenes", "motor-station.json"));

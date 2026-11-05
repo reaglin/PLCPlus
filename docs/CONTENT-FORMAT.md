@@ -125,6 +125,38 @@ Besides `assertions` (a value at a time) and `invariants` (never all on), a chal
 "order":   [ { "first": "Yellow", "then": "Red", "says": "Yellow should come on before red." } ]
 ```
 
+## Machines: scenes, challenges and programs
+
+A **scene** (`scenes/<id>.json`) lists its components with their tags and places; a **challenge** (`challenges/<id>.json`)
+names its scene and has the brief, hints and scenarios; a **program** (`programs/<file>.json`) is a ladder project. The
+manifest lists each challenge with its programs: the first is *Works*, the second *A common mistake*. A test runs every
+challenge: the working program must pass every scenario, and the mistake must fail one the learner can see (not hidden).
+`tools/make-example-machines.py` shows how all three are written.
+
+Components: `pushButton`, `selectorSwitch`, `emergencyStop`, `pilotLight`, `horn`, `motor` (with an optional `reverseTag`),
+`tank`, `solenoidValve`, `floatSwitch`, `limitSwitch`, `photoEye`, `proximitySensor`, `safetyEye`, `garageDoor`, `conveyor`,
+`diverter`, and (phase 10):
+
+```json
+{ "type": "thumbwheel", "id": "batch", "label": "Batch size", "tag": "BatchSize", "digits": 2, "value": 5 },
+{ "type": "numericDisplay", "id": "count", "label": "Parts", "tag": "PartCount", "digits": 4 },
+{ "type": "cylinder", "id": "clamp", "label": "Clamp", "extendTag": "ClampOut", "retractTag": "ClampIn",
+  "extendedTag": "ClampIsOut", "retractedTag": "ClampIsIn", "strokeTimeMs": 600 }
+```
+
+- A **thumbwheel** is an INT input (0 to 9, 99, 999 or 9999); `"bcd": true` reads it as BCD. A **numeric display** shows an INT
+  output; `"bcd": true` reads it as BCD and shows *Err* for a code that is not a number. A new exercise declares both as INT.
+- A **cylinder** with one solenoid (no `retractTag`) extends while it is TRUE and springs back; with two it stays where it is
+  when neither is on. Its sensors are optional. Probes: `@clamp.extended`, `@clamp.retracted`, `@clamp.position`, `@clamp.strokes`.
+- In a scenario, `{ "t": 1.0, "operate": "batch", "value": 7 }` sets a thumbwheel. Assertions on numbers: `"expect": "7"`.
+- A challenge can give the learner a program to start from instead of a blank one: `"startProgram": "programs/x-start.json"` (a
+  "find and fix the bug" exercise). Usually it is the challenge's *A common mistake*.
+- Faults for find-the-fault questions: `Tag:open`, `Tag:shorted`, `Tag:swapped:OtherTag` on an input, and `Tag:failed` on an
+  **output**: the PLC turns it on, but the motor, valve, cylinder or lamp does not respond. A scene can also carry faults of its
+  own (`"wiringFaults"`), and components `"stuckAt"` (buttons, sensors), `"failed"` (motors) and `"stuck"` (cylinders).
+- Timers: TON, TOF, TP and **TONR** (retentive on-delay: adds up the time IN is on, Q stays on until R; RTO on Allen-Bradley).
+  Counters CTU, CTD, CTUD; compare EQ, NE, GT, GE, LT, LE; math ADD, SUB, MUL, DIV, MOD; MOVE; AND, OR, XOR, NOT on numbers.
+
 ## The Markdown PLC+ shows
 
 Headings (`#`, `##`, `###`), paragraphs, `- ` bullets, `1. ` numbered steps, tables, `**bold**`, `*italic*` and `` `code` ``.

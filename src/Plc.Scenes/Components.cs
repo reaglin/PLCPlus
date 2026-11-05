@@ -565,3 +565,189 @@ public sealed class SafetyEye : SceneComponent, IOperatorInput
     public override PlcValue? Probe(string property) => property == "blocked" ? PlcValue.FromBool(Blocked) : null;
     public override string StateText => $"{Label}: {(Blocked ? "something is in the way" : "beam clear")}";
 }
+
+
+// ---- Numbers: a thumbwheel in, a numeric display out (spec 5.3) -----------------------------------------
+
+/// <summary>
+/// A thumbwheel switch: a number of 1 to 4 digits that a person dials in, read by the PLC as a whole number. With
+/// <see cref="Bcd"/>, it is read as BCD, each digit in its own four bits, as real thumbwheels are wired (module 2).
+/// </summary>
+public sealed class Thumbwheel : SceneComponent, INumberInput
+{
+    public string Tag { get; set; } = "";
+    public int Digits { get; set; } = 2;
+    public bool Bcd { get; set; }
+    public int Value { get; set; }
+
+    [JsonIgnore] public int Max => (int)Math.Pow(10, Math.Clamp(Digits, 1, 4)) - 1;
+    public void Set(int value) => Value = Math.Clamp(value, 0, Max);
+
+    public override IEnumerable<IoPoint> Points =>
+        [new(Tag, IoKind.Input, Bcd
+            ? $"{Label} thumbwheel ({Digits} digits), read as BCD: each digit in its own four bits"
+            : $"{Label} thumbwheel: the number dialled on it, 0 to {Max}", Bcd && Digits >= 4 ? "DINT" : "INT")];
+
+    public override PlcValue? ReadInput(string tag) => Is(tag, Tag) ? PlcValue.FromDInt(Bcd ? ToBcd(Value) : Value) : null;
+    public override PlcValue? Probe(string property) => property == "value" ? PlcValue.FromDInt(Value) : null;
+    public override string StateText => $"{Label} thumbwheel: {Shown}" + (Bcd ? " (read as BCD)" : "");
+    [JsonIgnore] public string Shown => Value.ToString(new string('0', Math.Clamp(Digits, 1, 4)), CultureInfo.InvariantCulture);
+
+    public static long ToBcd(int value)
+    {
+        long bcd = 0;
+        for (var shift = 0; value > 0; shift += 4, value /= 10) bcd |= (long)(value % 10) << shift;
+        return bcd;
+    }
+}
+
+/// <summary>
+/// A numeric display of 1 to 4 digits showing an output's number. With <see cref="Bcd"/>, it reads the output as BCD,
+/// and shows "Err" when a group of four bits is not a decimal digit (1010 to 1111), as a real BCD display shows nonsense.
+/// </summary>
+public sealed class NumericDisplay : SceneComponent
+{
+    public string Tag { get; set; } = "";
+    public int Digits { get; set; } = 4;
+    public bool Bcd { get; set; }
+
+    [JsonIgnore] public long Raw { get; private set; }
+
+    public override IEnumerable<IoPoint> Points =>
+        [new(Tag, IoKind.Output, Bcd
+            ? $"{Label} display ({Digits} digits), wired for BCD: send each digit in its own four bits"
+            : $"{Label} display: shows the number, up to {Digits} digits", Bcd && Digits >= 4 ? "DINT" : "INT")];
+
+    public override void WriteOutput(string tag, PlcValue value)
+    {
+        if (Is(tag, Tag)) Raw = value.AsLong;
+    }
+
+    /// <summary>What the display shows: the number, "Err" for a BCD code that is not a number, or dashes when it is too big.</summary>
+    [JsonIgnore]
+    public string Shown
+    {
+        get
+        {
+            var digits = Math.Clamp(Digits, 1, 4);
+            long n;
+            if (Bcd)
+            {
+                n = 0;
+                long m = 1;
+                for (var v = Raw; v > 0; v >>= 4, m *= 10)
+                {
+                    if ((v & 0xF) > 9) return "Err";
+                    n += (v & 0xF) * m;
+                }
+                if (Raw < 0) return "Err";
+            }
+            else n = Raw;
+            var max = (long)Math.Pow(10, digits) - 1;
+            return n < 0 ? (n >= -(max / 10) ? n.ToString(CultureInfo.InvariantCulture) : new string('-', digits))
+                : n > max ? new string('-', digits) : n.ToString(CultureInfo.InvariantCulture);
+        }
+    }
+
+    public override PlcValue? Probe(string property) => property == "value" ? PlcValue.FromDInt(Raw) : null;
+    public override string StateText => $"{Label} display: {Shown}";
+}
+
+// ---- A pneumatic cylinder ---------------------------------------------------------------------------------
+
+/// <summary>
+/// A pneumatic cylinder (spec 5.3). With one solenoid (<see cref="RetractTag"/> left out) it extends while its output is
+/// TRUE and a spring pulls it back when FALSE. With two, each solenoid drives it one way and it stays where it is when
+/// neither is on; both at once and it does not move. Optional sensors (reed switches) report when it is fully out or
+/// fully in. Fault injection: <see cref="Stuck"/> (it does not move at all).
+/// </summary>
+public sealed class Cylinder : SceneComponent
+{
+    public string ExtendTag { get; set; } = "";
+    public string? RetractTag { get; set; }
+    public string? ExtendedTag { get; set; }
+    public string? RetractedTag { get; set; }
+    public int StrokeTimeMs { get; set; } = 1000;
+    public bool StartExtended { get; set; }
+    public bool Stuck { get; set; }
+
+    private bool _extend, _retract, _started, _wasOut;
+    private long _ms;
+
+    [JsonIgnore] public double Position => StrokeTimeMs <= 0 ? (_ms > 0 ? 1 : 0) : (double)_ms / StrokeTimeMs;
+    [JsonIgnore] public bool Extended => _ms >= Math.Max(1, StrokeTimeMs);
+    [JsonIgnore] public bool Retracted => _ms <= 0;
+    /// <summary>How many times it has reached fully out.</summary>
+    [JsonIgnore] public int Strokes { get; private set; }
+
+    public override IEnumerable<IoPoint> Points
+    {
+        get
+        {
+            yield return new(ExtendTag, IoKind.Output, RetractTag is null
+                ? $"{Label} solenoid: extends while TRUE; a spring pulls it back in when FALSE"
+                : $"{Label} extend solenoid: pushes it out while TRUE");
+            if (RetractTag is not null) yield return new(RetractTag, IoKind.Output, $"{Label} retract solenoid: pulls it in while TRUE");
+            if (ExtendedTag is not null) yield return new(ExtendedTag, IoKind.Input, $"{Label} extended sensor: TRUE when it is fully out");
+            if (RetractedTag is not null) yield return new(RetractedTag, IoKind.Input, $"{Label} retracted sensor: TRUE when it is fully in");
+        }
+    }
+
+    private void Start()
+    {
+        if (_started) return;
+        _started = true;
+        _ms = StartExtended ? Math.Max(1, StrokeTimeMs) : 0;
+        _wasOut = Extended;
+    }
+
+    public override PlcValue? ReadInput(string tag)
+    {
+        Start();
+        return Is(tag, ExtendedTag) ? PlcValue.FromBool(Extended) : Is(tag, RetractedTag) ? PlcValue.FromBool(Retracted) : null;
+    }
+
+    public override void WriteOutput(string tag, PlcValue value)
+    {
+        if (Is(tag, ExtendTag)) _extend = value.AsBool;
+        else if (Is(tag, RetractTag)) _retract = value.AsBool;
+    }
+
+    public override void Advance(long ms)
+    {
+        Start();
+        if (Stuck) return;
+        var full = Math.Max(1, StrokeTimeMs);
+        var direction = RetractTag is null ? (_extend ? 1 : -1) : _extend && !_retract ? 1 : _retract && !_extend ? -1 : 0;
+        _ms = Math.Clamp(_ms + direction * ms, 0, full);
+        if (Extended && !_wasOut) Strokes++;
+        _wasOut = Extended;
+    }
+
+    public override PlcValue? Probe(string property)
+    {
+        Start();
+        return property switch
+        {
+            "position" => PlcValue.FromReal(Position),
+            "extended" => PlcValue.FromBool(Extended),
+            "retracted" => PlcValue.FromBool(Retracted),
+            "strokes" => PlcValue.FromDInt(Strokes),
+            _ => null,
+        };
+    }
+
+    [JsonIgnore]
+    public override string StateText
+    {
+        get
+        {
+            Start();
+            var moving = RetractTag is null ? (_extend ? !Extended : !Retracted) : _extend != _retract && (_extend ? !Extended : !Retracted);
+            return Stuck && (_extend || _retract) ? $"{Label}: told to move, but stuck"
+                : RetractTag is not null && _extend && _retract ? $"{Label}: both solenoids on, so it does not move"
+                : moving ? $"{Label}: {(_extend && !_retract ? "extending" : "retracting")} ({Pct(Position)} out)"
+                : Extended ? $"{Label}: extended" : Retracted ? $"{Label}: retracted" : $"{Label}: stopped {Pct(Position)} out";
+        }
+    }
+}

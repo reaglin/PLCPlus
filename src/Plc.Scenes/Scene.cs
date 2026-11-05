@@ -49,6 +49,9 @@ public sealed class Scene : IVirtualIo
 
     public void WriteOutput(string tag, PlcValue value)
     {
+        // A failed device (Motor:failed): the PLC turns its output on, but the motor, valve or lamp never gets it.
+        if (WiringFaults.Any(f => f.Kind == WiringFaultKind.Failed && f.Tag.Equals(tag, StringComparison.OrdinalIgnoreCase)))
+            value = PlcValue.False;
         foreach (var c in Components) c.WriteOutput(tag, value);
     }
 
@@ -62,6 +65,13 @@ public sealed class Scene : IVirtualIo
     {
         if (Find(componentId) is IOperatorInput input) input.Operate(active);
         else throw new ArgumentException($"The scene has no button or switch called '{componentId}'.", nameof(componentId));
+    }
+
+    /// <summary>Sets a number input (a thumbwheel) to a value.</summary>
+    public void SetValue(string componentId, int value)
+    {
+        if (Find(componentId) is INumberInput input) input.Set(value);
+        else throw new ArgumentException($"The scene has no thumbwheel called '{componentId}'.", nameof(componentId));
     }
 
     /// <summary>
@@ -104,7 +114,8 @@ public sealed class Scene : IVirtualIo
 public enum IoKind { Input, Output }
 
 /// <summary>One wire between the machine and the PLC: which tag, which way, and what it means.</summary>
-public sealed record IoPoint(string Tag, IoKind Kind, string Meaning);
+/// <remarks><paramref name="Type"/> is the PLC data type the tag should be declared with: BOOL unless the component says otherwise.</remarks>
+public sealed record IoPoint(string Tag, IoKind Kind, string Meaning, string Type = "BOOL");
 
 /// <summary>A button, switch or obstruction a person (or a test scenario) operates.</summary>
 public interface IOperatorInput
@@ -115,6 +126,14 @@ public interface IOperatorInput
     bool Momentary { get; }
 }
 
+/// <summary>A number a person (or a test scenario) sets on the machine, such as a thumbwheel.</summary>
+public interface INumberInput
+{
+    int Value { get; }
+    int Max { get; }
+    void Set(int value);
+}
+
 public enum WiringFaultKind
 {
     /// <summary>A broken wire: the input always reads FALSE.</summary>
@@ -123,6 +142,8 @@ public enum WiringFaultKind
     Shorted,
     /// <summary>Two inputs wired to each other's terminals.</summary>
     SwappedWith,
+    /// <summary>The device on an output has failed (a burned-out motor, a stuck valve): the PLC turns the output on, nothing happens.</summary>
+    Failed,
 }
 
 public sealed class WiringFault
@@ -133,7 +154,8 @@ public sealed class WiringFault
 
     /// <summary>
     /// A fault written the short way, as a "find the fault" question does: <c>Stop:open</c> (a broken wire),
-    /// <c>HighFloat:shorted</c>, or <c>PB1:swapped:PB2</c>. Null if it cannot be read.
+    /// <c>HighFloat:shorted</c>, <c>PB1:swapped:PB2</c>, or <c>Motor:failed</c> (the device on an output does not work).
+    /// Null if it cannot be read.
     /// </summary>
     public static WiringFault? Parse(string? text)
     {
@@ -144,6 +166,7 @@ public sealed class WiringFault
             "open" when parts.Length == 2 => new WiringFault { Tag = parts[0], Kind = WiringFaultKind.Open },
             "shorted" when parts.Length == 2 => new WiringFault { Tag = parts[0], Kind = WiringFaultKind.Shorted },
             "swapped" when parts.Length == 3 && parts[2].Length > 0 => new WiringFault { Tag = parts[0], Kind = WiringFaultKind.SwappedWith, Other = parts[2] },
+            "failed" when parts.Length == 2 => new WiringFault { Tag = parts[0], Kind = WiringFaultKind.Failed },
             _ => null,
         };
     }
@@ -166,6 +189,9 @@ public sealed class WiringFault
 [JsonDerivedType(typeof(GarageDoor), "garageDoor")]
 [JsonDerivedType(typeof(Conveyor), "conveyor")]
 [JsonDerivedType(typeof(Diverter), "diverter")]
+[JsonDerivedType(typeof(Thumbwheel), "thumbwheel")]
+[JsonDerivedType(typeof(NumericDisplay), "numericDisplay")]
+[JsonDerivedType(typeof(Cylinder), "cylinder")]
 public abstract class SceneComponent
 {
     public string Id { get; set; } = "";

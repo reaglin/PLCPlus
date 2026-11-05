@@ -243,6 +243,28 @@ public class TimerTests
     }
 
     [Fact]
+    public void TonrAddsUpTheTimeInIsOnAndKeepsQUntilReset()
+    {
+        var rt = Run(Project([Tag("A"), Tag("Clear"), Tag("T1", "TONR"), Tag("Q")],
+            S(No("A"), Box("TONR", "T1", ("PT", "T#100ms"), ("R", "Clear")), Coil("Q"))));
+        rt.Set("A", true); rt.RunFor(60);        // on for 60 ms (scans at 0 … 50)
+        rt.Set("A", false); rt.RunFor(200);       // off: the time is kept
+        Assert.Equal(60, rt.L("T1.ET"));
+        Assert.False(rt.B("T1.Q"));
+        rt.Set("A", true); rt.RunFor(30);         // 60 + 30
+        Assert.False(rt.B("T1.Q"));
+        rt.RunFor(20);                            // reaches 100
+        Assert.True(rt.B("T1.Q"));
+        Assert.Equal(100, rt.L("T1.ET"));
+        rt.Set("A", false); rt.RunFor(50);        // Q stays on with IN off
+        Assert.True(rt.B("T1.Q"));
+        Assert.True(rt.B("Q"));                   // the box passes Q on down the rung, as TON does
+        rt.Set("Clear", true); rt.Scan();
+        Assert.False(rt.B("T1.Q"));
+        Assert.Equal(0, rt.L("T1.ET"));
+    }
+
+    [Fact]
     public void TpPulsesForPtWhateverInDoes()
     {
         var rt = Timer("TP");

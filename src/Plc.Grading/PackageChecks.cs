@@ -79,7 +79,7 @@ public static class PackageChecks
     public static string? CheckFault(string folder, Learning.Core.Content.Question q)
     {
         var fault = Plc.Scenes.WiringFault.Parse(q.Fault);
-        if (fault is null) return $"the fault \"{q.Fault}\" cannot be read. Write it as Tag:open, Tag:shorted or Tag:swapped:OtherTag.";
+        if (fault is null) return $"the fault \"{q.Fault}\" cannot be read. Write it as Tag:open, Tag:shorted, Tag:swapped:OtherTag or Tag:failed.";
         using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, "manifest.json")));
         foreach (var c in doc.RootElement.GetProperty("challenges").EnumerateArray())
         {
@@ -87,7 +87,12 @@ public static class PackageChecks
             if (!challenge.Id.Equals(q.Machine, StringComparison.OrdinalIgnoreCase)) continue;
             var scene = Plc.Scenes.Scene.Load(File.ReadAllText(Path.Combine(folder, "scenes", challenge.Scene + ".json")));
             var inputs = scene.IoList.Where(p => p.Kind == Plc.Scenes.IoKind.Input).Select(p => p.Tag).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            foreach (var tag in new[] { fault.Tag, fault.Other }.OfType<string>())
+            var outputs = scene.IoList.Where(p => p.Kind == Plc.Scenes.IoKind.Output).Select(p => p.Tag).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (fault.Kind == Plc.Scenes.WiringFaultKind.Failed)
+            {
+                if (!outputs.Contains(fault.Tag)) return $"the fault names {fault.Tag}, which is not an output of the {scene.Title} ({string.Join(", ", outputs)}).";
+            }
+            else foreach (var tag in new[] { fault.Tag, fault.Other }.OfType<string>())
                 if (!inputs.Contains(tag)) return $"the fault names {tag}, which is not an input of the {scene.Title} ({string.Join(", ", inputs)}).";
             var titles = c.GetProperty("programs").EnumerateArray().Select(p => p.GetProperty("title").GetString()).ToList();
             if (q.Program is { } program && !titles.Contains(program, StringComparer.OrdinalIgnoreCase))
@@ -126,6 +131,7 @@ public static class PackageChecks
                 if (!File.Exists(Path.Combine(folder, programFile))) problems.Add($"manifest.json: {challenge.Id}'s program {programFile} is missing.");
             }
             if (!File.Exists(Path.Combine(folder, "scenes", challenge.Scene + ".json"))) problems.Add($"{file}: its scene {challenge.Scene} is missing (scenes/{challenge.Scene}.json).");
+            if (challenge.StartProgram is { } start && !File.Exists(Path.Combine(folder, start))) problems.Add($"{file}: its startProgram {start} is missing.");
             if (!result.TryAdd(challenge.Id, titles)) problems.Add($"{file}: the challenge ID {challenge.Id} is used twice.");
         }
         return result;

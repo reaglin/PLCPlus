@@ -48,7 +48,7 @@ internal sealed class SceneView
         AutomationProperties.SetName(_canvas, $"{scene.Title}, animated");
 
         // Process elements first, so buttons and labels sit on top of them.
-        foreach (var c in scene.Components.OrderBy(c => c is IOperatorInput ? 1 : 0))
+        foreach (var c in scene.Components.OrderBy(c => c is IOperatorInput or INumberInput ? 1 : 0))
         {
             switch (c)
             {
@@ -69,6 +69,9 @@ internal sealed class SceneView
                 case Conveyor belt: DrawConveyor(belt); break;
                 case Diverter dv: DrawDiverter(dv); break;
                 case PhotoEye pe: DrawBeltSensor(pe); break;
+                case Thumbwheel tw: DrawThumbwheel(tw); break;
+                case NumericDisplay nd: DrawDisplay(nd); break;
+                case Cylinder cy: DrawCylinder(cy); break;
             }
         }
         Update();
@@ -136,6 +139,40 @@ internal sealed class SceneView
         });
     }
 
+    /// <summary>A thumbwheel: its digits in a box to type in, with − and + to step it.</summary>
+    private void DrawThumbwheel(Thumbwheel tw)
+    {
+        Label(tw.Label, tw.X, tw.Y, 170, bold: true);
+        var box = new TextBox
+        {
+            Width = 22 + 14 * Math.Clamp(tw.Digits, 1, 4), Height = 34, FontFamily = new FontFamily("Consolas"), FontSize = 20,
+            TextAlignment = TextAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center, MaxLength = Math.Clamp(tw.Digits, 1, 4),
+            ToolTip = $"The number on the {tw.Label} thumbwheel, 0 to {tw.Max}. Type a number and press Enter, or use − and +.",
+        };
+        AutomationProperties.SetName(box, $"{tw.Label} thumbwheel");
+        AutomationProperties.SetHelpText(box, $"A number from 0 to {tw.Max}. Type it and press Enter, or use the minus and plus buttons.");
+        void Commit()
+        {
+            if (int.TryParse(box.Text.Trim(), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var n)) tw.Set(n);
+            box.Text = tw.Shown;
+        }
+        box.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Commit(); };
+        box.LostKeyboardFocus += (_, _) => Commit();
+        Place(box, tw.X, tw.Y + 20);
+        var minus = new RepeatButton { Content = "−", Width = 30, Height = 34, FontSize = 16, ToolTip = $"One less on {tw.Label}" };
+        var plus = new RepeatButton { Content = "+", Width = 30, Height = 34, FontSize = 16, ToolTip = $"One more on {tw.Label}" };
+        AutomationProperties.SetName(minus, $"{tw.Label} one less");
+        AutomationProperties.SetName(plus, $"{tw.Label} one more");
+        minus.Click += (_, _) => { tw.Set(tw.Value - 1); box.Text = tw.Shown; };
+        plus.Click += (_, _) => { tw.Set(tw.Value + 1); box.Text = tw.Shown; };
+        var left = tw.X + box.Width + 6;
+        Place(minus, left, tw.Y + 20);
+        Place(plus, left + 34, tw.Y + 20);
+        var bcd = tw.Bcd ? Label("read as BCD", tw.X, tw.Y + 58, 170) : null;
+        _ = bcd;
+        _updates.Add(() => { if (!box.IsKeyboardFocused && box.Text != tw.Shown) box.Text = tw.Shown; });
+    }
+
     private void DrawSafetyEye(SafetyEye eye)
     {
         DrawToggle(eye, () => eye.Blocked ? "Step out of the doorway" : "Step into the doorway",
@@ -177,6 +214,57 @@ internal sealed class SceneView
         Place(shaft, m.X + 25, m.Y + 6);
         DrawText(m, m.X - 30, m.Y + 62, 160);
         _updates.Add(() => rotate.Angle = m.Angle);
+    }
+
+    /// <summary>A numeric display: lit digits on a dark face, its words beside it for a screen reader.</summary>
+    private void DrawDisplay(NumericDisplay nd)
+    {
+        var face = new Border
+        {
+            Width = 30 + 18 * Math.Clamp(nd.Digits, 1, 4), Height = 44, Background = new SolidColorBrush(Color.FromRgb(0x14, 0x1A, 0x20)),
+            BorderBrush = Ink, BorderThickness = new Thickness(2), CornerRadius = new CornerRadius(4),
+        };
+        var digits = new TextBlock
+        {
+            FontFamily = new FontFamily("Consolas"), FontSize = 26, FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0x8A, 0x3D)),
+            HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0),
+        };
+        face.Child = digits;
+        AutomationProperties.SetName(face, $"{nd.Label} display");
+        Place(face, nd.X, nd.Y + 20);
+        Label(nd.Label, nd.X, nd.Y, 170, bold: true);
+        _updates.Add(() =>
+        {
+            digits.Text = nd.Shown;
+            face.ToolTip = nd.StateText;
+        });
+    }
+
+    /// <summary>A cylinder: the barrel, and a rod that slides out; its sensors as boxes under it.</summary>
+    private void DrawCylinder(Cylinder cy)
+    {
+        const double barrel = 110, stroke = 80;
+        Place(new Rectangle { Width = barrel, Height = 30, Stroke = Ink, StrokeThickness = 2, Fill = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEA)), RadiusX = 4, RadiusY = 4 }, cy.X, cy.Y);
+        var piston = new Rectangle { Width = 8, Height = 26, Fill = Ink };
+        Canvas.SetTop(piston, cy.Y + 2);
+        _canvas.Children.Add(piston);
+        var rod = new Rectangle { Height = 10, Fill = Steel, Stroke = Ink, StrokeThickness = 1 };
+        Canvas.SetTop(rod, cy.Y + 10);
+        _canvas.Children.Add(rod);
+        var head = new Rectangle { Width = 12, Height = 30, Fill = Ink, RadiusX = 2, RadiusY = 2 };
+        Canvas.SetTop(head, cy.Y);
+        _canvas.Children.Add(head);
+        DrawText(cy, cy.X, cy.Y + 36, barrel + stroke + 20);
+        _updates.Add(() =>
+        {
+            var p = cy.Position;
+            Canvas.SetLeft(piston, cy.X + 4 + (barrel - 16) * p);
+            var rodStart = cy.X + 12 + (barrel - 16) * p;
+            var rodEnd = cy.X + barrel + stroke * p;
+            rod.Width = Math.Max(0, rodEnd - rodStart);
+            Canvas.SetLeft(rod, rodStart);
+            Canvas.SetLeft(head, rodEnd);
+        });
     }
 
     private void DrawTank(Tank t)

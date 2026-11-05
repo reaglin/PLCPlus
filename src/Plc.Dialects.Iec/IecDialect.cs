@@ -17,7 +17,7 @@ public sealed class IecDialect : IDialect
     {
         IInstruction[] all =
         [
-            new Ton(), new Tof(), new Tp(),
+            new Ton(), new Tof(), new Tp(), new Tonr(),
             new Ctu(), new Ctd(), new Ctud(),
             new Compare("EQ", "equal to", (a, b) => a == b),
             new Compare("NE", "not equal to", (a, b) => a != b),
@@ -88,6 +88,62 @@ internal sealed class Ton : InstructionBase
             et = Math.Min(c.NowMs - fb.Get("_start", PlcValue.FromTime(c.NowMs)).I, pt);
         }
         var q = powerIn && et >= pt;
+        fb.Set("IN", PlcValue.FromBool(powerIn));
+        fb.Set("PT", PlcValue.FromTime(pt));
+        fb.Set("ET", PlcValue.FromTime(et));
+        fb.Set("Q", PlcValue.FromBool(q));
+        return q;
+    }
+}
+
+/// <summary>
+/// A retentive on-delay timer (TONR, as Siemens names it; RTO on the Allen-Bradley PLC). Like TON, but ET keeps its time while
+/// IN is off, and adds to it when IN comes back on; Q stays on once ET reaches PT, even when IN turns off. Only R clears it.
+/// ET counts from the scan in which IN turned on, as TON's does, and a stretch ends in the scan that sees IN off.
+/// </summary>
+internal sealed class Tonr : InstructionBase
+{
+    public override string Name => "TONR";
+    public override string? FunctionBlockType => "TONR";
+    public override IReadOnlyList<OperandSpec> Operands { get; } =
+    [
+        In("PT", OperandKind.Time, "the total time IN must be on, added up over every time it is on, such as T#10s."),
+        In("R", OperandKind.Bool, "a BOOL that clears the time (ET back to 0, Q off) while it is on.", required: false),
+    ];
+    public override IReadOnlyList<MemberSpec> Members { get; } =
+    [
+        new("IN", DataType.Bool, "The power into the timer."),
+        new("PT", DataType.Time, "The preset time."),
+        new("Q", DataType.Bool, "On once IN has been on for PT in all, and stays on until R."),
+        new("ET", DataType.Time, "How long IN has been on in all (stops at PT); kept while IN is off."),
+    ];
+    public override string Summary => "Retentive on-delay timer: adds up the time IN is on, keeping it while IN is off; Q turns on when the total reaches PT and stays on until R clears it (RTO on Allen-Bradley).";
+
+    public override bool Execute(InstructionContext c, bool powerIn)
+    {
+        var fb = Fb(c);
+        var pt = c.Read("PT").AsLong;
+        var wasIn = fb.Get("IN", PlcValue.False).AsBool;
+        var acc = fb.Get("_acc", PlcValue.FromTime(0)).I;
+        long et;
+        if (c.Has("R") && c.Read("R").AsBool)
+        {
+            acc = 0;
+            et = 0;
+            if (powerIn) fb.Set("_start", PlcValue.FromTime(c.NowMs));
+        }
+        else if (powerIn)
+        {
+            if (!wasIn) fb.Set("_start", PlcValue.FromTime(c.NowMs));
+            et = Math.Min(acc + c.NowMs - fb.Get("_start", PlcValue.FromTime(c.NowMs)).I, pt);
+        }
+        else
+        {
+            if (wasIn) acc = Math.Min(acc + c.NowMs - fb.Get("_start", PlcValue.FromTime(c.NowMs)).I, pt);
+            et = acc;
+        }
+        var q = et >= pt;
+        fb.Set("_acc", PlcValue.FromTime(acc));
         fb.Set("IN", PlcValue.FromBool(powerIn));
         fb.Set("PT", PlcValue.FromTime(pt));
         fb.Set("ET", PlcValue.FromTime(et));
