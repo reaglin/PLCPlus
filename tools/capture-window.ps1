@@ -165,6 +165,10 @@ foreach ($step in $Steps) {
         $h = $d; $title = $rest
         $root = [System.Windows.Automation.AutomationElement]::FromHandle($h)
         Write-Output "window '$rest'"
+    } elseif ($kind -eq 'toggle') {
+        # toggle:Name switches a check box, in step order.
+        $el = Find-Named $rest
+        if ($el) { $el.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern).Toggle(); Write-Output "toggled '$rest'" } else { Write-Output "NOT FOUND toggle '$rest'" }
     } elseif ($kind -eq 'press') {
         $el = Find-Named $rest
         if ($el) { $el.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke(); Write-Output "pressed '$rest'" }

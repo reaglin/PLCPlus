@@ -22,7 +22,9 @@ internal static class LessonWidgets
         {
             return w.Name switch
             {
-                "ladder" => Ladder(content, w.Argument),
+                // A wide ladder scrolls sideways rather than losing its coils (larger text, a narrow window).
+                "ladder" => new ScrollViewer { Content = Ladder(content, w.Argument), HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false },
                 "truth-table" => TruthTable(BooleanExpression.Parse(w.Argument)),
                 _ => null,
             };

@@ -20,6 +20,11 @@
     <None Include="..\..\content\**\*" LinkBase="content" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- MVVM (plan 7.1; Ron, 2026-11-05: the toolkit, step by step). The family's MAUI apps use the same package. -->
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Learning.Core\Learning.Core.csproj" />
     <ProjectReference Include="..\Plc.Engine\Plc.Engine.csproj" />

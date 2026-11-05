@@ -51,6 +51,25 @@ public static class EventKinds
     public const string Created = "created";
 }
 
+/// <summary>
+/// One sitting with the program (spec 8.5, time on task): when it began and last saw activity, on which computer, and the
+/// time the learner was active, in all and per item. Time counts only while the learner is using the program (the program
+/// says how), not while it sits idle. Sessions have IDs, so two copies of a file merge without counting a minute twice.
+/// </summary>
+public sealed class StudySession
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public DateTimeOffset Start { get; set; }
+    public DateTimeOffset End { get; set; }
+    public string? Computer { get; set; }
+    public double ActiveSeconds { get; set; }
+    /// <summary>Active seconds per item ID (time on the start page or a module page counts in <see cref="ActiveSeconds"/> only).</summary>
+    public Dictionary<string, double> Items { get; init; } = new(StringComparer.OrdinalIgnoreCase);
+}
+
+/// <summary>A report made at a submission point (spec 8.4, SubmissionRecord). Phase 8 makes them; the dashboard shows them.</summary>
+public sealed record SubmissionRecord(string PointId, string ReportId, DateTimeOffset Generated, string ReportHash);
+
 public sealed class ItemRecord
 {
     public DateTimeOffset FirstOpened { get; set; }
@@ -76,6 +95,31 @@ public sealed class LearningProgress
     public Dictionary<string, ItemRecord> Items { get; init; } = new(StringComparer.OrdinalIgnoreCase);
     public List<Attempt> Attempts { get; init; } = [];
     public List<LearningEvent> Events { get; init; } = [];
+    public List<StudySession> Sessions { get; init; } = [];
+    public List<SubmissionRecord> Submissions { get; init; } = [];
+
+    /// <summary>A new sitting begins (signing in).</summary>
+    public StudySession StartSession(DateTimeOffset now, string? computer)
+    {
+        var s = new StudySession { Start = now, End = now, Computer = computer };
+        Sessions.Add(s);
+        return s;
+    }
+
+    /// <summary>The learner was active for this long, on this item (or on no item: the start page, a module page).</summary>
+    public static void AddActiveTime(StudySession session, string? itemId, double seconds, DateTimeOffset now)
+    {
+        if (seconds <= 0) return;
+        session.ActiveSeconds += seconds;
+        session.End = now;
+        if (itemId is not null) session.Items[itemId] = session.Items.GetValueOrDefault(itemId) + seconds;
+    }
+
+    /// <summary>Active time in all, or on one item, or since a moment (today).</summary>
+    public TimeSpan TimeOnTask(Func<StudySession, bool>? which = null) =>
+        TimeSpan.FromSeconds(Sessions.Where(s => which?.Invoke(s) ?? true).Sum(s => s.ActiveSeconds));
+
+    public TimeSpan TimeOn(string itemId) => TimeSpan.FromSeconds(Sessions.Sum(s => s.Items.GetValueOrDefault(itemId)));
 
     /// <summary>When the learner last did something that counts (read, checked, answered): a backup made before this is out of date.</summary>
     public DateTimeOffset? LastChanged { get; set; }
@@ -222,6 +266,9 @@ public sealed class LearningProgress
             if (r.Completed is { } c && (m.Completed is null || c < m.Completed)) (m.Completed, m.CompletedBy) = (c, r.CompletedBy);
         }
         merged.Attempts.AddRange(a.Attempts.Concat(b.Attempts).DistinctBy(x => x.Key).OrderBy(x => x.At));
+        // A session in both copies: the longer is the later save of it.
+        merged.Sessions.AddRange(a.Sessions.Concat(b.Sessions).GroupBy(s => s.Id).Select(g => g.MaxBy(s => s.ActiveSeconds)!).OrderBy(s => s.Start));
+        merged.Submissions.AddRange(a.Submissions.Concat(b.Submissions).DistinctBy(x => x.ReportId).OrderBy(x => x.Generated));
         merged.Events.AddRange(a.Events.Concat(b.Events).DistinctBy(x => x.Key).OrderBy(x => x.At));
         return merged;
     }

@@ -32,6 +32,9 @@ checks (find the fault on a faulted machine), mastery per outcome. The instructo
 **Phase 6 (learners and progress files) built 2026-11-05:** the start screen "Who is learning?", PIN-locked
 `.plcprogress` files in `%ProgramData%\PLCPlus\Learners` (`Learning.Core.Learners`), recovery code, wrong-PIN waits, auto-lock,
 import and merge, required backups with reminders, the event log; My program and answers per learner.
+**Phase 7 (the dashboard) built 2026-11-05:** My progress at the top of the tree (path map ★ ✓ ↺ ◐ ○, module checks as submission
+points, review suggested, outcomes), totals and time on task above the tree, View ▸ text size per learner, Help on the web and Check
+for a new version; MVVM step 1 (CommunityToolkit.Mvvm; `src/Learning.Shell/ViewModels/ShellViewModel.cs` holds the window's state).
 
 ### Read these first
 
@@ -50,7 +53,7 @@ import and merge, required backups with reminders, the event log; My program and
 ```
 PLCPlus.slnx
 src/Learning.Core/       the shared learning engine; subject-neutral, NEVER references Plc.* (architecture test)
-src/Learning.Shell/      the WPF program, PLCPlus.exe
+src/Learning.Shell/      the WPF program, PLCPlus.exe (ViewModels/: the window's state, MVVM)
 src/Plc.Engine/          program model (JSON), PlcRuntime (scan cycle), validator, instruction contract
 src/Plc.Dialects.Iec/    Generic IEC 61131-3 instructions
 src/Plc.Scenes/          simulated machines (JSON scenes, components)

@@ -30,6 +30,8 @@ public sealed class LearnerData
     public DateTimeOffset? LastBackup { get; set; }
     /// <summary>The folder the learner last backed up to, so the next backup starts there.</summary>
     public string? BackupFolder { get; set; }
+    /// <summary>The learner's own settings, such as the text size, so they follow the learner to any computer.</summary>
+    public Dictionary<string, string> Preferences { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The learner has done something since the last backup (plan 6.10).</summary>
     [JsonIgnore]
@@ -51,6 +53,7 @@ public sealed class LearnerData
                 : mine.LastBackup > theirs.LastBackup ? mine.LastBackup : theirs.LastBackup,
             BackupFolder = mine.BackupFolder ?? theirs.BackupFolder,
         };
+        foreach (var (key, value) in theirs.Preferences.Concat(mine.Preferences)) merged.Preferences[key] = value; // mine win
         foreach (var (key, work) in mine.Work.Concat(theirs.Work))
             if (!merged.Work.TryGetValue(key, out var have) || work.Saved > have.Saved) merged.Work[key] = work;
         merged.Content.AddRange(mine.Content.Concat(theirs.Content)

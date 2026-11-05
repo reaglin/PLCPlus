@@ -185,17 +185,19 @@ says "look again" without the answer (practice questions, such as 2.3's, show it
 
 ---
 
-## Phase 7 — the program's window and the learner dashboard (FR-6; spec 8.5)
+## Phase 7 — the program's window and the learner dashboard (FR-6; spec 8.5) ⚠️ built 2026-11-05
 
 | # | Task | Done when |
 |---|---|---|
-| 7.1 | The shell in MVVM (CommunityToolkit.Mvvm), **in the family's layout** (Ron, question 11): menu bar, rail of actions, the learning path as a tree (modules → items), the item's tabs on the right, a status line saying what to do next | The layout is built (4.10, code-behind); this moves it to MVVM with the learners |
-| 7.2 | Path map: each unit and lesson locked, available, in progress or mastered (with a mark as well as a colour) | |
-| 7.3 | Submission points: not reached, ready to generate, generated (with the date) | |
-| 7.4 | Objectives view with evidence, and a "review suggested" list | |
-| 7.5 | Time on task and progress totals always visible | |
-| 7.6 | Help menu as in the usability checklist: Help for this screen (F1), Help on the web, Check for a new version, About (Store link once there is a Store ID) | About built in phase 0 |
-| 7.7 | Accessibility: keyboard throughout, screen-reader names, scalable text, colour-safe marks (NFR-6) | |
+| 7.1 | The shell in MVVM (CommunityToolkit.Mvvm), **in the family's layout** (Ron, question 11): menu bar, rail of actions, the learning path as a tree (modules → items), the item's tabs on the right, a status line saying what to do next | ⚠️ Step 1 built 2026-11-05 (Ron: the toolkit, step by step): CommunityToolkit.Mvvm 8.4.0 (the family's MAUI apps use it). `ViewModels/ShellViewModel` holds the learner, the path's rows (`PathNode`), the totals and time, the status line, the title, the backup button, the text size and the Go commands (Next, Previous, Continue, My progress); the window binds to them. Still in the window: the item's tabs, the machines, the questions and the dialogs, for later steps |
+| 7.2 | Path map: each unit and lesson locked, available, in progress or mastered (with a mark as well as a colour) | ⚠️ Built (`Learning.Core.Progress.Dashboard`): each module is – coming later, ○ outline, ○ not started ("after module N" when its recommended modules are not done: D15, so not locked), ◐ in progress, ✓ complete, ★ mastered (every outcome mastered) or ↺ review suggested, in the tree and on **My progress**, always with words. 7 tests |
+| 7.3 | Submission points: not reached, ready to generate, generated (with the date) | ⚠️ Built: each module check is a submission point on My progress: ○ not reached (how far: "3 of 4 items done, questions not passed yet"), ● reached, ✓ report made (with the date; reports are phase 8, recorded as `SubmissionRecord` in the file) |
+| 7.4 | Objectives view with evidence, and a "review suggested" list | ⚠️ Built: My progress lists every outcome of the written modules with ✓ ↺ ◐ ○, and **Review suggested** at the top: the outcome, the question that was wrong, and what to read again |
+| 7.5 | Time on task and progress totals always visible | ⚠️ Built: above the tree, always: "N of M items complete · N of M modules" and "Time in PLC+: … (today …)". Time counts only while a key or the mouse was used in the last two minutes, per item, in study sessions kept in the learner's file (sessions merge by ID, so a minute is never counted twice). My progress shows time per module |
+| 7.6 | Help menu as in the usability checklist: Help for this screen (F1), Help on the web, Check for a new version, About (Store link once there is a Store ID) | ⚠️ Built: Help ▸ Help for this screen (F1), **Help on the web** (softwareplus.ai/plcplus/help/, written and deployed with this phase, with softwareplus.ai/plcplus/ itself, which About already linked to), **Check for a new version…** (copied from Accessibility+; says PLC+ is not on the Store yet until it has a Store ID), About |
+| 7.7 | Accessibility: keyboard throughout, screen-reader names, scalable text, colour-safe marks (NFR-6) | ⚠️ Built: **View ▸ Larger text / Smaller text / Normal size** (Ctrl++, Ctrl+−, Ctrl+0), 80–200%, the whole window scaled, kept in the learner's own file so it follows them; My progress from the keyboard (Ctrl+Shift+Home) and read as one page; every mark with words |
+| 7.8 | Hand-test 7 | ⚠️ Ron: hand-test 7 in `docs/MANUAL-TESTING.md`. **UX: walkthrough + heuristics 2026-11-05, 3 major, 7 minor; fixed:** larger text no longer pushes Next ▸ and the page off the screen (the columns' smallest widths shrink with the scale, the help panel steps aside above 120% and says so, lesson ladders scroll sideways); the status line is announced to screen readers, and My progress from the menu or Ctrl+Shift+Home puts the reader on the page; a complete module check says the report comes later instead of "Ready"; Ctrl++ works on the main keyboard; the Go commands do nothing behind the start screen; disabled Next/Previous say why; the totals say "the 2 written so far"; ★ means mastered everywhere (outcomes too); the Check for a new version tooltip says PLC+ is not on the Store yet. **Not changed:** the start screen and the dialogs do not scale yet (7.9); time on task is a lower bound (reading without touching the keyboard or mouse for two minutes is not counted), to be said on the reports (8.x) |
+| 7.9 | Text size on the start screen and in the dialogs (UX review 2026-11-05): a size for the computer before anyone signs in, and the learner's size on their dialogs | |
 
 ---
 

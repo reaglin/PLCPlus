@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:Learning.Shell"
-        Title="PLC+ (preview)" Width="1480" Height="920" MinWidth="1100" MinHeight="640"
+        Title="{Binding Title}" Width="1480" Height="920" MinWidth="1100" MinHeight="640"
         Background="{DynamicResource PageBrush}" Foreground="{DynamicResource InkBrush}"
         FontFamily="Segoe UI" FontSize="14" WindowStartupLocation="CenterScreen">
     <Window.InputBindings>
@@ -11,27 +11,40 @@
         <KeyBinding Key="D2" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="1" />
         <KeyBinding Key="D3" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="2" />
         <KeyBinding Key="D4" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="3" />
-        <KeyBinding Key="PageDown" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.NextItem}" />
-        <KeyBinding Key="PageUp" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.PreviousItem}" />
+        <KeyBinding Key="PageDown" Modifiers="Ctrl+Shift" Command="{Binding NextCommand}" />
+        <KeyBinding Key="PageUp" Modifiers="Ctrl+Shift" Command="{Binding PreviousCommand}" />
+        <KeyBinding Key="Home" Modifiers="Ctrl+Shift" Command="{Binding ShowDashboardCommand}" />
+        <KeyBinding Key="OemPlus" Modifiers="Ctrl" Command="{x:Static local:MainWindow.TextLarger}" />
+        <KeyBinding Key="OemPlus" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.TextLarger}" />
+        <KeyBinding Key="Add" Modifiers="Ctrl" Command="{x:Static local:MainWindow.TextLarger}" />
+        <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{x:Static local:MainWindow.TextSmaller}" />
+        <KeyBinding Key="Subtract" Modifiers="Ctrl" Command="{x:Static local:MainWindow.TextSmaller}" />
+        <KeyBinding Key="D0" Modifiers="Ctrl" Command="{x:Static local:MainWindow.TextNormal}" />
         <KeyBinding Key="L" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.SwitchLearner}" />
     </Window.InputBindings>
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.Help" Executed="Help_Executed" />
         <CommandBinding Command="{x:Static local:MainWindow.ShowTab}" Executed="ShowTab_Executed" CanExecute="ItemShown_CanExecute" />
-        <CommandBinding Command="{x:Static local:MainWindow.NextItem}" Executed="Next_Click" />
-        <CommandBinding Command="{x:Static local:MainWindow.PreviousItem}" Executed="Previous_Click" />
+        <CommandBinding Command="{x:Static local:MainWindow.TextLarger}" Executed="TextSize_Executed" CanExecute="SignedIn_CanExecute" />
+        <CommandBinding Command="{x:Static local:MainWindow.TextSmaller}" Executed="TextSize_Executed" CanExecute="SignedIn_CanExecute" />
+        <CommandBinding Command="{x:Static local:MainWindow.TextNormal}" Executed="TextSize_Executed" CanExecute="SignedIn_CanExecute" />
         <CommandBinding Command="{x:Static local:MainWindow.SwitchLearner}" Executed="SwitchLearner_Click" CanExecute="SignedIn_CanExecute" />
     </Window.CommandBindings>
 
     <Grid>
     <DockPanel x:Name="AppContent" KeyboardNavigation.TabNavigation="Local" Visibility="Hidden">
+        <!-- Text size (plan 7.7): the whole window scales, so nothing is cut off or overlaps. -->
+        <DockPanel.LayoutTransform>
+            <ScaleTransform ScaleX="{Binding TextScale}" ScaleY="{Binding TextScale}" />
+        </DockPanel.LayoutTransform>
         <!-- The menu row: the menus on the left; who is signed in and their backup on the right. -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,0,1">
         <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,0,10,0" VerticalAlignment="Center">
-            <TextBlock x:Name="LearnerText" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold" />
-            <Button x:Name="BackupButton" Click="Backup_Click" Padding="8,2" Margin="0"
-                    ToolTip="Saves a copy of your progress file on a USB drive or in a cloud folder" />
+            <TextBlock x:Name="LearnerText" Text="{Binding LearnerName}" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"
+                       AutomationProperties.Name="{Binding LearnerName, StringFormat='Signed in as {0}'}" />
+            <Button x:Name="BackupButton" Click="Backup_Click" Padding="8,2" Margin="0" Content="{Binding BackupText}" ToolTip="{Binding BackupTip}"
+                    AutomationProperties.Name="{Binding BackupText}" />
         </StackPanel>
         <Menu Padding="4,2" KeyboardNavigation.TabIndex="0" Background="Transparent">
             <MenuItem Header="_File" SubmenuOpened="FileMenu_Opened">
@@ -53,20 +66,34 @@
                           ToolTip="Saves your work, locks your progress and goes back to the list of learners, for the next person" />
             </MenuItem>
             <MenuItem Header="_Go">
-                <MenuItem Header="_Continue where I left off" Click="Continue_Click"
+                <MenuItem Header="_My progress" InputGestureText="Ctrl+Shift+Home" Command="{Binding ShowDashboardCommand}"
+                          ToolTip="Your progress through the whole path: each module, the module checks, outcomes to review, and your time in PLC+" />
+                <MenuItem Header="_Continue where I left off" Command="{Binding ContinueWhereILeftOffCommand}"
                           ToolTip="Opens the first item in the path you have not completed yet" />
-                <MenuItem Header="_Next item" InputGestureText="Ctrl+Shift+PgDn" Click="Next_Click" ToolTip="The next item in the path" />
-                <MenuItem Header="_Previous item" InputGestureText="Ctrl+Shift+PgUp" Click="Previous_Click" ToolTip="The item before this one" />
+                <MenuItem Header="_Next item" InputGestureText="Ctrl+Shift+PgDn" Command="{Binding NextCommand}" ToolTipService.ShowOnDisabled="True"
+                          ToolTip="The next item in the path (from a module's first page: its first item). Greyed on the last item" />
+                <MenuItem Header="_Previous item" InputGestureText="Ctrl+Shift+PgUp" Command="{Binding PreviousCommand}" ToolTipService.ShowOnDisabled="True"
+                          ToolTip="The item before this one. Greyed on the first item, or when no item is open" />
                 <Separator />
                 <MenuItem Header="_Learn tab" InputGestureText="Ctrl+1" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="0" />
                 <MenuItem Header="_Example tab" InputGestureText="Ctrl+2" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="1" />
                 <MenuItem Header="E_xercise tab" InputGestureText="Ctrl+3" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="2" />
                 <MenuItem Header="_Reference tab" InputGestureText="Ctrl+4" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="3" />
             </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Larger text" InputGestureText="Ctrl++" Command="{x:Static local:MainWindow.TextLarger}"
+                          ToolTip="Makes everything in the window bigger. Kept for you, in your progress file" />
+                <MenuItem Header="_Smaller text" InputGestureText="Ctrl+−" Command="{x:Static local:MainWindow.TextSmaller}" ToolTip="Makes everything in the window smaller" />
+                <MenuItem Header="_Normal size" InputGestureText="Ctrl+0" Command="{x:Static local:MainWindow.TextNormal}" ToolTip="Back to the usual size" />
+            </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_Help for this screen" InputGestureText="F1" Command="ApplicationCommands.Help"
                           ToolTip="Shows or hides the help panel on the right: what this screen is for and how to use it" />
+                <MenuItem Header="Help on the _web (softwareplus.ai/plcplus)" Click="WebHelp_Click"
+                          ToolTip="Opens PLC+'s help pages on softwareplus.ai in your web browser" />
                 <Separator />
+                <MenuItem Header="Check for a _new version…" Click="CheckForUpdate_Click"
+                          ToolTip="Says whether a newer version is out. PLC+ is not on the Microsoft Store yet; once it is, this asks the Store and offers to install it" />
                 <MenuItem Header="_About PLC+…" Click="About_Click" ToolTip="Who made PLC+, its version, and where to find more" />
             </MenuItem>
         </Menu>
@@ -75,7 +102,7 @@
 
         <!-- Status line: always says what to do next. -->
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="12,6">
-            <TextBlock x:Name="StatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+            <TextBlock x:Name="StatusText" Text="{Binding Status}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
         </Border>
 
         <!-- Help panel (F1). -->
@@ -91,7 +118,7 @@
                     </TextBlock>
                     <TextBlock Text="The learning path (left)" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        The modules, in order, each with its items. The mark says how far you have got: ○ not started, ◐ started, ✓ complete. Choose a module to see what it teaches and what to finish first; choose an item to work on it.
+                        The modules, in order, each with its items. My progress at the top shows the whole path. The mark says how far you have got: ○ not started, ◐ started, ✓ complete; a module can also be ★ mastered (every outcome mastered) or ↺ review suggested. Choose a module to see what it teaches and what to finish first; choose an item to work on it.
                     </TextBlock>
                     <TextBlock Text="An item's four tabs" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
@@ -111,7 +138,7 @@
                     </TextBlock>
                     <TextBlock Text="Your progress" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        In this preview it is kept on this computer for one learner. Later versions keep a PIN-protected file per learner, and make a progress report to hand in.
+                        Kept in your own file, locked with your PIN. Go ▸ My progress (Ctrl+Shift+Home, or the top of the path) shows each module, the module checks, outcomes to review and your time. Back it up (top right) to a USB drive or a cloud folder. Later versions make a progress report to hand in.
                     </TextBlock>
                     <Button Content="Hide help" HorizontalAlignment="Left" Click="Help_Executed" Margin="0,8,0,0"
                             ToolTip="Hides this panel. Press F1 or use Help ▸ Help for this screen to show it again." />
@@ -121,19 +148,22 @@
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300" MinWidth="220" />
+                <ColumnDefinition x:Name="PathColumn" Width="300" MinWidth="220" />
                 <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="*" MinWidth="600" />
+                <ColumnDefinition x:Name="PageColumn" Width="*" MinWidth="600" />
             </Grid.ColumnDefinitions>
 
             <!-- The learning path -->
             <DockPanel Background="{DynamicResource PanelBrush}" KeyboardNavigation.TabIndex="1">
                 <StackPanel DockPanel.Dock="Top" Margin="12,10,12,6">
                     <TextBlock x:Name="PathTitle" Text="The learning path" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
-                    <TextBlock x:Name="PathProgress" Style="{StaticResource Lead}" Margin="0" Foreground="{DynamicResource InkBrush}" />
-                    <TextBlock Text="✓ complete · ◐ started · ○ not started · – coming later" Style="{StaticResource Lead}" FontSize="12" Margin="0,2,0,0" />
+                    <TextBlock x:Name="PathProgress" Text="{Binding TotalsText}" Style="{StaticResource Lead}" Margin="0" Foreground="{DynamicResource InkBrush}"
+                               ToolTip="In the modules written so far. Go ▸ My progress has the detail" />
+                    <TextBlock x:Name="PathTime" Text="{Binding TimeText}" Style="{StaticResource Lead}" Margin="0,2,0,0" Foreground="{DynamicResource InkBrush}"
+                               ToolTip="Time counts while you are using PLC+ (a key or the mouse in the last two minutes), not while it sits idle" />
+                    <TextBlock Text="★ mastered · ✓ complete · ↺ review · ◐ started · ○ not started · – coming later" Style="{StaticResource Lead}" FontSize="12" Margin="0,2,0,0" TextWrapping="Wrap" />
                 </StackPanel>
-                <TreeView x:Name="PathTree" BorderThickness="0" Background="Transparent" Padding="4,0,4,8" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                <TreeView x:Name="PathTree" ItemsSource="{Binding Roots}" BorderThickness="0" Background="Transparent" Padding="4,0,4,8" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           SelectedItemChanged="PathTree_SelectedItemChanged"
                           AutomationProperties.Name="The learning path: modules and their items">
                     <TreeView.ItemContainerStyle>
@@ -173,6 +203,18 @@
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource LineBrush}" Focusable="False"
                           ToolTip="Drag to make the learning path wider or narrower" />
 
+            <!-- My progress (plan 7.2–7.5) -->
+            <DockPanel x:Name="DashboardPage" Grid.Column="2" Margin="18,12,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
+                <StackPanel DockPanel.Dock="Top">
+                    <TextBlock x:Name="DashboardTitle" Style="{StaticResource SectionTitle}" AutomationProperties.HeadingLevel="Level1" TextWrapping="Wrap" />
+                    <TextBlock Style="{StaticResource Lead}" Text="Your progress through the whole path. Choose a module on the left to work on it, or press the button to carry on." />
+                    <WrapPanel Margin="0,0,0,6">
+                        <Button x:Name="DashboardContinueButton" Command="{Binding ContinueWhereILeftOffCommand}" ToolTipService.ShowOnDisabled="True" ToolTip="Opens the first item in the path you have not completed yet" />
+                    </WrapPanel>
+                </StackPanel>
+                <local:MarkdownView x:Name="DashboardView" AutomationProperties.Name="My progress: your totals, what to review, the module checks, the path and your outcomes" />
+            </DockPanel>
+
             <!-- A module's first page -->
             <DockPanel x:Name="ModulePage" Grid.Column="2" Margin="18,12,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
                 <StackPanel DockPanel.Dock="Top">
@@ -190,8 +232,8 @@
             <DockPanel x:Name="ItemPage" Grid.Column="2" Margin="18,10,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
                 <DockPanel DockPanel.Dock="Top">
                     <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Top">
-                        <Button x:Name="PreviousButton" Content="◂ Previous" Click="Previous_Click" ToolTip="The item before this one (Ctrl+Shift+PgUp)" />
-                        <Button x:Name="NextButton" Content="Next ▸" Click="Next_Click" Margin="0" ToolTip="The next item in the path (Ctrl+Shift+PgDn)" />
+                        <Button x:Name="PreviousButton" Content="◂ Previous" Command="{Binding PreviousCommand}" ToolTipService.ShowOnDisabled="True" ToolTip="The item before this one (Ctrl+Shift+PgUp)" />
+                        <Button x:Name="NextButton" Content="Next ▸" Command="{Binding NextCommand}" ToolTipService.ShowOnDisabled="True" Margin="0" ToolTip="The next item in the path (Ctrl+Shift+PgDn)" />
                     </WrapPanel>
                     <StackPanel>
                         <TextBlock x:Name="ItemModuleText" Foreground="{DynamicResource MutedTextBrush}" />

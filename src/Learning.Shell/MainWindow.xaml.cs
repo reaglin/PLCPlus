@@ -1,7 +1,6 @@
-using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
@@ -12,41 +11,40 @@ using Learning.Core;
 using Learning.Core.Content;
 using Learning.Core.Learners;
 using Learning.Core.Progress;
-using System.Windows.Automation;
 using System.Windows.Threading;
+using Learning.Shell.ViewModels;
 
 namespace Learning.Shell;
 
 /// <summary>
 /// The program's window in the family layout (Statistle, BMPFast): the learning path as a tree on the
 /// left (modules, then their items), and on the right a module's first page or an item with its four
-/// tabs: Learn, Example, Exercise and Reference (Ron, 2026-11-04). Code-behind for now; plan 7.1 moves
-/// it to MVVM when the learners and reports arrive.
+/// tabs: Learn, Example, Exercise and Reference (Ron, 2026-11-04). Its state is in <see cref="ShellViewModel"/> (plan 7.1, MVVM
+/// step by step): the learner, the path, the totals, the status line and the Go commands. What is still here draws the pages
+/// and the item's tabs, and opens the dialogs; those move in later steps.
 /// </summary>
 public partial class MainWindow : Window
 {
     public static readonly RoutedUICommand ShowTab = new("Show tab", nameof(ShowTab), typeof(MainWindow));
-    public static readonly RoutedUICommand NextItem = new("Next item", nameof(NextItem), typeof(MainWindow));
-    public static readonly RoutedUICommand PreviousItem = new("Previous item", nameof(PreviousItem), typeof(MainWindow));
     public static readonly RoutedUICommand SwitchLearner = new("Switch learner", nameof(SwitchLearner), typeof(MainWindow));
+    public static readonly RoutedUICommand TextLarger = new("Larger text", nameof(TextLarger), typeof(MainWindow));
+    public static readonly RoutedUICommand TextSmaller = new("Smaller text", nameof(TextSmaller), typeof(MainWindow));
+    public static readonly RoutedUICommand TextNormal = new("Normal size", nameof(TextNormal), typeof(MainWindow));
+
+    private const double TickSeconds = 20;
 
     private readonly ContentPackage _package = null!;
     private readonly PlcContent _plc = null!;
+    private readonly ShellViewModel _vm = null!;
 
-    /// <summary>The learner signed in (plan 6.1): their unlocked progress file. Null while the start screen shows.</summary>
-    private LearnerFile? _session;
-    /// <summary>Who was signed in before a lock, so the same learner carries on where they were.</summary>
-    private string? _lockedProfileId;
-    private DateTimeOffset _signedInAt;
     private DateTime _lastInput = DateTime.Now;
     private readonly HashSet<string> _openedThisSession = new(StringComparer.OrdinalIgnoreCase);
-    private readonly DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(20) };
-    private static readonly LearningProgress NoOne = new();
+    private readonly DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(TickSeconds) };
 
+    /// <summary>The learner signed in (plan 6.1): their unlocked progress file. Null while the start screen shows.</summary>
+    private LearnerFile? _session => _vm.Session;
     /// <summary>The signed-in learner's progress (nobody's while the start screen shows).</summary>
-    private LearningProgress _progress => _session?.Data.Progress ?? NoOne;
-    private readonly ObservableCollection<PathNode> _roots = [];
-    private readonly List<LearningItem> _order = [];
+    private LearningProgress _progress => _vm.Progress;
     private LearningItem? _item;
     private LearningModule? _module;
     private bool _helpHiddenForMachine;
@@ -73,6 +71,18 @@ public partial class MainWindow : Window
             return;
         }
 
+        _vm = new ShellViewModel(_package);
+        DataContext = _vm;
+        // The status line is a live region: a screen reader hears each new message (WPF announces it only when told to).
+        _vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ShellViewModel.Status))
+                System.Windows.Automation.Peers.UIElementAutomationPeer.CreatePeerForElement(StatusText)
+                    ?.RaiseAutomationEvent(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged);
+            else if (e.PropertyName == nameof(ShellViewModel.TextScale)) FitToTextSize();
+        };
+        _vm.PageFocusRequested += () => Dispatcher.BeginInvoke(DispatcherPriority.Input, () => DashboardView.Focus());
+
         // My program on the Exercise tab is kept in the learner's own file, not in a folder classmates share.
         foreach (var ws in new[] { ExampleWorkspace, ExerciseWorkspace })
         {
@@ -93,13 +103,15 @@ public partial class MainWindow : Window
         {
             // Not while a dialog is open (a save window, a question): it may be using the learner's file.
             if (System.Windows.Interop.ComponentDispatcher.IsThreadModal) return;
+            // Time on task (plan 7.5): counted while a key or the mouse was used in the last two minutes.
+            _vm.Tick(TickSeconds, DateTime.Now - _lastInput < TimeSpan.FromMinutes(2), DateTimeOffset.Now);
             if (_session is not null && DateTime.Now - _lastInput > TimeSpan.FromMinutes(Math.Max(1, SignInScreen.Settings.LockMinutes)))
                 Lock($"PLC+ locked itself after {SignInScreen.Settings.LockMinutes} minutes without use, and saved your work. " +
                      $"{_session.Data.Profile.DisplayName}: type your PIN to carry on where you were. Someone else? Choose your own name.");
         };
         _idleTimer.Start();
 
-        foreach (var view in new[] { LearnView, ReferenceView, ModuleView, ExerciseNone })
+        foreach (var view in new[] { LearnView, ReferenceView, ModuleView, ExerciseNone, DashboardView })
             view.WidgetFactory = w => LessonWidgets.Create(_plc, w);
         // A workspace speaks only while its tab is showing: a hidden one is loading, not answering the learner.
         foreach (var ws in new[] { ExampleWorkspace, ExerciseWorkspace }) ws.StatusChanged += text => { if (ws.IsVisible) SetStatus(text); };
@@ -110,10 +122,6 @@ public partial class MainWindow : Window
         QuizPanel.WhereToLook = q => _package.AllItems.FirstOrDefault(i => i.Kind == ItemKind.Lesson && q.Objective is not null
             && i.Objectives.Contains(q.Objective, StringComparer.OrdinalIgnoreCase))?.ToString();
 
-        _order.AddRange(_package.AllItems);
-        BuildTree();
-        PathTree.ItemsSource = _roots;
-
         Loaded += (_, _) => SignInScreen.Show();
     }
 
@@ -122,22 +130,14 @@ public partial class MainWindow : Window
     /// <summary>A learner's file is open: show their progress, where they left off.</summary>
     private void SignIn(LearnerFile file)
     {
-        var same = _lockedProfileId == file.Header.ProfileId;
-        _session = file;
-        _lockedProfileId = null;
-        _signedInAt = DateTimeOffset.Now;
         _lastInput = DateTime.Now;
-        file.Data.UsedContent(_package.Id, _package.Version, _signedInAt);
-        file.Data.Progress.Log(EventKinds.SignedIn, file.Header.ProfileId, $"Signed in on {Environment.MachineName}.", _signedInAt);
-        SaveProgress();
-        Title = $"PLC+ (preview) — {file.Data.Profile.DisplayName}";
+        var same = _vm.SignIn(file, DateTimeOffset.Now);
         SignInScreen.Visibility = Visibility.Collapsed;
         AppContent.Visibility = Visibility.Visible;
-        ShowLearner();
-        if (same && (_item is not null || _module is not null))
+        if (same && (_item is not null || _module is not null || DashboardPage.Visibility == Visibility.Visible))
         {
             // Back after a lock: everything is as it was.
-            RefreshTree();
+            _vm.CurrentItem = _item;
             SetStatus($"Welcome back, {file.Data.Profile.DisplayName}. Everything is as you left it.");
             return;
         }
@@ -146,46 +146,19 @@ public partial class MainWindow : Window
         _openedThisSession.Clear();
         _item = null;
         _module = null;
-        foreach (var r in _roots) { r.IsSelected = false; r.IsExpanded = false; foreach (var c in r.Children) c.IsSelected = false; }
-        RefreshTree();
+        foreach (var r in _vm.Roots) { r.IsSelected = false; r.IsExpanded = false; foreach (var c in r.Children) c.IsSelected = false; }
         Welcome();
     }
 
     /// <summary>Saves, forgets the key, and shows the start screen: Switch learner, the idle lock, and closing.</summary>
     private void Lock(string banner, bool switching = false)
     {
-        if (_session is not { } file) return;
+        if (_session is null) return;
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
-        var now = DateTimeOffset.Now;
-        var minutes = (int)Math.Round((now - _signedInAt).TotalMinutes);
-        file.Data.Progress.Log(switching ? EventKinds.SignedOut : EventKinds.Locked, file.Header.ProfileId,
-            $"{(switching ? "Signed out" : "Locked after no use")} after {minutes} minute{(minutes == 1 ? "" : "s")}.", now);
-        SaveProgress();
-        _lockedProfileId = switching ? null : file.Header.ProfileId;
-        // After Switch learner nobody is chosen, so the next student cannot type their PIN against the last one's name.
-        var id = switching ? null : file.Header.ProfileId;
-        file.Dispose();
-        _session = null;
-        Title = "PLC+ (preview)";
+        var id = _vm.Lock(switching, DateTimeOffset.Now);
         AppContent.Visibility = Visibility.Hidden;
         SignInScreen.Show(banner, id);
-    }
-
-    /// <summary>The learner's name and backup state, top right (plan 6.10).</summary>
-    private void ShowLearner()
-    {
-        if (_session is not { } s) return;
-        LearnerText.Text = s.Data.Profile.DisplayName;
-        AutomationProperties.SetName(LearnerText, "Signed in as " + s.Data.Profile.DisplayName);
-        var (text, tip) = s.Data.LastBackup is null
-            ? (s.Data.NeedsBackup ? "⚠ Not backed up: Back up…" : "Back up…", "You have not backed up your progress yet. Saves a copy on a USB drive or in a cloud folder.")
-            : s.Data.NeedsBackup
-                ? ("⚠ Backup out of date: Back up…", $"Last backed up {Words.When(s.Data.LastBackup.Value)}, and you have done more since. Saves a new copy.")
-                : ($"✓ Backed up {Words.When(s.Data.LastBackup.Value)}", "Your backup has everything so far. Press to save another copy.");
-        BackupButton.Content = text;
-        BackupButton.ToolTip = tip;
-        AutomationProperties.SetName(BackupButton, text.TrimStart('⚠', '✓', ' '));
     }
 
     private void Backup_Click(object sender, RoutedEventArgs e)
@@ -197,8 +170,8 @@ public partial class MainWindow : Window
         _backupMade = where is not null;
         if (_backupMade) SetStatus($"Backed up: a copy of your progress is now at {where}. {combined}{(combined is null ? "" : " ")}On another computer, Add learner from file brings it in.");
         else if (_session is not null) SetStatus("No backup was made.");
-        if (combined is not null) RefreshTree();
-        ShowLearner();
+        if (combined is not null) _vm.Refresh();
+        _vm.Save();
     }
 
     /// <summary>
@@ -271,126 +244,61 @@ public partial class MainWindow : Window
         var next = _progress.Continue(_package);
         if (next is not null && _progress.Items.Count > 0)
         {
-            Select(next); // a returning learner goes straight back to work
+            _vm.Select(next); // a returning learner goes straight back to work
             // After the item has opened (it sets its own status line first).
             Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
                 () => SetStatus($"Welcome back, {name}. Here is where you left off: {next}. {LearnFooterText.Text}"));
             return;
         }
-        var start = _roots.FirstOrDefault(r => r.Module == next?.Module) ?? _roots[0];
-        start.IsExpanded = true;
-        start.IsSelected = true;
+        if (next is not null) _vm.SelectModule(next.Module);
+        else _vm.Dashboard.IsSelected = true;
         SetStatus(next is null
             ? "Every item in the path is complete."
             : $"Welcome to PLC+, {name}. In this preview, modules 3 and 5 are written; the others are outlines. Start here with module {next.Module.Number}: press the button under its title, or choose any module on the left.");
     }
 
-    // ---- The tree -------------------------------------------------------------------------------------
-
-    private void BuildTree()
-    {
-        foreach (var m in _package.Modules)
-        {
-            var node = new PathNode { Module = m };
-            foreach (var i in m.Items) node.Children.Add(new PathNode { Module = m, Item = i, Parent = node });
-            _roots.Add(node);
-        }
-        RefreshTree();
-    }
-
-    private void RefreshTree()
-    {
-        var on = (Brush)FindResource("PowerOnBrush");
-        var started = (Brush)FindResource("AccentBrush");
-        var muted = (Brush)FindResource("MutedTextBrush");
-        foreach (var node in _roots)
-        {
-            var m = node.Module!;
-            var p = _progress.Of(m);
-            node.Header = $"{m.Number}. {m.Title}";
-            node.Weight = FontWeights.SemiBold;
-            (node.Mark, node.MarkBrush) = p.State switch
-            {
-                ModuleState.Complete => ("✓", on),
-                ModuleState.InProgress => ("◐", started),
-                ModuleState.ComingLater => ("–", muted),
-                _ => ("○", muted),
-            };
-            node.Detail = p.State == ModuleState.ComingLater ? "Coming later" : $"{p.Complete} of {p.Total} complete{StatusWords(m)}";
-            node.SpokenName = $"Module {m.Number}, {m.Title}: {node.Detail}";
-            node.Tip = $"Module {m.Number}: {m.Title}. Choose it to see what it teaches, what to finish first, and its items.";
-
-            foreach (var child in node.Children)
-            {
-                var item = child.Item!;
-                var state = _progress.StateOf(item);
-                child.Header = $"{item.Number} {item.Title}";
-                (child.Mark, child.MarkBrush) = state switch
-                {
-                    ItemState.Complete => ("✓", on),
-                    ItemState.InProgress => ("◐", started),
-                    _ => ("○", muted),
-                };
-                child.Detail = ItemDetail(item, state);
-                child.SpokenName = $"{item.Number} {item.Title}: {child.Detail}";
-                child.Tip = item.Kind == ItemKind.Assess
-                    ? item.Quiz is null ? "The module check: complete when every item it covers is" : "The module check: complete when every item it covers is complete and you pass its questions"
-                    : item.Exercise is null ? "A reading: complete when you press I have read this" : "An exercise: complete when your program passes every test";
-            }
-        }
-        var items = _package.Modules.Where(m => m.Status != ModuleStatus.ComingLater).SelectMany(m => m.Items).ToList();
-        PathProgress.Text = $"{items.Count(i => _progress.StateOf(i) == ItemState.Complete)} of {items.Count} items complete";
-    }
-
-    private static string StatusWords(LearningModule m) => m.Status switch
-    {
-        ModuleStatus.Draft => " · first draft",
-        ModuleStatus.Outline => " · outline",
-        _ => "",
-    };
-
-    private string ItemDetail(LearningItem item, ItemState state)
-    {
-        if (item.Kind == ItemKind.Assess)
-        {
-            var done = item.Covers.Count(c => _package.FindItem(c) is { } i && _progress.StateOf(i) == ItemState.Complete);
-            var questions = item.Quiz is null ? ""
-                : _progress.Items.TryGetValue(item.Id, out var own) && own.Completed is not null ? " · questions passed"
-                : _progress.Best(item) is { } quizBest ? $" · questions: best {quizBest.Score:0} of {quizBest.MaxScore:0}"
-                : " · questions not passed yet";
-            return $"Module check · {done} of {item.Covers.Count} items done{questions}";
-        }
-        var kind = item.Exercise is not null ? "Exercise" : item.Quiz is not null ? "Questions" : "Reading";
-        if (state == ItemState.Complete) return $"{kind} · complete";
-        if (!item.CompletesByReading && _progress.Best(item) is { } best) return $"{kind} · best {best.Score:0} of {best.MaxScore:0}";
-        return state == ItemState.InProgress ? $"{kind} · started" : kind;
-    }
-
     private void PathTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
         if (e.NewValue is not PathNode node) return;
-        if (node.Item is { } item) ShowItem(item);
+        if (node.IsDashboard) ShowDashboard();
+        else if (node.Item is { } item) ShowItem(item);
         else ShowModule(node.Module!);
     }
 
-    private PathNode? NodeFor(LearningItem item) =>
-        _roots.SelectMany(r => r.Children).FirstOrDefault(n => n.Item == item);
+    // ---- My progress (plan 7.2–7.5) ---------------------------------------------------------------------
 
-    private void Select(LearningItem item)
+    private void ShowDashboard()
     {
-        if (NodeFor(item) is not { } node) return;
-        node.Parent!.IsExpanded = true;
-        node.IsSelected = true;
+        ExerciseWorkspace.CommitPendingEdit();
+        QuizPanel.Remember();
+        _item = null;
+        _module = null;
+        _vm.CurrentItem = null;
+        _vm.CurrentModule = null;
+        ItemPage.Visibility = ModulePage.Visibility = Visibility.Collapsed;
+        DashboardPage.Visibility = Visibility.Visible;
+        _vm.Refresh();
+        DashboardTitle.Text = $"My progress · {_session?.Data.Profile.DisplayName}";
+        var next = _progress.Continue(_package);
+        DashboardContinueButton.Content = next is null ? "Every item is complete" : $"_Continue with {next}";
+        DashboardContinueButton.IsEnabled = next is not null;
+        DashboardView.Markdown = _vm.DashboardMarkdown();
+        ShowScreenHelp();
+        SetStatus("My progress: each module, the module checks, outcomes to review, and your time. Choose a module or an item on the left to work on it.");
     }
 
     // ---- A module's first page -------------------------------------------------------------------------
 
     private void ShowModule(LearningModule m)
     {
+        ExerciseWorkspace.CommitPendingEdit();
+        QuizPanel.Remember();
         _module = m;
         _item = null;
+        _vm.CurrentItem = null;
+        _vm.CurrentModule = m;
         ShowScreenHelp();
-        ItemPage.Visibility = Visibility.Collapsed;
+        ItemPage.Visibility = DashboardPage.Visibility = Visibility.Collapsed;
         ModulePage.Visibility = Visibility.Visible;
 
         var p = _progress.Of(m);
@@ -437,12 +345,12 @@ public partial class MainWindow : Window
             foreach (var op in Mastery.Of(_package, _progress, m))
                 md.AppendLine(op.State switch
                 {
-                    MasteryState.Mastered => $"- ✓ {op.Outcome.Text} **(mastered)**",
+                    MasteryState.Mastered => $"- ★ {op.Outcome.Text} **(mastered)**",
                     MasteryState.NeedsReview => $"- ↺ {op.Outcome.Text} **(review suggested)**: " + string.Join("; ", op.Evidence.Where(e => e.Contains("wrong", StringComparison.Ordinal) || e.Contains("did not pass", StringComparison.Ordinal))) + ".",
                     MasteryState.InProgress => $"- ◐ {op.Outcome.Text} (in progress: " + string.Join("; ", op.Evidence.Where(e => !e.EndsWith(": complete", StringComparison.Ordinal) && !e.EndsWith(" answered", StringComparison.Ordinal))) + ")",
                     _ => $"- ○ {op.Outcome.Text}",
                 });
-            md.AppendLine().AppendLine("*✓ mastered: its items are complete and its questions were right. ↺ review suggested: the work is done, but an answer in the module check was wrong, or a passed exercise later failed; it says what to do. ◐ in progress. ○ not started.*");
+            md.AppendLine().AppendLine("*★ mastered: its items are complete and its questions were right. ↺ review suggested: the work is done, but an answer in the module check was wrong, or a passed exercise later failed; it says what to do. ◐ in progress. ○ not started.*");
         }
         md.AppendLine().AppendLine("## Topics").AppendLine();
         md.AppendLine(string.Join(" · ", m.Topics)).AppendLine();
@@ -457,7 +365,7 @@ public partial class MainWindow : Window
                     : i.Exercise is not null ? "Lesson, example and exercise"
                     : i.Quiz is not null ? "Lesson and questions"
                     : i.Example is null ? "Reading" : "Reading, with an example to run";
-                md.AppendLine($"| {i.Number} {i.Title} | {kind} | {WhereYouAre(i)} |");
+                md.AppendLine($"| {i.Number} {i.Title} | {kind} | {_vm.WhereYouAre(i)} |");
             }
             md.AppendLine();
         }
@@ -465,20 +373,11 @@ public partial class MainWindow : Window
         return md.ToString();
     }
 
-    private string WhereYouAre(LearningItem i)
-    {
-        var state = _progress.StateOf(i);
-        if (i.Kind == ItemKind.Assess) return ItemDetail(i, state).Replace("Module check · ", "", StringComparison.Ordinal);
-        if (state == ItemState.Complete) return "Complete ✓";
-        if (!i.CompletesByReading && _progress.Best(i) is { } best) return $"Started: best {best.Score:0} of {best.MaxScore:0}";
-        return state == ItemState.InProgress ? "Started" : "Not started";
-    }
-
     private static string Hours(int minutes) => minutes < 90 ? $"{minutes} minutes" : $"{minutes / 60.0:0.#} hours";
 
     private void ModuleStart_Click(object sender, RoutedEventArgs e)
     {
-        if (ModuleStartButton.Tag is LearningItem item) Select(item);
+        if (ModuleStartButton.Tag is LearningItem item) _vm.Select(item);
     }
 
     // ---- An item -------------------------------------------------------------------------------------
@@ -489,7 +388,9 @@ public partial class MainWindow : Window
         QuizPanel.Remember();
         _item = item;
         _module = item.Module;
-        ModulePage.Visibility = Visibility.Collapsed;
+        _vm.CurrentItem = item;
+        _vm.CurrentModule = item.Module;
+        ModulePage.Visibility = DashboardPage.Visibility = Visibility.Collapsed;
         ItemPage.Visibility = Visibility.Visible;
 
         _progress.Opened(_package, item, DateTimeOffset.Now);
@@ -499,11 +400,8 @@ public partial class MainWindow : Window
         ItemModuleText.Text = $"Module {item.Module.Number} · {item.Module.Title}";
         ItemTitle.Text = $"{item.Number} {item.Title}";
         var missing = _progress.MissingPrerequisites(_package, item.Module);
-        var index = _order.IndexOf(item);
-        PreviousButton.IsEnabled = index > 0;
-        NextButton.IsEnabled = index < _order.Count - 1;
-        PreviousButton.ToolTip = index > 0 ? $"Back to {_order[index - 1]} (Ctrl+Shift+PgUp)" : "This is the first item in the path";
-        NextButton.ToolTip = index < _order.Count - 1 ? $"On to {_order[index + 1]} (Ctrl+Shift+PgDn)" : "This is the last item in the path";
+        PreviousButton.ToolTip = _vm.PreviousInOrder(item) is { } before ? $"Back to {before} (Ctrl+Shift+PgUp)" : "This is the first item in the path";
+        NextButton.ToolTip = _vm.NextInOrder(item) is { } after ? $"On to {after} (Ctrl+Shift+PgDn)" : "This is the last item in the path";
 
         // Learn
         LearnView.Markdown = item.Learn.Trim().Length > 0
@@ -558,7 +456,7 @@ public partial class MainWindow : Window
         if (item.Minutes > 0) parts.Add($"About {item.Minutes} minutes");
         if (item.BuildsOn is { } b && _package.FindItem(b) is { } before) parts.Add($"Builds on {before}");
         parts.Add(item.Kind == ItemKind.Assess
-            ? state == ItemState.Complete ? (item.Quiz is null ? "Complete ✓: every item it covers is complete" : "Complete ✓: every item it covers is complete, and you passed the questions") : ItemDetail(item, state)
+            ? state == ItemState.Complete ? (item.Quiz is null ? "Complete ✓: every item it covers is complete" : "Complete ✓: every item it covers is complete, and you passed the questions") : _vm.ItemDetail(item, state)
             : state == ItemState.Complete ? "Complete ✓"
             : item.Exercise is not null ? (_progress.Best(item) is { } best ? $"Not complete yet: best so far {best.Score:0} of {best.MaxScore:0}" : "Not complete yet: complete when your program passes on the Exercise tab")
             : item.Quiz is not null ? (_progress.Best(item) is { } qbest ? $"Not complete yet: best so far {qbest.Score:0} of {qbest.MaxScore:0}" : "Not complete yet: complete when you pass the questions on the Exercise tab")
@@ -594,7 +492,7 @@ public partial class MainWindow : Window
         md.AppendLine("| Item | Where you are |").AppendLine("|---|---|");
         foreach (var c in item.Covers)
             if (_package.FindItem(c) is { } covered)
-                md.AppendLine($"| {covered} | {WhereYouAre(covered)} |");
+                md.AppendLine($"| {covered} | {_vm.WhereYouAre(covered)} |");
         md.AppendLine().AppendLine(_progress.StateOf(item) == ItemState.Complete
             ? "Every item is complete: so is this module check. ✓"
             : "When every item above is complete, so is this module check.");
@@ -629,7 +527,7 @@ public partial class MainWindow : Window
         if (item.Kind == ItemKind.Assess)
         {
             intro.Add("This check covers: " + string.Join("; ", item.Covers.Select(_package.FindItem).OfType<LearningItem>()
-                .Select(c => $"{c} ({WhereYouAre(c).ToLowerInvariant()})")) + ".");
+                .Select(c => $"{c} ({_vm.WhereYouAre(c).ToLowerInvariant()})")) + ".");
             intro.Add("The module is complete when those items are complete and you have passed these questions.");
         }
         QuizPanel.Load(quiz, item.Kind == ItemKind.Assess ? $"Module {item.Module.Number} check: the questions" : "Questions", intro);
@@ -656,7 +554,7 @@ public partial class MainWindow : Window
         else
         {
             SaveProgress();
-            RefreshTree();
+            _vm.Refresh();
             ShowItemStatus();
             SetStatus(result.Passed
                 ? _item.Kind == ItemKind.Assess && _progress.StateOf(_item) != ItemState.Complete
@@ -675,7 +573,7 @@ public partial class MainWindow : Window
         else
         {
             SaveProgress();
-            RefreshTree();
+            _vm.Refresh();
             ShowItemStatus();
         }
     }
@@ -683,14 +581,14 @@ public partial class MainWindow : Window
     private void Completed(string what)
     {
         SaveProgress();
-        RefreshTree();
+        _vm.Refresh();
         ShowItemStatus();
         var module = _item!.Module;
         var p = _progress.Of(module);
         var next = _progress.NextAfter(_package, _item);
         SetStatus(what +
             (p.State == ModuleState.Complete ? $" That completes module {module.Number}." : $" Module {module.Number}: {p.Complete} of {p.Total} complete.") +
-            (next is null ? " Every item in the path is complete." : $" Next: {next}{(next == NextInOrder(_item) ? " (Next ▸, top right)" : " (Go ▸ Continue where I left off)")}.") +
+            (next is null ? " Every item in the path is complete." : $" Next: {next}{(next == _vm.NextInOrder(_item) ? " (Next ▸, top right)" : " (Go ▸ Continue where I left off)")}.") +
             (_item.Exercise is not null ? " To keep your program or hand it in: File ▸ Save My program as…" : ""));
         // A module check complete is a submission point: the time to make sure there is a backup (plan 6.10).
         var check = module.Items.FirstOrDefault(i => i.Kind == ItemKind.Assess);
@@ -698,25 +596,7 @@ public partial class MainWindow : Window
             Dispatcher.BeginInvoke(DispatcherPriority.Background, () => OfferBackup($"Module {module.Number} is complete", leaving: false));
     }
 
-    private LearningItem? NextInOrder(LearningItem item)
-    {
-        var index = _order.IndexOf(item);
-        return index >= 0 && index + 1 < _order.Count ? _order[index + 1] : null;
-    }
-
-    private void SaveProgress()
-    {
-        if (_session is null) return;
-        try
-        {
-            _session.Save(DateTimeOffset.Now);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            SetStatus("Your progress could not be saved on this computer: " + ex.Message + " Keep PLC+ open and try Learner ▸ Back up my progress, so your work is not lost.");
-        }
-        ShowLearner();
-    }
+    private void SaveProgress() => _vm.Save();
 
     private void ItemTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -752,25 +632,6 @@ public partial class MainWindow : Window
     }
 
     // ---- Moving around ---------------------------------------------------------------------------------
-
-    private void Next_Click(object sender, RoutedEventArgs e)
-    {
-        var index = _item is null ? (_module is null ? -1 : _order.FindIndex(i => i.Module == _module) - 1) : _order.IndexOf(_item);
-        if (index + 1 < _order.Count && index + 1 >= 0) Select(_order[index + 1]);
-    }
-
-    private void Previous_Click(object sender, RoutedEventArgs e)
-    {
-        if (_item is null) return;
-        var index = _order.IndexOf(_item);
-        if (index > 0) Select(_order[index - 1]);
-    }
-
-    private void Continue_Click(object sender, RoutedEventArgs e)
-    {
-        if (_progress.Continue(_package) is { } next) Select(next);
-        else SetStatus("Every item in the path is complete.");
-    }
 
     private void ShowTab_Executed(object sender, ExecutedRoutedEventArgs e)
     {
@@ -818,7 +679,9 @@ public partial class MainWindow : Window
     /// <summary>The help panel's first part says what the screen showing now is for (checklist: local help).</summary>
     private void ShowScreenHelp()
     {
-        (HelpScreenTitle.Text, HelpScreenText.Text) = _item is null
+        (HelpScreenTitle.Text, HelpScreenText.Text) = DashboardPage.Visibility == Visibility.Visible
+            ? ("This screen: My progress", "Your progress through the whole path. ★ mastered, ✓ complete, ↺ review suggested, ◐ in progress, ○ not started. Review suggested lists what to read again. The module checks are where progress reports will be made. Time counts while you use PLC+.")
+            : _item is null
             ? ("This screen: a module", "A module's first page: what to finish first, what you will be able to do, its topics and its items. Press the button under the title to start, or choose an item on the left.")
             : ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible
                 ? ("This screen: Example", "The working program runs on the machine. Work the machine and watch power flow along the rungs. Program switches to a common mistake; Check this program runs the task's tests on it. Examples do not count toward your progress.")
@@ -835,12 +698,54 @@ public partial class MainWindow : Window
 
     // ---- The rest --------------------------------------------------------------------------------------
 
-    private void SetStatus(string text) => StatusText.Text = text;
+    private void SetStatus(string text) => _vm.Status = text;
 
     private void Help_Executed(object sender, RoutedEventArgs e) =>
         HelpPanel.Visibility = HelpPanel.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
 
     private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
+
+    private const string WebHelp = "https://softwareplus.ai/plcplus/help/";
+
+    private void WebHelp_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(WebHelp) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            MessageBox.Show(this, $"Windows could not open your web browser. The help is at:\n\n{WebHelp}", "PLC+ — Help on the web",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private async void CheckForUpdate_Click(object sender, RoutedEventArgs e) => await StoreUpdates.CheckAsync(this);
+
+    /// <summary>
+    /// Larger text needs room (UX review 2026-11-05): the columns' smallest widths shrink with the scale, and above 120% the help
+    /// panel steps aside (F1 brings it back), so Next ▸ and the right of each page stay on the screen.
+    /// </summary>
+    private void FitToTextSize()
+    {
+        var s = _vm.TextScale;
+        PathColumn.MinWidth = 220 / s;
+        PageColumn.MinWidth = 600 / s;
+        if (s > 1.2 && HelpPanel.Visibility == Visibility.Visible)
+        {
+            HelpPanel.Visibility = Visibility.Collapsed;
+            SetStatus($"Text size {s:P0}. The help panel is hidden to make room; F1 shows it.");
+        }
+    }
+
+    /// <summary>Text size (plan 7.7): Ctrl++ and Ctrl+−, 80% to 200%, kept in the learner's own file.</summary>
+    private void TextSize_Executed(object sender, ExecutedRoutedEventArgs e)
+    {
+        var scale = e.Command == TextLarger ? _vm.TextScale + 0.1 : e.Command == TextSmaller ? _vm.TextScale - 0.1 : 1.0;
+        _vm.SetTextScale(scale);
+        if (HelpPanel.Visibility == Visibility.Visible || _vm.TextScale <= 1.2)
+            SetStatus($"Text size {_vm.TextScale:P0}. Ctrl++ larger, Ctrl+− smaller, Ctrl+0 normal; kept for you on any computer.");
+    }
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
 
@@ -857,38 +762,5 @@ public partial class MainWindow : Window
             Lock("", switching: true);
         }
         base.OnClosing(e);
-    }
-}
-
-/// <summary>A module or an item in the learning path's tree.</summary>
-public sealed class PathNode : INotifyPropertyChanged
-{
-    public LearningModule? Module { get; init; }
-    public LearningItem? Item { get; init; }
-    public PathNode? Parent { get; init; }
-    public ObservableCollection<PathNode> Children { get; } = [];
-
-    private string _header = "", _mark = "", _detail = "", _spoken = "", _tip = "";
-    private Brush _markBrush = Brushes.Gray;
-    private FontWeight _weight = FontWeights.Normal;
-    private bool _expanded, _selected;
-
-    public string Header { get => _header; set => Set(ref _header, value); }
-    public string Mark { get => _mark; set => Set(ref _mark, value); }
-    public Brush MarkBrush { get => _markBrush; set => Set(ref _markBrush, value); }
-    public string Detail { get => _detail; set => Set(ref _detail, value); }
-    public string SpokenName { get => _spoken; set => Set(ref _spoken, value); }
-    public string Tip { get => _tip; set => Set(ref _tip, value); }
-    public FontWeight Weight { get => _weight; set => Set(ref _weight, value); }
-    public bool IsExpanded { get => _expanded; set => Set(ref _expanded, value); }
-    public bool IsSelected { get => _selected; set => Set(ref _selected, value); }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return;
-        field = value;
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

@@ -13,6 +13,21 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 7 — My progress, time, text size and Help (plan 7.1–7.7), 2026-11-05
+
+| # | Do this | You should see |
+|---|---|---|
+| 7.1 | Sign in | Above the path: "N of 11 items complete · N of 2 modules" and "Time in PLC+: …"; the legend ★ ✓ ↺ ◐ ○ –; **My progress** as the first row of the path |
+| 7.2 | Choose **My progress** (or Go ▸ My progress, Ctrl+Shift+Home) | So far (items, modules, outcomes, time); Review suggested; the two module checks with where you are; the path with each module's state and time; the outcomes. **Continue with …** opens the first item not done |
+| 7.3 | Work for a few minutes on an item, then look again | The time goes up (only while you use the keyboard or mouse); the module's time on My progress too |
+| 7.4 | Finish module 3 with one question of 3.5 wrong (5 of 6 passes) | Module 3 is ↺ in the tree ("review suggested"); My progress lists the outcome under Review suggested, with the question and what to read; 3.5 under Module checks is ● "Ready". Answer it right again: ★ mastered |
+| 7.5 | **View ▸ Larger text** twice (or Ctrl++) | Everything grows; the status line says the size. Switch learner and sign in again: still larger. **Normal size** (Ctrl+0) puts it back. Another learner keeps their own size |
+| 7.6 | **Help ▸ Help on the web** | softwareplus.ai/plcplus/help/ in your browser |
+| 7.7 | **Help ▸ Check for a new version…** | "PLC+ is not on the Microsoft Store yet …" |
+| 7.8 | On a module's first page, **Go ▸ Next item** (Ctrl+Shift+PgDn); on an item, **◂ Previous** | Next opens the module's first item; Previous goes to the item before (greyed on 1.1) |
+
+---
+
 ## Hand-test 6 — learners and progress files (plan 6.1–6.10), 2026-11-05
 
 PLC+ now opens on **Who is learning?** Each learner has a progress file in `C:\ProgramData\PLCPlus\Learners`, locked with
