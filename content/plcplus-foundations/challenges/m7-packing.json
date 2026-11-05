@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "id": "u7.packing",
+  "title": "Full boxes and parts left over",
+  "brief": "FullBoxes shows how many full boxes the parts make (Parts divided by PerBox, a whole number) and LeftOver the parts that do not fill a box (the remainder). If PerBox is 0 there is nothing to divide by: the Per box is 0 light comes on, the displays keep their last numbers, and the PLC keeps running.",
+  "scene": "m7-packing",
+  "constraints": {
+    "maxRungs": 4
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "DIV gives the whole number of boxes; MOD gives the remainder.",
+    "Put GT PerBox 0 in front of DIV and MOD, so they never divide by 0.",
+    "EQ PerBox 0 lights the warning."
+  ],
+  "scenarios": [
+    {
+      "name": "50 parts, 12 to a box",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.5,
+          "operate": "parts",
+          "value": 100
+        },
+        {
+          "t": 0.5,
+          "operate": "perbox",
+          "value": 8
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.2,
+          "tag": "FullBoxes",
+          "expect": "4",
+          "says": "50 parts at 12 a box fill 4 boxes (48 parts)."
+        },
+        {
+          "at": 0.2,
+          "tag": "LeftOver",
+          "expect": "2",
+          "says": "50 - 48 leaves 2 parts over: MOD gives the remainder."
+        },
+        {
+          "at": 0.8,
+          "tag": "FullBoxes",
+          "expect": "12",
+          "says": "100 parts at 8 a box fill 12 boxes (96 parts)."
+        },
+        {
+          "at": 0.8,
+          "tag": "LeftOver",
+          "expect": "4",
+          "says": "100 - 96 leaves 4 parts over."
+        }
+      ]
+    },
+    {
+      "name": "Per box set to 0",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.2,
+          "operate": "perbox",
+          "value": 0
+        },
+        {
+          "t": 0.6,
+          "operate": "perbox",
+          "value": 6
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.4,
+          "tag": "PerBoxZero",
+          "expect": "TRUE",
+          "says": "With Parts per box at 0 the warning light should be lit, and the PLC should still be running."
+        },
+        {
+          "at": 0.8,
+          "tag": "PerBoxZero",
+          "expect": "FALSE",
+          "says": "With 6 per box the warning should go out."
+        },
+        {
+          "at": 0.8,
+          "tag": "FullBoxes",
+          "expect": "8",
+          "says": "50 parts at 6 a box fill 8 boxes. If the displays are blank, the PLC stopped with a math fault when it divided by 0."
+        },
+        {
+          "at": 0.8,
+          "tag": "LeftOver",
+          "expect": "2",
+          "says": "50 - 48 leaves 2 over."
+        }
+      ]
+    }
+  ]
+}

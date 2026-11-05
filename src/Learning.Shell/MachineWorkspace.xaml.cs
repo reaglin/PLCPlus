@@ -64,7 +64,7 @@ public partial class MachineWorkspace : UserControl
     {
         InitializeComponent();
         _ladder = new LadderView(LadderCanvas);
-        _sceneView = new SceneView(SceneCanvas, StateList);
+        _sceneView = new SceneView(SceneCanvas, StateList) { Say = text => SetStatus(text) };
         _timer.Tick += (_, _) => Tick();
         IsVisibleChanged += (_, _) =>
         {
@@ -74,6 +74,38 @@ public partial class MachineWorkspace : UserControl
     }
 
     private Window HostWindow => Window.GetWindow(this) ?? Application.Current.MainWindow;
+
+    // ---- Pop out: the program and the machine in a window of their own ----
+
+    /// <summary>Asks the main window to open this workspace in a window of its own. The button shows only when it is set.</summary>
+    public Action<MachineWorkspace>? PopOutRequested
+    {
+        get => _popOutRequested;
+        set { _popOutRequested = value; PopOutButton.Visibility = value is null ? Visibility.Collapsed : Visibility.Visible; }
+    }
+    private Action<MachineWorkspace>? _popOutRequested;
+
+    /// <summary>True while the workspace is in its own window: the button then puts it back.</summary>
+    public bool PoppedOut
+    {
+        get => _poppedOut;
+        set
+        {
+            _poppedOut = value;
+            // A question page can hold two machines: no access keys there, so Alt+O does not jump between them.
+            PopOutButton.Content = _fault is not null ? (value ? "Put it back" : "Pop out") : value ? "Put it _back" : "Pop _out";
+            PopOutButton.ToolTip = value
+                ? "Closes this window and puts the program and the machine back in the main window, as they are now."
+                : "Opens the program and the machine in a window of their own, which you can make as big as you like. Close it (or press Put it back) to return here.";
+        }
+    }
+    private bool _poppedOut;
+
+    private void PopOut_Click(object sender, RoutedEventArgs e)
+    {
+        if (_poppedOut) Window.GetWindow(this)?.Close();
+        else PopOutRequested?.Invoke(this);
+    }
 
     private string ContentDir => _content!.Folder;
 
@@ -122,11 +154,13 @@ public partial class MachineWorkspace : UserControl
         {
             // Two machines can be on one page of questions: no access keys, so Alt+R and the like do not jump between them.
             PauseButton.Content = "Pause";
+            PopOutButton.Content = "Pop out";
             StepButton.Content = "Step one scan";
             ResetButton.Content = "Reset";
             // The page of questions scrolls with the wheel even over the machine.
             PreviewMouseWheel += (_, e) =>
             {
+                if (_poppedOut) return;   // in its own window the ladder and the machine scroll as usual
                 e.Handled = true;
                 (Parent as UIElement)?.RaiseEvent(new System.Windows.Input.MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta) { RoutedEvent = MouseWheelEvent });
             };
@@ -136,7 +170,7 @@ public partial class MachineWorkspace : UserControl
         {
             TitleText.Text = "A machine with a fault: " + challenge.Challenge.Title;
             BriefText.Text = "It should do this: " + challenge.Challenge.Brief;
-            ProgramNote.Text = "The working program. One of the machine's wires is faulty: work the machine and watch which contact never changes.";
+            ProgramNote.Text = "The working program, on a machine with a fault: a wire or a device. Work the machine, and compare the rungs with What every part is doing. Right-click a contact or coil to force it. Then choose your answer below.";
         }
     }
 
@@ -222,7 +256,7 @@ public partial class MachineWorkspace : UserControl
     private void Pause_Click(object sender, RoutedEventArgs e)
     {
         _paused = !_paused;
-        PauseButton.Content = _paused ? "Ru_n" : "P_ause";
+        PauseButton.Content = _fault is not null ? (_paused ? "Run" : "Pause") : _paused ? "Ru_n" : "P_ause";
         PauseButton.ToolTip = _paused ? "Starts the simulated clock again." : "Stops the simulated clock. The program and the machine stay as they are.";
         StepButton.IsEnabled = _paused;
         StepButton.ToolTip = _paused ? "Runs exactly one scan (10 ms)." : "Runs exactly one scan (10 ms). Available while paused: press Pause first.";

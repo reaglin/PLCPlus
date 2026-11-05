@@ -1,0 +1,320 @@
+{
+  "schemaVersion": 1,
+  "id": "u6.car-park",
+  "title": "Count cars in and out of a car park",
+  "brief": "Each car in adds one to the count and each car out takes one away; the display shows the cars inside. With 5 cars inside, Full lights and Spaces goes out; with fewer, Spaces is lit. Count reset sets the count to 0.",
+  "scene": "m6-car-park",
+  "constraints": {
+    "requiredInstructions": [
+      "CTUD"
+    ],
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "One up/down counter (CTUD) with PV 5: CarIn on the rung counts up, CarOut in its CD input counts down, ResetPB in R.",
+    "QU is on when the count is at least PV: that is Full.",
+    "Copy the counter's CV to the display's tag with a MOVE box."
+  ],
+  "scenarios": [
+    {
+      "name": "Five cars fill it",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 0.4,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 0.7,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 1.1,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 1.3,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 1.4,
+          "operate": "in",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "SpacesLight",
+          "expect": "TRUE",
+          "says": "Spaces should be lit while there are free spaces."
+        },
+        {
+          "at": 1.2,
+          "tag": "CarCount",
+          "expect": "4",
+          "says": "After four cars in, the display should show 4."
+        },
+        {
+          "at": 1.2,
+          "tag": "FullLight",
+          "expect": "FALSE",
+          "says": "With 4 cars inside, the car park is not full."
+        },
+        {
+          "at": 1.6,
+          "tag": "CarCount",
+          "expect": "5",
+          "says": "After five cars in, the display should show 5."
+        },
+        {
+          "at": 1.6,
+          "tag": "FullLight",
+          "expect": "TRUE",
+          "says": "With 5 cars inside, Full should light."
+        },
+        {
+          "at": 1.6,
+          "tag": "SpacesLight",
+          "expect": "FALSE",
+          "says": "With 5 cars inside, Spaces should go out."
+        }
+      ]
+    },
+    {
+      "name": "A car leaving makes a space",
+      "points": 1,
+      "durationSeconds": 2.5,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 0.4,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 0.7,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 1.1,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 1.3,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 1.4,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 1.8,
+          "operate": "out",
+          "active": true
+        },
+        {
+          "t": 1.9,
+          "operate": "out",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.2,
+          "tag": "CarCount",
+          "expect": "4",
+          "says": "A car out should take one off the count."
+        },
+        {
+          "at": 2.2,
+          "tag": "FullLight",
+          "expect": "FALSE",
+          "says": "With a space free again, Full should go out."
+        },
+        {
+          "at": 2.2,
+          "tag": "SpacesLight",
+          "expect": "TRUE",
+          "says": "With a space free again, Spaces should light."
+        }
+      ]
+    },
+    {
+      "name": "Count reset",
+      "points": 1,
+      "durationSeconds": 1.5,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 0.4,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 0.8,
+          "operate": "reset",
+          "active": true
+        },
+        {
+          "t": 0.9,
+          "operate": "reset",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.7,
+          "tag": "CarCount",
+          "expect": "2",
+          "says": "Two cars in should show 2."
+        },
+        {
+          "at": 1.1,
+          "tag": "CarCount",
+          "expect": "0",
+          "says": "Count reset should set the count to 0."
+        }
+      ]
+    },
+    {
+      "name": "In and out mixed",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 0.4,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 0.7,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "in",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "out",
+          "active": true
+        },
+        {
+          "t": 1.1,
+          "operate": "out",
+          "active": false
+        },
+        {
+          "t": 1.3,
+          "operate": "in",
+          "active": true
+        },
+        {
+          "t": 1.4,
+          "operate": "in",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.7,
+          "tag": "CarCount",
+          "expect": "3",
+          "says": "Three in, one out, one in: three cars inside."
+        }
+      ]
+    }
+  ]
+}

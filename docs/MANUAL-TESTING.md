@@ -13,6 +13,23 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 10 — modules 6, 7, 8 and 11, the new machine parts, and Pop out (plan 10.1–10.8), 2026-11-05
+
+| # | Do this | You should see |
+|---|---|---|
+| 10.1 | Sign in. Look at the path | Modules 1–8 and 11 say **first draft**; 9, 10 and 12 "coming later"; "of 50 items" |
+| 10.2 | **6.1**: the Example (a conveyor with a warning horn), then the Exercise (the traffic light) | The horn sounds 3 s before the belt starts. The Example says it is a machine like the exercise's, not the same one |
+| 10.3 | **6.3 Retentive timing**, Example (a bake oven): turn Bake On, open the door part-way through, shut it | The heater stops while the door is open, the baking time so far is kept, and it carries on when the door is shut; Done after 8 s in all; **Clear** sets it back to 0 |
+| 10.4 | **7.1**, Example: press **+** and **−** on the thumbwheel, type a number in its box and press Enter | The number changes; the rungs use it at once. A display shows numbers in lit digits |
+| 10.5 | **8.1**, Example (a transfer arm): press Start | The gripper and the arm move one after another, each cylinder's rod sliding out and back; the steps light on the rungs in order |
+| 10.6 | **11.4**, Exercise | My program starts as the exercise gives it (a double coil); the status line says to fix or finish it. Fix it and **Check my program** |
+| 10.7 | **11.2**, a find-the-fault question | The note says the machine has a fault, "a wire or a device" |
+| 10.8 | On any Example or Exercise, press **Pop out** | The program and the machine open in their own window, nearly as big as PLC+ (maximized if PLC+ is). Make it bigger or smaller. The main window cannot be used while it is open. **Put it back** (or close it) returns them as they were, still running |
+| 10.9 | Pop out an exercise, change the program, put it back | The change is there; Check my program works in both places |
+| 10.10 | Pop out, then leave PLC+ alone until it locks (Settings on the start screen: the lock time) | The pop-out closes and the start screen shows: nothing of yours is left on screen |
+
+---
+
 ## Hand-test 9 — the lessons of modules 1 to 5, and the example machines (plan 9.1–9.7), 2026-11-05
 
 Use a new learner (so nothing is complete yet). Read as a student would: note anything unclear, wrong, or that you would teach

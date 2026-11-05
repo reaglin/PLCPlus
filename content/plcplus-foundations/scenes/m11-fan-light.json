@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "m11-fan-light",
+  "title": "Workshop fan and light",
+  "description": "An exhaust fan with Fan start and Fan stop buttons, and a work light with Light on and Light off buttons. Both stop buttons are wired normally closed.",
+  "width": 480,
+  "height": 300,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "fanstart",
+      "label": "Fan start",
+      "tag": "FanStart",
+      "color": "green",
+      "x": 20,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "fanstop",
+      "label": "Fan stop",
+      "tag": "FanStop",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 20,
+      "y": 150
+    },
+    {
+      "type": "pushButton",
+      "id": "lighton",
+      "label": "Light on",
+      "tag": "LightOn",
+      "color": "green",
+      "x": 140,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "lightoff",
+      "label": "Light off",
+      "tag": "LightOff",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 140,
+      "y": 150
+    },
+    {
+      "type": "motor",
+      "id": "fan",
+      "label": "Exhaust fan",
+      "runTag": "Fan",
+      "startTimeMs": 600,
+      "x": 300,
+      "y": 20
+    },
+    {
+      "type": "pilotLight",
+      "id": "light",
+      "label": "Work light",
+      "tag": "WorkLight",
+      "color": "amber",
+      "x": 290,
+      "y": 170
+    }
+  ]
+}

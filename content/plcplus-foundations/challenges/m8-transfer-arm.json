@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "id": "u8.transfer-arm",
+  "title": "A transfer arm in four steps",
+  "brief": "Press Start and the arm moves one part in four steps, each starting when the sensors say the step before has finished: 1. the gripper closes on the part (until GripIsClosed); 2. the arm goes out (until ArmIsOut); 3. the gripper opens and lets go (until GripIsOpen); 4. the arm comes back (until ArmIsIn). Stop ends the cycle: the gripper springs open and the arm stays where it is. Stop is wired normally closed.",
+  "scene": "m8-transfer-arm",
+  "constraints": {
+    "maxRungs": 14
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "One memory tag per step, each on a seal-in rung.",
+    "Each step starts from the step before AND its sensor, and the next step ends it.",
+    "The outputs come last: the gripper is closed in steps 1 and 2."
+  ],
+  "scenarios": [
+    {
+      "name": "One part across",
+      "points": 1,
+      "durationSeconds": 3.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "GripClose",
+          "expect": "TRUE",
+          "says": "The gripper should close when Start is pressed (step 1)."
+        },
+        {
+          "at": 0.3,
+          "tag": "ArmOut",
+          "expect": "FALSE",
+          "says": "The arm must wait until the gripper is fully closed (about 0.4 s)."
+        },
+        {
+          "at": 1.0,
+          "tag": "ArmOut",
+          "expect": "TRUE",
+          "says": "Once the gripper is closed, the arm should go out (step 2)."
+        },
+        {
+          "at": 1.0,
+          "tag": "GripClose",
+          "expect": "TRUE",
+          "says": "The gripper must hold the part while the arm goes out."
+        },
+        {
+          "at": 1.35,
+          "tag": "GripClose",
+          "expect": "FALSE",
+          "says": "Once the arm is fully out, the gripper should open and let go (step 3)."
+        },
+        {
+          "at": 2.0,
+          "tag": "ArmIn",
+          "expect": "TRUE",
+          "says": "Once the gripper is open, the arm should come back (step 4)."
+        },
+        {
+          "at": 2.8,
+          "tag": "@arm.retracted",
+          "expect": "TRUE",
+          "says": "At the end of the cycle the arm should be fully in."
+        },
+        {
+          "at": 2.8,
+          "tag": "ArmIn",
+          "expect": "FALSE",
+          "says": "Once the arm is in, the cycle is over and ArmIn should be off."
+        }
+      ],
+      "order": [
+        {
+          "first": "@gripper.extended",
+          "then": "ArmOut",
+          "after": 0,
+          "says": "The arm must not move until the gripper has closed on the part."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "ArmOut",
+            "ArmIn"
+          ],
+          "says": "ArmOut and ArmIn must never be on together: the arm would not move."
+        }
+      ]
+    },
+    {
+      "name": "Stop ends the cycle",
+      "points": 1,
+      "durationSeconds": 1.5,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 0.6,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.7,
+          "tag": "ArmOut",
+          "expect": "FALSE",
+          "says": "Stop should end the cycle: the arm stops where it is."
+        },
+        {
+          "at": 0.7,
+          "tag": "GripClose",
+          "expect": "FALSE",
+          "says": "Stop should end the cycle: the gripper springs open."
+        },
+        {
+          "at": 1.2,
+          "tag": "ArmOut",
+          "expect": "FALSE",
+          "says": "After Stop nothing should move until Start is pressed again."
+        }
+      ]
+    }
+  ]
+}

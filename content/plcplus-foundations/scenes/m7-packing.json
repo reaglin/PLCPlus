@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "m7-packing",
+  "title": "Packing: full boxes and left over",
+  "description": "Finished parts are packed into boxes. Two thumbwheels give the parts made and how many fit in a box; the displays show how many full boxes that makes and how many parts are left over.",
+  "width": 470,
+  "height": 330,
+  "components": [
+    {
+      "type": "thumbwheel",
+      "id": "parts",
+      "label": "Parts made",
+      "tag": "Parts",
+      "digits": 3,
+      "value": 50,
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "thumbwheel",
+      "id": "perbox",
+      "label": "Parts per box",
+      "tag": "PerBox",
+      "digits": 2,
+      "value": 12,
+      "x": 30,
+      "y": 170
+    },
+    {
+      "type": "numericDisplay",
+      "id": "full",
+      "label": "Full boxes",
+      "tag": "FullBoxes",
+      "digits": 3,
+      "x": 240,
+      "y": 20
+    },
+    {
+      "type": "numericDisplay",
+      "id": "left",
+      "label": "Left over",
+      "tag": "LeftOver",
+      "digits": 2,
+      "x": 360,
+      "y": 20
+    },
+    {
+      "type": "pilotLight",
+      "id": "zero",
+      "label": "Per box is 0",
+      "tag": "PerBoxZero",
+      "color": "red",
+      "x": 270,
+      "y": 180
+    }
+  ]
+}

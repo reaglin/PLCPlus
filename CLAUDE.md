@@ -44,6 +44,11 @@ dialog (captures only).
 item, a check each), modules 3 and 5 revised; a typed-answer question kind (`text`: binary, hex, BCD); five example machines so every
 Example tab runs a machine **like** its exercise's (D21; `tools/make-example-machines.py`; the motor can now run in reverse); the
 outcomes in `docs/OUTCOMES.md` (`tools/make-outcomes.py`) for Ron to review. 277 tests.
+**Phase 10 (modules 6, 7, 8 and 11) first drafts 2026-11-05:** timers and counters (TONR added), data and math (thumbwheel and
+numeric display components), sequencing (cylinder component, step logic, step numbers, state machines, SFC introduced), troubleshooting
+(`Tag:failed` device faults, find-and-fix exercises with a challenge's `startProgram`); 50 items, 40 machines. **Pop out** (Ron): the
+Example or Exercise in its own resizable modal window. The validator enforces D21 (no Example or picture shows an exercise's answer).
+374 tests.
 
 **The goal now (Ron, 2026-11-05, D24): the instructors' release.** PLC+ 1.0 on the Microsoft Store, hidden (direct link only), for
 the PLC instructors who give feedback; modules 1–8 and 11 written; a testing guide at softwareplus.ai/plcplus/testing/. Plan phases

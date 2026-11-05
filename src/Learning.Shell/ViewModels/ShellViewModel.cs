@@ -18,7 +18,7 @@ namespace Learning.Shell.ViewModels;
 /// </summary>
 public sealed partial class ShellViewModel : ObservableObject
 {
-    private const string ProgramTitle = "PLC+ (preview)";
+    private const string ProgramTitle = "PLC+";
     private static readonly LearningProgress NoOne = new();
 
     private readonly List<LearningItem> _order;

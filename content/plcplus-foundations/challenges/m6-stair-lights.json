@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "id": "u6.stair-lights",
+  "title": "A stair light on a pulse timer and a porch light on an off-delay",
+  "brief": "Press either stair button: the stair light comes on for exactly 5 s, however long the button is held, and pressing again while it is on does not stretch it. The porch light is on while the front door is open, and stays on for 4 s after the door shuts.",
+  "scene": "m6-stair-lights",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "The stair light is a pulse of a fixed length started by a press: a pulse timer (TP) with PT T#5s. Either button starts it, so put the two buttons in parallel.",
+    "The porch light must stay on after its input goes off: an off-delay timer (TOF) with PT T#4s, started by DoorOpen.",
+    "Each light follows its timer's Q."
+  ],
+  "scenarios": [
+    {
+      "name": "One press: 5 s of light",
+      "points": 1,
+      "durationSeconds": 6.5,
+      "events": [
+        {
+          "t": 0.5,
+          "operate": "bottom",
+          "active": true
+        },
+        {
+          "t": 0.7,
+          "operate": "bottom",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "StairLight",
+          "expect": "TRUE",
+          "says": "The stair light should come on when a stair button is pressed."
+        },
+        {
+          "at": 6.0,
+          "tag": "StairLight",
+          "expect": "FALSE",
+          "says": "The stair light should be off 5 s after the press."
+        }
+      ],
+      "windows": [
+        {
+          "tag": "StairLight",
+          "expect": "FALSE",
+          "after": 1.0,
+          "from": 5.45,
+          "to": 5.55,
+          "says": "The stair light should go off 5 s after the press (at 5.5 s)."
+        }
+      ]
+    },
+    {
+      "name": "Holding the button does not stretch the light",
+      "points": 1,
+      "durationSeconds": 9.0,
+      "events": [
+        {
+          "t": 0.5,
+          "operate": "bottom",
+          "active": true
+        },
+        {
+          "t": 8.0,
+          "operate": "bottom",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 3.0,
+          "tag": "StairLight",
+          "expect": "TRUE",
+          "says": "The light should be on while it times."
+        },
+        {
+          "at": 6.0,
+          "tag": "StairLight",
+          "expect": "FALSE",
+          "says": "The light should go off 5 s after the press, even though the button is still held."
+        }
+      ]
+    },
+    {
+      "name": "The porch light stays on 4 s after the door shuts",
+      "points": 1,
+      "durationSeconds": 7.0,
+      "events": [
+        {
+          "t": 0.5,
+          "operate": "door",
+          "active": true
+        },
+        {
+          "t": 2.0,
+          "operate": "door",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "PorchLight",
+          "expect": "TRUE",
+          "says": "The porch light should be on while the door is open."
+        },
+        {
+          "at": 5.5,
+          "tag": "PorchLight",
+          "expect": "TRUE",
+          "says": "The porch light should stay on for 4 s after the door shuts."
+        },
+        {
+          "at": 6.5,
+          "tag": "PorchLight",
+          "expect": "FALSE",
+          "says": "The porch light should be off 4 s after the door shuts."
+        }
+      ],
+      "windows": [
+        {
+          "tag": "PorchLight",
+          "expect": "FALSE",
+          "after": 2.0,
+          "from": 5.95,
+          "to": 6.05,
+          "says": "The porch light should go off 4 s after the door shuts (at 6.0 s)."
+        }
+      ]
+    },
+    {
+      "name": "The top button works too, and a second press does not stretch it",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 7.0,
+      "events": [
+        {
+          "t": 0.5,
+          "operate": "top",
+          "active": true
+        },
+        {
+          "t": 0.7,
+          "operate": "top",
+          "active": false
+        },
+        {
+          "t": 3.0,
+          "operate": "top",
+          "active": true
+        },
+        {
+          "t": 3.2,
+          "operate": "top",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "StairLight",
+          "expect": "TRUE",
+          "says": "The top button should turn the stair light on."
+        },
+        {
+          "at": 5.7,
+          "tag": "StairLight",
+          "expect": "FALSE",
+          "says": "A second press during the pulse should not stretch it."
+        }
+      ]
+    }
+  ]
+}

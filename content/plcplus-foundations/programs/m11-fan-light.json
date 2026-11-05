@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "name": "A workshop fan and light (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "FanStart",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Fan start button: TRUE while pressed"
+    },
+    {
+      "name": "FanStop",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Fan stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "LightOn",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Light on button: TRUE while pressed"
+    },
+    {
+      "name": "LightOff",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Light off button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "Fan",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "WorkLight",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The fan: start/stop with its own seal-in.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "FanStart",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Fan",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "FanStop",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Fan",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "FIXED: the light's seal-in contact reads WorkLight, the coil it holds on.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "LightOn",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "WorkLight",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "LightOff",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "WorkLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

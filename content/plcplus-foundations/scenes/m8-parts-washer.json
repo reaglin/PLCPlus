@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "m8-parts-washer",
+  "title": "Parts washer",
+  "description": "A washer for greasy parts. A basket on a cylinder (one solenoid: it lowers while its output is on, and a spring lifts it) dips the parts into the tank, and a spray pump washes them. Start and Stop buttons, sensors for the basket fully down and fully up, and a display that shows the step number.",
+  "width": 470,
+  "height": 300,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 20,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 20,
+      "y": 110
+    },
+    {
+      "type": "numericDisplay",
+      "id": "step",
+      "label": "Step",
+      "tag": "Step",
+      "digits": 1,
+      "x": 20,
+      "y": 210
+    },
+    {
+      "type": "cylinder",
+      "id": "basket",
+      "label": "Basket",
+      "extendTag": "BasketDown",
+      "extendedTag": "BasketIsDown",
+      "retractedTag": "BasketIsUp",
+      "strokeTimeMs": 800,
+      "x": 200,
+      "y": 40
+    },
+    {
+      "type": "motor",
+      "id": "pump",
+      "label": "Spray pump",
+      "runTag": "SprayPump",
+      "startTimeMs": 300,
+      "x": 300,
+      "y": 160
+    }
+  ]
+}

@@ -23,6 +23,8 @@
                           ToolTip="Which program the PLC runs: the one that works, or one with a common mistake. Choosing another one resets the PLC and the machine." />
             </WrapPanel>
             <DockPanel>
+                <Button x:Name="PopOutButton" DockPanel.Dock="Right" Content="Pop _out" Click="PopOut_Click" Visibility="Collapsed" Margin="8,0,0,0" VerticalAlignment="Top"
+                        ToolTip="Opens the program and the machine in a window of their own, which you can make as big as you like. Close it (or press Put it back) to return here." />
                 <Button x:Name="CheckTopButton" DockPanel.Dock="Right" Content="Check my program" Click="Check_Click" Visibility="Collapsed" Margin="8,0,0,0" VerticalAlignment="Top"
                         ToolTip="Runs the task's tests on My program. The results are under the machine; the status line says how it went." />
                 <TextBlock x:Name="TitleText" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" TextWrapping="Wrap" />

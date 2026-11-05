@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "name": "Count bottles into packs, and packs into cases (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button (normally open): TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "CaseRemoved",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Case removed button: TRUE while pressed"
+    },
+    {
+      "name": "BottleEye",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Bottle eye: TRUE while a bottle is in front of it"
+    },
+    {
+      "name": "Belt",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "CaseFull",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "BottleCount",
+      "type": "INT",
+      "io": "output",
+      "comment": "the Bottles in pack display"
+    },
+    {
+      "name": "PackCount",
+      "type": "INT",
+      "io": "output",
+      "comment": "the Packs in case display"
+    },
+    {
+      "name": "PackReset",
+      "type": "BOOL",
+      "comment": "clears the bottle count: a pack done, or Case removed"
+    },
+    {
+      "name": "C1",
+      "type": "CTU",
+      "comment": "bottles in this pack"
+    },
+    {
+      "name": "C2",
+      "type": "CTU",
+      "comment": "packs in this case"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The belt: a seal-in, stopped by Stop, and by the case being full.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Belt",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "C2.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Belt",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Clear the bottle count when a pack is done, or the case is removed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "C1.Q",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "CaseRemoved",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "PackReset",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Count bottles, 6 to a pack.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "BottleEye",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "CTU",
+                "instance": "C1",
+                "operands": {
+                  "PV": "6",
+                  "R": "PackReset"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Count packs: one each time the bottle counter finishes. 4 to a case.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "C1.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "CTU",
+                "instance": "C2",
+                "operands": {
+                  "PV": "4",
+                  "R": "CaseRemoved"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Case full.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "C2.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "CaseFull",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Show the bottles.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "C1.CV",
+                  "OUT": "BottleCount"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Show the packs.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "C2.CV",
+                  "OUT": "PackCount"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

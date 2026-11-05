@@ -1,0 +1,99 @@
+{
+  "id": "plc.m8.sfc.quiz",
+  "title": "Reading an SFC",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "match",
+      "objective": "plc.m8.o2",
+      "prompt": "Match each part of a Sequential Function Chart to what it means.",
+      "pairs": [
+        { "left": "A box with a name", "right": "A step: active while the machine is in it" },
+        { "left": "A box with a double border", "right": "The initial step: active when the PLC starts" },
+        { "left": "A bar across the line, with a condition", "right": "A transition" },
+        { "left": "A box beside a step", "right": "An action: what the step does" }
+      ],
+      "explanation": "Steps are boxes, the initial step has a double border, transitions are bars with conditions, and actions sit beside their steps."
+    },
+    {
+      "id": "q2",
+      "kind": "choice",
+      "objective": "plc.m8.o2",
+      "prompt": "When does a transition **fire**?",
+      "options": [
+        "When the step before it is active AND its condition is TRUE",
+        "Whenever its condition is TRUE, whichever step is active",
+        "When the step after it is active AND its condition is TRUE",
+        "Once in every scan, whatever its condition and the steps say"
+      ],
+      "correct": [0],
+      "explanation": "A transition belongs to the step before it. BasketIsDown means nothing in step S3; it moves the chart on only while S1 is active."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m8.o2",
+      "prompt": "In the parts washer's chart, S2 (wash) is active and the wash time is up (WashTimer.Q is TRUE). What happens?",
+      "options": [
+        "S2 goes inactive and S3 (raise the basket) goes active",
+        "S3 (raise the basket) goes active, and S2 stays active too",
+        "Nothing yet: S2 stays active until Start is pressed again",
+        "S2 goes inactive and the chart goes back to S0 (idle)"
+      ],
+      "correct": [0],
+      "explanation": "The transition below S2 is WashTimer.Q. It fires: the step before it ends and the step after it starts, in the same moment."
+    },
+    {
+      "id": "q4",
+      "kind": "choice",
+      "objective": "plc.m8.o2",
+      "prompt": "An action in step S1 has the qualifier **N**. When is it on?",
+      "options": [
+        "While S1 is active, and off as soon as S1 ends",
+        "From S1 on, and it stays on until a reset action turns it off",
+        "For one scan only, at the moment S1 becomes active",
+        "Once S1 has been active for a set time, until S1 ends"
+      ],
+      "correct": [0],
+      "explanation": "N (non-stored) is the usual action: on exactly while its step is active, like a coil driven by the step's bit. S stays on, P pulses once, D waits."
+    },
+    {
+      "id": "q5",
+      "kind": "choice",
+      "objective": "plc.m8.o2",
+      "prompt": "A chart splits on a **double** line into two paths: one fills a tank while the other heats an oven. What does that mean?",
+      "options": [
+        "Both paths run at the same time, and the chart goes on only when both are done and meet again at a double line",
+        "Only one path is taken, the first whose transition comes true, and the other is skipped",
+        "Both paths run, one after the other: the left path first, then the right when it is done",
+        "It is a drawing mistake: a chart cannot split, so the tool refuses to run it"
+      ],
+      "correct": [0],
+      "explanation": "A double line is a simultaneous (parallel) branch: every path runs. A single line is a selection: one path is chosen."
+    },
+    {
+      "id": "q6",
+      "kind": "choice",
+      "objective": "plc.m8.o2",
+      "prompt": "You write the washer's chart in ladder with one BOOL per step, S0 to S4. How do you make S0 the **initial** step?",
+      "options": [
+        "Give S0 a starting value of TRUE, so it is active when the PLC starts",
+        "Put S0's rung last, so it is the step left active at the end of the first scan",
+        "Put S0's rung first, so it is the first step the PLC runs when it starts",
+        "Nothing: every BOOL starts TRUE, so S0 is already active when the PLC starts"
+      ],
+      "correct": [0],
+      "explanation": "BOOL tags start FALSE unless they are given a starting value. The program on the Example tab declares S0 with the starting value TRUE. With a step number, step 0 is the initial step, because an INT starts at 0."
+    },
+    {
+      "id": "q7",
+      "kind": "text",
+      "objective": "plc.m8.o2",
+      "prompt": "In the ladder version of the washer's chart, step S3's rung starts S3 from the step before AND a condition. Type the **step before** S3 (such as S1).",
+      "answers": ["S2"],
+      "explanation": "S3 (raise the basket) comes after S2 (wash): its rung starts it from S2 AND WashTimer.Q, the transition between them."
+    }
+  ]
+}

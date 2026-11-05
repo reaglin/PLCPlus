@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "id": "u8.stamping",
+  "title": "A stamping station in four steps",
+  "brief": "Turn Part in place to Part in and press Start. The station then works through four steps, each one starting only when the step before has finished: 1. the clamp extends and holds the part, until ClampIsOut says it is fully out; 2. the stamp comes down, until StampIsDown; 3. the stamp goes back up, until StampIsUp; 4. the clamp lets go, until ClampIsIn. Then the station is idle, ready for the next part. Start does nothing without a part, or while a cycle is running. Stop ends the cycle at once: every step ends, both cylinders spring back, and the next Start begins a new cycle. Stop is wired normally closed. Each cylinder has one solenoid: it extends while its output (ClampOut, StampDown) is on.",
+  "scene": "m8-stamping",
+  "constraints": {
+    "maxRungs": 14
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Give each step its own memory tag, such as Step1 to Step4, and its own rung.",
+    "Each step's rung is a seal-in: (the step before AND the sensor that says it has finished) OR the step itself. A normally closed contact of the next step ends it.",
+    "Write the outputs last, in rungs of their own: in which steps must the clamp be out? In which step does the stamp come down?",
+    "Step 1 needs Start AND PartIn AND no step on. Step 4 ends when the clamp is fully in."
+  ],
+  "scenarios": [
+    {
+      "name": "One part: clamp, stamp, release",
+      "points": 1,
+      "durationSeconds": 3.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "part",
+          "active": true
+        },
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.4,
+          "tag": "ClampOut",
+          "expect": "TRUE",
+          "says": "The clamp should extend when Start is pressed with a part in place."
+        },
+        {
+          "at": 0.4,
+          "tag": "StampDown",
+          "expect": "FALSE",
+          "says": "The stamp must wait until the clamp is fully out (just over half a second)."
+        },
+        {
+          "at": 0.8,
+          "tag": "StampDown",
+          "expect": "TRUE",
+          "says": "Once the clamp is fully out, the stamp should come down (step 2)."
+        },
+        {
+          "at": 1.2,
+          "tag": "StampDown",
+          "expect": "FALSE",
+          "says": "Once the stamp is fully down, it should go back up (step 3)."
+        },
+        {
+          "at": 1.2,
+          "tag": "ClampOut",
+          "expect": "TRUE",
+          "says": "The clamp must hold the part until the stamp is fully up again."
+        },
+        {
+          "at": 2.5,
+          "tag": "ClampOut",
+          "expect": "FALSE",
+          "says": "Once the stamp is fully up, the clamp should let go (step 4)."
+        },
+        {
+          "at": 2.5,
+          "tag": "@clamp.retracted",
+          "expect": "TRUE",
+          "says": "At the end of the cycle the clamp should be fully in."
+        },
+        {
+          "at": 2.5,
+          "tag": "@stamp.strokes",
+          "expect": "1",
+          "says": "The stamp should come down once for one part."
+        }
+      ],
+      "windows": [
+        {
+          "tag": "StampDown",
+          "expect": "TRUE",
+          "after": 0,
+          "from": 0.55,
+          "to": 0.7,
+          "says": "The stamp should come down when the clamp is fully out, just over half a second after Start."
+        },
+        {
+          "tag": "ClampOut",
+          "expect": "FALSE",
+          "after": 0.5,
+          "from": 1.35,
+          "to": 1.5,
+          "says": "The clamp should let go when the stamp is fully up, about 1.4 s after Start."
+        }
+      ],
+      "order": [
+        {
+          "first": "@clamp.extended",
+          "then": "StampDown",
+          "after": 0,
+          "says": "The stamp must not come down until the clamp is fully out: it would stamp a loose part."
+        }
+      ],
+      "hint": "Step 2 must wait for ClampIsOut, the sensor that says the clamp has arrived. Moving on by time or at once stamps a loose part."
+    },
+    {
+      "name": "No part, no cycle",
+      "points": 1,
+      "durationSeconds": 1.5,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "ClampOut",
+          "expect": "FALSE",
+          "says": "Without a part in place, Start must do nothing."
+        },
+        {
+          "at": 1.2,
+          "tag": "StampDown",
+          "expect": "FALSE",
+          "says": "Without a part in place, the stamp must not come down."
+        }
+      ]
+    },
+    {
+      "name": "Stop ends the cycle, and Start begins a new one",
+      "points": 1,
+      "durationSeconds": 3.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "part",
+          "active": true
+        },
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 0.8,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 1.0,
+          "operate": "stop",
+          "active": false
+        },
+        {
+          "t": 2.2,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 2.4,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.85,
+          "tag": "StampDown",
+          "expect": "FALSE",
+          "says": "Stop should end the cycle at once: the stamp goes back up."
+        },
+        {
+          "at": 0.85,
+          "tag": "ClampOut",
+          "expect": "FALSE",
+          "says": "Stop should end the cycle at once: the clamp lets go."
+        },
+        {
+          "at": 2.0,
+          "tag": "ClampOut",
+          "expect": "FALSE",
+          "says": "After Stop, nothing should move until Start is pressed again."
+        },
+        {
+          "at": 2.0,
+          "tag": "@stamp.retracted",
+          "expect": "TRUE",
+          "says": "After Stop, the stamp should be back up."
+        },
+        {
+          "at": 2.5,
+          "tag": "ClampOut",
+          "expect": "TRUE",
+          "says": "After Stop, Start should begin a new cycle with step 1, the clamp."
+        }
+      ],
+      "hint": "Put StopPB (a normally open contact, as the button is wired normally closed) in every step's rung, so Stop ends every step."
+    },
+    {
+      "name": "Two parts in a row; Start in the middle of a cycle does nothing",
+      "points": 1,
+      "durationSeconds": 4.5,
+      "hidden": true,
+      "events": [
+        {
+          "t": 0,
+          "operate": "part",
+          "active": true
+        },
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 0.8,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 1.0,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 2.2,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 2.4,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 4.4,
+          "tag": "@stamp.strokes",
+          "expect": "2",
+          "says": "Two cycles should stamp twice: once each, not again when Start is pressed in the middle of a cycle."
+        },
+        {
+          "at": 4.4,
+          "tag": "@clamp.strokes",
+          "expect": "2",
+          "says": "Two cycles should clamp twice."
+        },
+        {
+          "at": 4.4,
+          "tag": "@clamp.retracted",
+          "expect": "TRUE",
+          "says": "After the second cycle the clamp should be fully in."
+        }
+      ]
+    }
+  ]
+}

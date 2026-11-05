@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "id": "u7.order-display",
+  "title": "Accept an order with MOVE",
+  "brief": "Accept copies the number on the Order quantity thumbwheel to the Accepted order display, which keeps it until the next Accept or Clear. Clear sets the display to 0.",
+  "scene": "m7-order-panel",
+  "constraints": {
+    "maxRungs": 4
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "MOVE copies its IN to its OUT, but only while power flows into it.",
+    "Put the AcceptPB contact in front of MOVE OrderQty to Accepted.",
+    "Clear: MOVE 0 to Accepted."
+  ],
+  "scenarios": [
+    {
+      "name": "Accept keeps the number",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.3,
+          "operate": "accept",
+          "active": true
+        },
+        {
+          "t": 0.4,
+          "operate": "accept",
+          "active": false
+        },
+        {
+          "t": 0.6,
+          "operate": "qty",
+          "value": 40
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.2,
+          "tag": "Accepted",
+          "expect": "0",
+          "says": "Nothing has been accepted yet: the display should show 0."
+        },
+        {
+          "at": 0.5,
+          "tag": "Accepted",
+          "expect": "25",
+          "says": "Accept should copy the thumbwheel (25) to the display."
+        },
+        {
+          "at": 0.8,
+          "tag": "Accepted",
+          "expect": "25",
+          "says": "Turning the thumbwheel to 40 for the next order must not change the accepted order (still 25)."
+        }
+      ]
+    },
+    {
+      "name": "Clear sets it to 0",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "accept",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "accept",
+          "active": false
+        },
+        {
+          "t": 0.5,
+          "operate": "clear",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "clear",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "Accepted",
+          "expect": "25",
+          "says": "Accept should copy 25."
+        },
+        {
+          "at": 0.8,
+          "tag": "Accepted",
+          "expect": "0",
+          "says": "Clear should set the display to 0."
+        }
+      ]
+    }
+  ]
+}

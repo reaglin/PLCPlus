@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "id": "u6.batch-counter",
+  "title": "Count parts into batches of 5",
+  "brief": "Start runs the belt and it keeps running; Stop stops it. The photo eye sees each part go by: count them, and show the count on the Parts display. When 5 parts have gone by, the belt stops by itself and Batch done lights. Next batch puts the light out and the count back to 0; then Start runs the belt for the next batch. Stopping the belt part-way through a batch does not lose the count.",
+  "scene": "m6-batch-counter",
+  "constraints": {
+    "requiredInstructions": [
+      "CTU"
+    ],
+    "maxRungs": 8
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Count with an up counter (CTU), PV 5. A part passing turns PartEye on: that is one count.",
+    "The belt's seal-in needs one more contact, so that the counter being done stops the belt.",
+    "A counter does not reset itself. Which button should set its count back to 0? Put it in R. A MOVE box copies the count to PartCount."
+  ],
+  "scenarios": [
+    {
+      "name": "Five parts make a batch",
+      "points": 1,
+      "durationSeconds": 11.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "Belt",
+          "expect": "TRUE",
+          "says": "Start should run the belt, and it should keep running."
+        },
+        {
+          "at": 6.5,
+          "tag": "PartCount",
+          "expect": "3",
+          "says": "Three parts have passed the eye by 6.5 s: the display should show 3."
+        },
+        {
+          "at": 9.5,
+          "tag": "BatchDone",
+          "expect": "FALSE",
+          "says": "Only four parts have passed by 9.5 s: the batch is not done yet."
+        },
+        {
+          "at": 10.5,
+          "tag": "PartCount",
+          "expect": "5",
+          "says": "The fifth part passed the eye at about 9.9 s: the display should show 5."
+        },
+        {
+          "at": 10.5,
+          "tag": "BatchDone",
+          "expect": "TRUE",
+          "says": "After five parts, Batch done should light."
+        },
+        {
+          "at": 10.5,
+          "tag": "Belt",
+          "expect": "FALSE",
+          "says": "After five parts, the belt should stop by itself."
+        }
+      ]
+    },
+    {
+      "name": "Next batch starts again from 0",
+      "points": 1,
+      "durationSeconds": 15.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 11.0,
+          "operate": "next",
+          "active": true
+        },
+        {
+          "t": 11.2,
+          "operate": "next",
+          "active": false
+        },
+        {
+          "t": 12.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 12.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 11.3,
+          "tag": "PartCount",
+          "expect": "0",
+          "says": "Next batch should set the count back to 0."
+        },
+        {
+          "at": 11.3,
+          "tag": "BatchDone",
+          "expect": "FALSE",
+          "says": "Next batch should put Batch done out."
+        },
+        {
+          "at": 12.5,
+          "tag": "Belt",
+          "expect": "TRUE",
+          "says": "After Next batch, Start should run the belt again."
+        },
+        {
+          "at": 13.5,
+          "tag": "PartCount",
+          "expect": "0",
+          "says": "The fifth part is still leaving the eye: it must not be counted twice."
+        },
+        {
+          "at": 14.6,
+          "tag": "PartCount",
+          "expect": "1",
+          "says": "The first part of the new batch has passed the eye: the display should show 1."
+        }
+      ]
+    },
+    {
+      "name": "Stop stops the belt and keeps the count",
+      "points": 1,
+      "durationSeconds": 4.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 3.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 3.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 3.1,
+          "tag": "Belt",
+          "expect": "FALSE",
+          "says": "Stop should stop the belt."
+        },
+        {
+          "at": 3.5,
+          "tag": "PartCount",
+          "expect": "1",
+          "says": "One part passed before Stop: the count should still be 1."
+        },
+        {
+          "at": 3.5,
+          "tag": "BatchDone",
+          "expect": "FALSE",
+          "says": "One part is not a batch."
+        }
+      ]
+    },
+    {
+      "name": "A stop part-way through a batch",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 13.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 5.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 5.2,
+          "operate": "stop",
+          "active": false
+        },
+        {
+          "t": 7.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 7.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 11.5,
+          "tag": "BatchDone",
+          "expect": "FALSE",
+          "says": "Four parts have passed by 11.5 s."
+        },
+        {
+          "at": 12.5,
+          "tag": "BatchDone",
+          "expect": "TRUE",
+          "says": "The count must carry on after a stop: five parts by 12.5 s."
+        },
+        {
+          "at": 12.5,
+          "tag": "Belt",
+          "expect": "FALSE",
+          "says": "The belt should stop when the batch is done."
+        }
+      ]
+    }
+  ]
+}

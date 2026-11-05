@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "m7-batch-counter",
+  "title": "Batch counter",
+  "description": "Parts drop into a box one at a time. The Part button stands for the sensor that sees each part fall in. The operator dials the batch size (how many parts make one full box) on a thumbwheel, and presses Reset when a new box is put in place.",
+  "width": 460,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "part",
+      "label": "Part",
+      "tag": "PartPB",
+      "color": "green",
+      "x": 30,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "reset",
+      "label": "Reset",
+      "tag": "ResetPB",
+      "color": "amber",
+      "x": 30,
+      "y": 120
+    },
+    {
+      "type": "thumbwheel",
+      "id": "batch",
+      "label": "Batch size",
+      "tag": "BatchSize",
+      "digits": 2,
+      "value": 5,
+      "x": 30,
+      "y": 220
+    },
+    {
+      "type": "pilotLight",
+      "id": "filling",
+      "label": "Filling batch",
+      "tag": "Filling",
+      "color": "amber",
+      "x": 270,
+      "y": 40
+    },
+    {
+      "type": "pilotLight",
+      "id": "done",
+      "label": "Batch done",
+      "tag": "BatchDone",
+      "color": "green",
+      "x": 270,
+      "y": 170
+    }
+  ]
+}

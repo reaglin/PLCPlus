@@ -1,0 +1,377 @@
+{
+  "schemaVersion": 1,
+  "name": "A transfer arm in four steps (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "GripIsClosed",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Gripper extended sensor: TRUE when the gripper is fully closed"
+    },
+    {
+      "name": "GripIsOpen",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Gripper retracted sensor: TRUE when the gripper is fully open"
+    },
+    {
+      "name": "ArmIsOut",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Arm extended sensor: TRUE when the arm is fully out"
+    },
+    {
+      "name": "ArmIsIn",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Arm retracted sensor: TRUE when the arm is fully in"
+    },
+    {
+      "name": "GripClose",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "ArmOut",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "ArmIn",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Step1",
+      "type": "BOOL",
+      "comment": "step 1: grip the part"
+    },
+    {
+      "name": "Step2",
+      "type": "BOOL",
+      "comment": "step 2: arm out"
+    },
+    {
+      "name": "Step3",
+      "type": "BOOL",
+      "comment": "step 3: let go"
+    },
+    {
+      "name": "Step4",
+      "type": "BOOL",
+      "comment": "step 4: arm back"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "MISTAKE: nothing ends step 1. Step 2 should, with a normally closed contact of Step2 here.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "Step2",
+                        "contact": "normallyClosed"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "Step3",
+                        "contact": "normallyClosed"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "Step4",
+                        "contact": "normallyClosed"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Step1",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 2, arm out: step 1 AND the gripper is fully closed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step1",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "GripIsClosed",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step2",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Step3",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Step2",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 3, let go: step 2 AND the arm is fully out.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step2",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "ArmIsOut",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step3",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Step4",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Step3",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 4, arm back: step 3 AND the gripper is fully open. It ends when the arm is fully in.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step3",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "GripIsOpen",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step4",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "ArmIsIn",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Step4",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The gripper is closed in steps 1 and 2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step2",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "GripClose",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The arm goes out in step 2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Step2",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "ArmOut",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The arm comes back in step 4.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Step4",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "ArmIn",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

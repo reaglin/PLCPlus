@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "name": "Bake for 8 s in all, through a door opening (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "BakeSW",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Bake switch: TRUE in On"
+    },
+    {
+      "name": "DoorShut",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Door switch: TRUE while the door is shut"
+    },
+    {
+      "name": "ClearPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Clear button: TRUE while pressed"
+    },
+    {
+      "name": "Heater",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "DoneLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "T1",
+      "type": "TONR",
+      "comment": "the bake time, kept through door openings"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Heat with Bake On, the door shut, and the bake not yet done.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "BakeSW",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "DoorShut",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Heater",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Add up the heating time (retentive): 8 s in all. Clear sets it back to 0.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Heater",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TONR",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#8s",
+                  "R": "ClearPB"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Done once 8 s of heat have added up.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "DoneLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

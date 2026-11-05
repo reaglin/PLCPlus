@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "id": "m8-batch-tank",
+  "title": "Batch mixing tank",
+  "description": "A tank that makes one batch at a time: fill it, mix it, drain it. A fill valve, a mixer motor, a drain valve, a high float at 80 % and a low float at 10 %, Start and Stop buttons, and a display that shows the step number.",
+  "width": 470,
+  "height": 360,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 20,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 20,
+      "y": 110
+    },
+    {
+      "type": "numericDisplay",
+      "id": "step",
+      "label": "Step",
+      "tag": "Step",
+      "digits": 1,
+      "x": 20,
+      "y": 210
+    },
+    {
+      "type": "solenoidValve",
+      "id": "fill",
+      "label": "Fill valve",
+      "tag": "FillValve",
+      "tank": "tank",
+      "inlet": true,
+      "ratePercentPerSecond": 20,
+      "x": 180,
+      "y": 10
+    },
+    {
+      "type": "tank",
+      "id": "tank",
+      "label": "Tank",
+      "initialLevelPercent": 0,
+      "x": 170,
+      "y": 60,
+      "width": 120,
+      "height": 200
+    },
+    {
+      "type": "solenoidValve",
+      "id": "drain",
+      "label": "Drain valve",
+      "tag": "DrainValve",
+      "tank": "tank",
+      "inlet": false,
+      "ratePercentPerSecond": 20,
+      "x": 180,
+      "y": 290
+    },
+    {
+      "type": "floatSwitch",
+      "id": "high",
+      "label": "High float (80 %)",
+      "tag": "HighFloat",
+      "tank": "tank",
+      "levelPercent": 80,
+      "x": 305,
+      "y": 90
+    },
+    {
+      "type": "floatSwitch",
+      "id": "low",
+      "label": "Low float (10 %)",
+      "tag": "LowFloat",
+      "tank": "tank",
+      "levelPercent": 10,
+      "x": 305,
+      "y": 225
+    },
+    {
+      "type": "motor",
+      "id": "mixer",
+      "label": "Mixer",
+      "runTag": "Mixer",
+      "startTimeMs": 500,
+      "x": 330,
+      "y": 140
+    }
+  ]
+}

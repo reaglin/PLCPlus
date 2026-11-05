@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "id": "u11.doorbell",
+  "title": "A doorbell with two buttons",
+  "brief": "Either button rings the bell while it is pressed. The Front light is lit while the front button is pressed, and the Back light while the back button is, so you know which door to answer.",
+  "scene": "m11-doorbell",
+  "constraints": {
+    "maxRungs": 5
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Press each button on its own and watch the Bell: which one does not ring it?",
+    "Count the rungs that have a coil of Bell. When two rungs write one tag, the lower rung wins in every scan.",
+    "Ring the bell from one rung, with the two buttons side by side (a branch: OR)."
+  ],
+  "scenarios": [
+    {
+      "name": "The front button rings the bell",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "front",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "front",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "Bell",
+          "expect": "TRUE",
+          "says": "The bell should ring while the front button is pressed."
+        },
+        {
+          "at": 0.3,
+          "tag": "FrontLight",
+          "expect": "TRUE",
+          "says": "The Front light should be lit while the front button is pressed."
+        },
+        {
+          "at": 0.8,
+          "tag": "Bell",
+          "expect": "FALSE",
+          "says": "The bell should stop when the button is let go."
+        }
+      ]
+    },
+    {
+      "name": "The back button rings the bell",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "back",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "back",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "Bell",
+          "expect": "TRUE",
+          "says": "The bell should ring while the back button is pressed."
+        },
+        {
+          "at": 0.3,
+          "tag": "BackLight",
+          "expect": "TRUE",
+          "says": "The Back light should be lit while the back button is pressed."
+        },
+        {
+          "at": 0.3,
+          "tag": "FrontLight",
+          "expect": "FALSE",
+          "says": "The Front light should stay off: it was the back door."
+        }
+      ]
+    },
+    {
+      "name": "Both buttons at once",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "front",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "front",
+          "active": false
+        },
+        {
+          "t": 0.1,
+          "operate": "back",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "back",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "Bell",
+          "expect": "TRUE",
+          "says": "The bell should ring while both buttons are pressed."
+        },
+        {
+          "at": 0.3,
+          "tag": "FrontLight",
+          "expect": "TRUE",
+          "says": "Both lights should be lit."
+        },
+        {
+          "at": 0.3,
+          "tag": "BackLight",
+          "expect": "TRUE",
+          "says": "Both lights should be lit."
+        }
+      ]
+    }
+  ]
+}

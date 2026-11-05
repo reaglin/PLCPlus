@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "id": "u6.pump-service",
+  "title": "Light Service due after 10 s of pumping in all",
+  "brief": "Start runs the pump and it keeps running; Stop stops it. When the pump has run for 10 s in all, over however many starts, the Service due light comes on, and stays on, even after the pump stops. Turning the Reset key to Reset puts the light out and starts the running time again from 0. (10 s stands in for the hours a real pump would run.)",
+  "scene": "m6-pump-service",
+  "constraints": {
+    "requiredInstructions": [
+      "TONR"
+    ],
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Start with the seal-in for the pump, as in module 5.",
+    "The running time must add up over several starts, so the timer must keep its time while the pump is stopped.",
+    "The timer's R input clears it. Which tag tells the PLC the technician wants it cleared?"
+  ],
+  "scenarios": [
+    {
+      "name": "Running time adds up over two starts",
+      "points": 1,
+      "durationSeconds": 15.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 4.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 4.2,
+          "operate": "stop",
+          "active": false
+        },
+        {
+          "t": 6.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 6.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 14.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 14.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "Pump",
+          "expect": "TRUE",
+          "says": "Start should run the pump, and it should keep running."
+        },
+        {
+          "at": 5.0,
+          "tag": "Pump",
+          "expect": "FALSE",
+          "says": "Stop should stop the pump."
+        },
+        {
+          "at": 11.8,
+          "tag": "ServiceLight",
+          "expect": "FALSE",
+          "says": "4 s and then 5.8 s of running is not yet 10 s: the light should still be out."
+        },
+        {
+          "at": 12.2,
+          "tag": "ServiceLight",
+          "expect": "TRUE",
+          "says": "4 s of running, then 6 s more, make 10 s: Service due should be lit at 12 s."
+        },
+        {
+          "at": 14.6,
+          "tag": "ServiceLight",
+          "expect": "TRUE",
+          "says": "Service due should stay lit after the pump stops."
+        }
+      ],
+      "windows": [
+        {
+          "tag": "ServiceLight",
+          "expect": "TRUE",
+          "after": 0,
+          "from": 11.95,
+          "to": 12.05,
+          "says": "Service due should light when the running time reaches 10 s in all (at 12.0 s)."
+        }
+      ]
+    },
+    {
+      "name": "The Reset key clears it",
+      "points": 1,
+      "durationSeconds": 13.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 11.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 11.2,
+          "operate": "stop",
+          "active": false
+        },
+        {
+          "t": 12.0,
+          "operate": "key",
+          "active": true
+        },
+        {
+          "t": 12.5,
+          "operate": "key",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 10.5,
+          "tag": "ServiceLight",
+          "expect": "TRUE",
+          "says": "Service due should light after 10 s of running."
+        },
+        {
+          "at": 12.2,
+          "tag": "ServiceLight",
+          "expect": "FALSE",
+          "says": "Turning the Reset key to Reset should put the light out."
+        },
+        {
+          "at": 13.0,
+          "tag": "ServiceLight",
+          "expect": "FALSE",
+          "says": "The light should stay out after the key is turned back to Run."
+        }
+      ]
+    },
+    {
+      "name": "After a reset the time starts again from 0",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 23.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 10.5,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 10.7,
+          "operate": "stop",
+          "active": false
+        },
+        {
+          "t": 11.0,
+          "operate": "key",
+          "active": true
+        },
+        {
+          "t": 11.5,
+          "operate": "key",
+          "active": false
+        },
+        {
+          "t": 12.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 12.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 21.8,
+          "tag": "ServiceLight",
+          "expect": "FALSE",
+          "says": "After a reset the running time starts from 0: 9.8 s is not yet 10 s."
+        },
+        {
+          "at": 22.2,
+          "tag": "ServiceLight",
+          "expect": "TRUE",
+          "says": "10 s after the restart, Service due should be lit again."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "name": "Fix the compressor's alarm (as it was given)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "HighTemp",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Temperature switch: TRUE while too hot"
+    },
+    {
+      "name": "LowOil",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Oil level switch: TRUE while the oil is low"
+    },
+    {
+      "name": "Compressor",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "TempLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "OilLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Horn",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Start/stop with a seal-in; a fault stops the compressor.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Compressor",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "HighTemp",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "contact",
+                "tag": "LowOil",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Compressor",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The High temperature light.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "HighTemp",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "TempLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Sound the horn when it is too hot.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "HighTemp",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Horn",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The Low oil light.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "LowOil",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "OilLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Sound the horn when the oil is low.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "LowOil",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Horn",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

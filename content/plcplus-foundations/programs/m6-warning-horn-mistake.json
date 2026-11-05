@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "name": "Warn for 3 s, then start the conveyor (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button (normally open): TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "WarnHorn",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "ConvMotor",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "RunRequest",
+      "type": "BOOL",
+      "comment": "Start was pressed and Stop has not been"
+    },
+    {
+      "name": "T1",
+      "type": "TON",
+      "comment": "the 3 s warning"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Remember Start: a seal-in, stopped by Stop.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "RunRequest",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "RunRequest",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "MISTAKE: the timer is started by the Start button itself, so it resets the moment Start is let go.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "StartPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#3s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The horn sounds while requested and the timer is not done.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "RunRequest",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "WarnHorn",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The motor runs once the timer is done.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "ConvMotor",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

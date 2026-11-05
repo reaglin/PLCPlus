@@ -97,6 +97,19 @@ public class QuizTests
     }
 
     [Fact]
+    public void EachLearnerSeesTheOptionsInAnOrderOfTheirOwn_TheSameEveryTime()
+    {
+        var q = new Question { Id = "q1", Kind = QuestionKind.Choice, Options = ["A", "B", "C", "D"], Correct = [0] };
+        var first = OptionOrder.For("learner-1", "quiz", q);
+        Assert.Equal(first, OptionOrder.For("learner-1", "quiz", q));          // the same on every try
+        Assert.Equal([0, 1, 2, 3], first.Order());                            // every option, once
+        // Over many learners the right answer is not always first.
+        var firstPlaces = Enumerable.Range(0, 40).Select(i => Array.IndexOf(OptionOrder.For($"learner-{i}", "quiz", q), 0)).ToHashSet();
+        Assert.True(firstPlaces.Count >= 3, string.Join(",", firstPlaces));
+        Assert.Equal([0], OptionOrder.For("x", "quiz", new Question { Id = "q", Options = ["only"] }));
+    }
+
+    [Fact]
     public void TruthTableNeedsEveryRowRight()
     {
         var q = new Question { Id = "t", Kind = QuestionKind.TruthTable, Expression = "A AND B" };

@@ -31,14 +31,14 @@ public class DashboardTests
         var d = Dashboard.Build(P, new LearningProgress(), T0);
         Assert.Equal(12, d.Modules.Count);
         Assert.Equal(PathState.Available, d.Modules[0].State);
-        Assert.Equal(PathState.Outline, d.Modules.Single(e => e.Module.Id == "plc.m6").State);
-        Assert.Equal(PathState.ComingLater, d.Modules.Single(e => e.Module.Id == "plc.m7").State);
+        Assert.Equal(PathState.ComingLater, d.Modules.Single(e => e.Module.Id == "plc.m9").State);
         Assert.All(d.Submissions, s => Assert.Equal(SubmissionState.NotReached, s.State));
-        Assert.Equal(["plc.m1.check", "plc.m2.check", "plc.m3.check", "plc.m4.check", "plc.m5.check"], d.Submissions.Select(s => s.Check.Id));
+        Assert.Equal(["plc.m1.check", "plc.m2.check", "plc.m3.check", "plc.m4.check", "plc.m5.check", "plc.m6.check", "plc.m7.check", "plc.m8.check", "plc.m11.check"],
+            d.Submissions.Select(s => s.Check.Id));
         Assert.Empty(d.ReviewSuggested);
         Assert.Equal(0, d.Totals.ItemsComplete);
-        Assert.Equal(27, d.Totals.Items);       // the written modules only: 5 + 5 + 5 + 6 + 6 in modules 1 to 5
-        Assert.Equal(5, d.Totals.Modules);
+        Assert.Equal(50, d.Totals.Items);       // the written modules only: 1-8 and 11
+        Assert.Equal(9, d.Totals.Modules);
         Assert.Equal(TimeSpan.Zero, d.Totals.Time);
     }
 

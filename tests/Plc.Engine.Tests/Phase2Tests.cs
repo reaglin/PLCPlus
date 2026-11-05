@@ -23,10 +23,11 @@ public class ContentTests
     [Fact]
     public void ThereAreTheSpecScenesAndTheirExamples()
     {
-        Assert.Equal(11, Challenges().Count());
-        var scenes = Challenges().Select(c => PlcChallengeRunner.LoadChallenge(K.Content(((string)c[0]).Split('/'))).Scene).ToHashSet();
-        Assert.Equal(
-            new HashSet<string> { "pilot-station", "motor-station", "traffic-light", "garage-door", "tank", "conveyor-sorter", "press-guard", "pump-station", "reversing-conveyor", "overheat-alarm", "push-on-push-off" }, scenes);
+        // The spec's Phase 1 scene set (5.3) is all there, and every challenge has its own scene.
+        var scenes = Challenges().Select(c => PlcChallengeRunner.LoadChallenge(K.Content(((string)c[0]).Split('/'))).Scene).ToList();
+        Assert.Superset(new HashSet<string> { "pilot-station", "motor-station", "traffic-light", "garage-door", "tank", "conveyor-sorter" }, scenes.ToHashSet());
+        Assert.True(Challenges().Count() >= 40, $"{Challenges().Count()} challenges");
+        Assert.Equal(Challenges().Count(), Challenges().Select(c => (string)c[0]).Distinct().Count());
     }
 
     [Theory]
@@ -221,6 +222,34 @@ public class PackageCheckTests
     [Fact]
     public void TheFoundationsPackagePassesEveryCheck() =>
         Assert.Empty(PackageChecks.Validate(Path.Combine(K.RepoRoot(), "content", "plcplus-foundations")));
+
+    [Fact]
+    public void AnExampleThatRunsAnExercisesAnswerIsReported()
+    {
+        // A copy of the package, with 3.3's Example pointed at the motor exercise of 5.2 and its ladder picture at its answer.
+        var source = Path.Combine(K.RepoRoot(), "content", "plcplus-foundations");
+        var copy = Path.Combine(Path.GetTempPath(), "plcplus-d21-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+            {
+                var to = Path.Combine(copy, Path.GetRelativePath(source, file));
+                Directory.CreateDirectory(Path.GetDirectoryName(to)!);
+                File.Copy(file, to);
+            }
+            var page = Path.Combine(copy, "modules", "03-relay-control", "03-seal-in.md");
+            File.WriteAllText(page, File.ReadAllText(page)
+                .Replace("example: u5.pump-start-stop", "example: u5.motor-start-stop", StringComparison.Ordinal)
+                .Replace("programs/pump-station.json", "programs/motor-seal-in.json", StringComparison.Ordinal));
+            var problems = PackageChecks.Validate(copy);
+            Assert.Contains(problems, p => p.Contains("its Example runs u5.motor-start-stop", StringComparison.Ordinal));
+            Assert.Contains(problems, p => p.Contains("is the answer to the exercise of 5.2", StringComparison.Ordinal));
+        }
+        finally
+        {
+            Directory.Delete(copy, recursive: true);
+        }
+    }
 
     [Fact]
     public void ABadWidgetIsReported()

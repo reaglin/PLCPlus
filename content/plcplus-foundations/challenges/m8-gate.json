@@ -1,0 +1,410 @@
+{
+  "schemaVersion": 1,
+  "id": "u8.gate",
+  "title": "A gate as a state machine",
+  "brief": "Write the gate as a state machine, with its state number in the INT tag State (the State display shows it). States: 0 Closed (nothing on), 1 Opening (GateOpen on), 2 Open (nothing on; it waits 3 s), 3 Closing (GateClose on), 9 Stopped (the Stopped light on, nothing moves). Moves: Closed to Opening when Open is pressed; Opening to Open when GateIsOpen; Open to Closing after 3 s; Closing to Closed when GateIsClosed; Closing to Opening when Open is pressed (someone needs to get through). From ANY state to Stopped when Stop is pressed or the air pressure is low. Stopped to Closing when Reset is pressed, but only once Stop is let go and the air pressure is OK: the gate may have stopped anywhere, so it closes before the machine is idle again. Stop is wired normally closed; AirOK is TRUE while the pressure is OK.",
+  "scene": "m8-gate",
+  "constraints": {
+    "maxRungs": 18
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Make a table first: each state, its outputs, and each move with its condition. Then one rung per move, one rung per output.",
+    "A move: EQ for the state it leaves, the condition, then MOVE the new state's number into State.",
+    "The move to Stopped (9) comes from every state, so it has no EQ box. Put it after the other moves, so it wins.",
+    "Where does Reset take the gate? Not straight to Closed: the gate is not closed yet."
+  ],
+  "scenarios": [
+    {
+      "name": "Open, wait, close",
+      "points": 1,
+      "durationSeconds": 6.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "open",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "State",
+          "expect": "1",
+          "says": "Open pressed in Closed (0) should go to Opening (1)."
+        },
+        {
+          "at": 0.5,
+          "tag": "GateOpen",
+          "expect": "TRUE",
+          "says": "In Opening (1), GateOpen should be on."
+        },
+        {
+          "at": 2.0,
+          "tag": "State",
+          "expect": "2",
+          "says": "Fully open, the gate should be in Open (2)."
+        },
+        {
+          "at": 2.0,
+          "tag": "GateOpen",
+          "expect": "FALSE",
+          "says": "In Open (2), GateOpen should be off: the cylinder stays where it is."
+        },
+        {
+          "at": 3.5,
+          "tag": "GateClose",
+          "expect": "FALSE",
+          "says": "The gate should stay open for 3 s."
+        },
+        {
+          "at": 4.6,
+          "tag": "State",
+          "expect": "3",
+          "says": "After 3 s open, the gate should be in Closing (3)."
+        },
+        {
+          "at": 4.6,
+          "tag": "GateClose",
+          "expect": "TRUE",
+          "says": "In Closing (3), GateClose should be on."
+        },
+        {
+          "at": 5.6,
+          "tag": "State",
+          "expect": "0",
+          "says": "Fully closed, the gate should be back in Closed (0)."
+        },
+        {
+          "at": 5.6,
+          "tag": "GateClose",
+          "expect": "FALSE",
+          "says": "In Closed (0), GateClose should be off."
+        },
+        {
+          "at": 5.6,
+          "tag": "@gate.retracted",
+          "expect": "TRUE",
+          "says": "At the end the gate should be fully closed."
+        }
+      ],
+      "windows": [
+        {
+          "tag": "GateClose",
+          "expect": "TRUE",
+          "after": 0,
+          "from": 4.05,
+          "to": 4.2,
+          "says": "The gate should start closing 3 s after it is fully open, about 4.1 s after Open was pressed."
+        },
+        {
+          "tag": "State",
+          "expect": "0",
+          "after": 4.5,
+          "from": 5.05,
+          "to": 5.25,
+          "says": "The state should go back to Closed (0) when the gate is fully closed, about 5.1 s after Open was pressed."
+        }
+      ],
+      "order": [
+        {
+          "first": "@gate.extended",
+          "then": "GateClose",
+          "after": 0,
+          "says": "The gate should be fully open before it starts to close."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "GateOpen",
+            "GateClose"
+          ],
+          "says": "GateOpen and GateClose must never be on together: the gate would not move."
+        }
+      ]
+    },
+    {
+      "name": "Open pressed while closing opens it again",
+      "points": 1,
+      "durationSeconds": 6.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "open",
+          "active": false
+        },
+        {
+          "t": 4.5,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 4.7,
+          "operate": "open",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 4.6,
+          "tag": "State",
+          "expect": "1",
+          "says": "Open pressed in Closing (3) should go back to Opening (1)."
+        },
+        {
+          "at": 4.6,
+          "tag": "GateOpen",
+          "expect": "TRUE",
+          "says": "Back in Opening (1), GateOpen should be on."
+        },
+        {
+          "at": 4.6,
+          "tag": "GateClose",
+          "expect": "FALSE",
+          "says": "Back in Opening (1), GateClose should be off."
+        },
+        {
+          "at": 5.5,
+          "tag": "State",
+          "expect": "2",
+          "says": "Fully open again, the gate should be in Open (2)."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "GateOpen",
+            "GateClose"
+          ],
+          "says": "GateOpen and GateClose must never be on together: the gate would not move."
+        }
+      ]
+    },
+    {
+      "name": "Stop stops the gate where it is; Reset closes it",
+      "points": 1,
+      "durationSeconds": 4.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "open",
+          "active": false
+        },
+        {
+          "t": 0.6,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "stop",
+          "active": false
+        },
+        {
+          "t": 1.8,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 2.0,
+          "operate": "open",
+          "active": false
+        },
+        {
+          "t": 2.5,
+          "operate": "reset",
+          "active": true
+        },
+        {
+          "t": 2.7,
+          "operate": "reset",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.7,
+          "tag": "State",
+          "expect": "9",
+          "says": "Stop pressed should go to Stopped (9) at once."
+        },
+        {
+          "at": 0.7,
+          "tag": "GateOpen",
+          "expect": "FALSE",
+          "says": "In Stopped (9) the gate must not move."
+        },
+        {
+          "at": 0.7,
+          "tag": "StopLight",
+          "expect": "TRUE",
+          "says": "In Stopped (9) the Stopped light should be on."
+        },
+        {
+          "at": 1.5,
+          "tag": "@gate.position",
+          "expect": "0.5",
+          "says": "The gate should stay where it stopped, half open.",
+          "tolerance": 0.05
+        },
+        {
+          "at": 1.9,
+          "tag": "GateOpen",
+          "expect": "FALSE",
+          "says": "In Stopped (9), Open must do nothing: only Reset leaves Stopped."
+        },
+        {
+          "at": 1.9,
+          "tag": "State",
+          "expect": "9",
+          "says": "In Stopped (9), Open must do nothing."
+        },
+        {
+          "at": 2.6,
+          "tag": "State",
+          "expect": "3",
+          "says": "Reset should go to Closing (3): the gate is half open, so it must close first."
+        },
+        {
+          "at": 2.6,
+          "tag": "GateClose",
+          "expect": "TRUE",
+          "says": "After Reset the gate should close."
+        },
+        {
+          "at": 2.6,
+          "tag": "StopLight",
+          "expect": "FALSE",
+          "says": "After Reset the Stopped light should go out."
+        },
+        {
+          "at": 3.6,
+          "tag": "@gate.retracted",
+          "expect": "TRUE",
+          "says": "After Reset the gate should end fully closed."
+        },
+        {
+          "at": 3.6,
+          "tag": "State",
+          "expect": "0",
+          "says": "Once the gate is closed, the state should be Closed (0)."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "GateOpen",
+            "GateClose"
+          ],
+          "says": "GateOpen and GateClose must never be on together: the gate would not move."
+        }
+      ],
+      "hint": "After Reset the gate is still half open. Which state closes it?"
+    },
+    {
+      "name": "Low air pressure stops the gate until Reset",
+      "points": 1,
+      "durationSeconds": 8.0,
+      "hidden": true,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "open",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "open",
+          "active": false
+        },
+        {
+          "t": 1.5,
+          "operate": "air",
+          "active": false
+        },
+        {
+          "t": 5.0,
+          "operate": "reset",
+          "active": true
+        },
+        {
+          "t": 5.2,
+          "operate": "reset",
+          "active": false
+        },
+        {
+          "t": 5.5,
+          "operate": "air",
+          "active": true
+        },
+        {
+          "t": 6.0,
+          "operate": "reset",
+          "active": true
+        },
+        {
+          "t": 6.2,
+          "operate": "reset",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.0,
+          "tag": "State",
+          "expect": "9",
+          "says": "Low air pressure should go to Stopped (9)."
+        },
+        {
+          "at": 4.5,
+          "tag": "GateClose",
+          "expect": "FALSE",
+          "says": "In Stopped (9) the gate must not close by itself, even after the open time is up."
+        },
+        {
+          "at": 5.3,
+          "tag": "State",
+          "expect": "9",
+          "says": "Reset must not leave Stopped while the air pressure is still low."
+        },
+        {
+          "at": 7.5,
+          "tag": "@gate.retracted",
+          "expect": "TRUE",
+          "says": "With the air back and Reset pressed, the gate should close."
+        },
+        {
+          "at": 7.5,
+          "tag": "State",
+          "expect": "0",
+          "says": "Once it is closed, the state should be Closed (0)."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "GateOpen",
+            "GateClose"
+          ],
+          "says": "GateOpen and GateClose must never be on together: the gate would not move."
+        }
+      ]
+    }
+  ]
+}

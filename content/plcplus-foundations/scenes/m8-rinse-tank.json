@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "id": "m8-rinse-tank",
+  "title": "Rinse tank with a leak detector",
+  "description": "A rinse tank that fills and drains once per Start. A fill valve, a drain valve, a high float at 80 % and a low float at 10 %, a leak detector on the floor under the tank (Dry or Wet), a horn, Start, Stop and Alarm reset buttons, and a display that shows the state number.",
+  "width": 480,
+  "height": 380,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 20,
+      "y": 10
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 20,
+      "y": 90
+    },
+    {
+      "type": "pushButton",
+      "id": "reset",
+      "label": "Alarm reset",
+      "tag": "ResetPB",
+      "color": "green",
+      "x": 20,
+      "y": 170
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "leak",
+      "label": "Leak detector",
+      "tag": "Leak",
+      "positions": [
+        "Dry",
+        "Wet"
+      ],
+      "x": 20,
+      "y": 250
+    },
+    {
+      "type": "numericDisplay",
+      "id": "state",
+      "label": "State",
+      "tag": "State",
+      "digits": 1,
+      "x": 20,
+      "y": 310
+    },
+    {
+      "type": "solenoidValve",
+      "id": "fill",
+      "label": "Fill valve",
+      "tag": "FillValve",
+      "tank": "tank",
+      "inlet": true,
+      "ratePercentPerSecond": 25,
+      "x": 190,
+      "y": 10
+    },
+    {
+      "type": "tank",
+      "id": "tank",
+      "label": "Tank",
+      "initialLevelPercent": 0,
+      "x": 180,
+      "y": 60,
+      "width": 120,
+      "height": 200
+    },
+    {
+      "type": "solenoidValve",
+      "id": "drain",
+      "label": "Drain valve",
+      "tag": "DrainValve",
+      "tank": "tank",
+      "inlet": false,
+      "ratePercentPerSecond": 25,
+      "x": 190,
+      "y": 290
+    },
+    {
+      "type": "floatSwitch",
+      "id": "high",
+      "label": "High float (80 %)",
+      "tag": "HighFloat",
+      "tank": "tank",
+      "levelPercent": 80,
+      "x": 315,
+      "y": 90
+    },
+    {
+      "type": "floatSwitch",
+      "id": "low",
+      "label": "Low float (10 %)",
+      "tag": "LowFloat",
+      "tank": "tank",
+      "levelPercent": 10,
+      "x": 315,
+      "y": 225
+    },
+    {
+      "type": "horn",
+      "id": "horn",
+      "label": "Leak horn",
+      "tag": "Alarm",
+      "x": 340,
+      "y": 150
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": "m6-batch-counter",
+  "title": "Batch counter",
+  "description": "A conveyor carries parts past a photo eye to a packing station. Start and Stop (Stop wired normally closed) run the belt; a display shows the parts counted; Batch done lights when a batch is complete; Next batch is pressed when the packer has taken it away.",
+  "width": 460,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 20,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 120,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "next",
+      "label": "Next batch",
+      "tag": "NextPB",
+      "color": "green",
+      "x": 220,
+      "y": 20
+    },
+    {
+      "type": "numericDisplay",
+      "id": "count",
+      "label": "Parts",
+      "tag": "PartCount",
+      "digits": 2,
+      "x": 320,
+      "y": 20
+    },
+    {
+      "type": "pilotLight",
+      "id": "done",
+      "label": "Batch done",
+      "tag": "BatchDone",
+      "color": "amber",
+      "x": 320,
+      "y": 100
+    },
+    {
+      "type": "conveyor",
+      "id": "belt",
+      "label": "Conveyor",
+      "runTag": "Belt",
+      "crossTimeMs": 4000,
+      "feedIntervalMs": 2000,
+      "feedPattern": [
+        "part"
+      ],
+      "length": 380,
+      "endBinLabel": "Packing",
+      "x": 30,
+      "y": 210
+    },
+    {
+      "type": "photoEye",
+      "id": "eye",
+      "label": "Photo eye",
+      "tag": "PartEye",
+      "conveyor": "belt",
+      "at": 0.5,
+      "zone": 0.03,
+      "x": 0,
+      "y": 0
+    }
+  ]
+}

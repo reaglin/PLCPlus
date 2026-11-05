@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "id": "u7.shift-targets",
+  "title": "Look up a target in a table",
+  "brief": "Targets is an array: Targets[1] = 120, Targets[2] = 100, Targets[3] = 80. The Target display shows Targets[Shift] for the shift dialled. For any other number the display shows 0 and No such shift is lit, and the PLC keeps running.",
+  "scene": "m7-shift-targets",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Fill the table with three MOVEs, one for each element.",
+    "Check that Shift is 1 to 3 (GE and LE) before using it as an index.",
+    "Outside 1 to 3: MOVE 0 to Target and light NoShift."
+  ],
+  "scenarios": [
+    {
+      "name": "Each shift's target",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.3,
+          "operate": "shift",
+          "value": 2
+        },
+        {
+          "t": 0.6,
+          "operate": "shift",
+          "value": 3
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.2,
+          "tag": "Target",
+          "expect": "120",
+          "says": "Shift 1: Targets[1] is 120."
+        },
+        {
+          "at": 0.5,
+          "tag": "Target",
+          "expect": "100",
+          "says": "Shift 2: Targets[2] is 100."
+        },
+        {
+          "at": 0.8,
+          "tag": "Target",
+          "expect": "80",
+          "says": "Shift 3: Targets[3] is 80."
+        },
+        {
+          "at": 0.8,
+          "tag": "NoShift",
+          "expect": "FALSE",
+          "says": "3 is a real shift: No such shift should be off."
+        }
+      ]
+    },
+    {
+      "name": "Shift 4 does not exist",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.2,
+          "operate": "shift",
+          "value": 4
+        },
+        {
+          "t": 0.6,
+          "operate": "shift",
+          "value": 2
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.4,
+          "tag": "NoShift",
+          "expect": "TRUE",
+          "says": "There is no shift 4: No such shift should be lit, and the PLC should keep running."
+        },
+        {
+          "at": 0.4,
+          "tag": "Target",
+          "expect": "0",
+          "says": "For a shift that does not exist, Target should show 0."
+        },
+        {
+          "at": 0.8,
+          "tag": "Target",
+          "expect": "100",
+          "says": "Back on shift 2 the target is 100 again. If the display is blank, the PLC stopped with an index fault at shift 4."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "m7-inspection",
+  "title": "Inspection station",
+  "description": "An inspector checks each part: Good part or Reject. Four displays show the good parts, the rejects, the total, and the rejects as a percentage of the total.",
+  "width": 470,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "good",
+      "label": "Good part",
+      "tag": "GoodPB",
+      "color": "green",
+      "x": 30,
+      "y": 40
+    },
+    {
+      "type": "pushButton",
+      "id": "reject",
+      "label": "Reject",
+      "tag": "RejectPB",
+      "color": "red",
+      "x": 30,
+      "y": 170
+    },
+    {
+      "type": "numericDisplay",
+      "id": "goodcount",
+      "label": "Good",
+      "tag": "GoodCount",
+      "digits": 3,
+      "x": 220,
+      "y": 20
+    },
+    {
+      "type": "numericDisplay",
+      "id": "rejectcount",
+      "label": "Rejects",
+      "tag": "RejectCount",
+      "digits": 3,
+      "x": 340,
+      "y": 20
+    },
+    {
+      "type": "numericDisplay",
+      "id": "total",
+      "label": "Total",
+      "tag": "Total",
+      "digits": 3,
+      "x": 220,
+      "y": 170
+    },
+    {
+      "type": "numericDisplay",
+      "id": "pct",
+      "label": "Rejects %",
+      "tag": "RejectPct",
+      "digits": 3,
+      "x": 340,
+      "y": 170
+    }
+  ]
+}

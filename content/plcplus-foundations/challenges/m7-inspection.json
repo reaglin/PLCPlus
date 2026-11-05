@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "id": "u7.inspection",
+  "title": "Count good parts and rejects",
+  "brief": "Each press of Good part adds 1 to GoodCount, and each press of Reject adds 1 to RejectCount: once per press, however long the button is held. Total shows GoodCount + RejectCount. RejectPct shows the rejects as a whole-number percentage of the total (1 reject in 3 parts is 33). Before the first part there is nothing to divide by, and the PLC must keep running.",
+  "scene": "m7-inspection",
+  "constraints": {
+    "requiredInstructions": [
+      "ADD",
+      "DIV"
+    ],
+    "maxRungs": 8
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Count with ADD: a rising-edge contact of GoodPB, then ADD GoodCount + 1 into GoodCount. Without the edge it adds 1 on every scan the button is held.",
+    "Total: an ADD box with no contact in front, so it works out the sum on every scan.",
+    "Percent: whole numbers drop the remainder, so 1 / 3 is 0. Multiply by 100 first, then divide: (RejectCount x 100) / Total.",
+    "DIV by 0 stops the PLC. Put a compare in front of the MUL and DIV so they run only while Total is more than 0."
+  ],
+  "scenarios": [
+    {
+      "name": "Two good parts and one reject",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "good",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "good",
+          "active": false
+        },
+        {
+          "t": 0.3,
+          "operate": "good",
+          "active": true
+        },
+        {
+          "t": 0.4,
+          "operate": "good",
+          "active": false
+        },
+        {
+          "t": 0.5,
+          "operate": "reject",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "reject",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.8,
+          "tag": "GoodCount",
+          "expect": "2",
+          "says": "Two presses of Good part: GoodCount should be 2."
+        },
+        {
+          "at": 0.8,
+          "tag": "RejectCount",
+          "expect": "1",
+          "says": "One press of Reject: RejectCount should be 1."
+        },
+        {
+          "at": 0.8,
+          "tag": "Total",
+          "expect": "3",
+          "says": "Total should be GoodCount + RejectCount = 3."
+        },
+        {
+          "at": 0.8,
+          "tag": "RejectPct",
+          "expect": "33",
+          "says": "1 reject in 3 parts is 33 % (33.3, and whole numbers drop the .3). If you see 0, the program divides before it multiplies: 1 / 3 is 0 in whole numbers."
+        }
+      ]
+    },
+    {
+      "name": "No parts yet, then one good part",
+      "points": 1,
+      "durationSeconds": 1.0,
+      "events": [
+        {
+          "t": 0.5,
+          "operate": "good",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "good",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "Total",
+          "expect": "0",
+          "says": "Before any part, Total should be 0."
+        },
+        {
+          "at": 0.8,
+          "tag": "Total",
+          "expect": "1",
+          "says": "After one good part, Total should be 1. If it stayed 0, the PLC stopped: did it divide by Total while Total was 0?"
+        },
+        {
+          "at": 0.8,
+          "tag": "RejectPct",
+          "expect": "0",
+          "says": "One good part and no rejects is 0 % rejects."
+        }
+      ]
+    },
+    {
+      "name": "Holding a button counts one part",
+      "points": 1,
+      "durationSeconds": 1.2,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "reject",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "reject",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "RejectCount",
+          "expect": "1",
+          "says": "Reject was held down for 0.7 s but pressed once: RejectCount should be 1. Use a rising-edge contact so ADD runs once per press."
+        },
+        {
+          "at": 1.0,
+          "tag": "RejectPct",
+          "expect": "100",
+          "says": "1 reject in 1 part is 100 %."
+        }
+      ]
+    },
+    {
+      "name": "Two rejects in three, then four parts",
+      "points": 1,
+      "durationSeconds": 1.2,
+      "hidden": true,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "reject",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "reject",
+          "active": false
+        },
+        {
+          "t": 0.3,
+          "operate": "good",
+          "active": true
+        },
+        {
+          "t": 0.4,
+          "operate": "good",
+          "active": false
+        },
+        {
+          "t": 0.5,
+          "operate": "reject",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "reject",
+          "active": false
+        },
+        {
+          "t": 0.8,
+          "operate": "good",
+          "active": true
+        },
+        {
+          "t": 0.9,
+          "operate": "good",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.7,
+          "tag": "RejectPct",
+          "expect": "66",
+          "says": "2 rejects in 3 parts is 66 % (66.7 with the remainder dropped)."
+        },
+        {
+          "at": 1.0,
+          "tag": "RejectPct",
+          "expect": "50",
+          "says": "2 rejects in 4 parts is 50 %."
+        },
+        {
+          "at": 1.0,
+          "tag": "Total",
+          "expect": "4",
+          "says": "Total should be 4."
+        }
+      ]
+    }
+  ]
+}

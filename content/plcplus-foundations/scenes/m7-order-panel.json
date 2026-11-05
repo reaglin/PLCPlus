@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "m7-order-panel",
+  "title": "Order entry panel",
+  "description": "An operator dials an order quantity on a thumbwheel and presses Accept. The Accepted order display keeps the accepted number, even when the thumbwheel is turned again for the next order. Clear sets it back to 0.",
+  "width": 460,
+  "height": 330,
+  "components": [
+    {
+      "type": "thumbwheel",
+      "id": "qty",
+      "label": "Order quantity",
+      "tag": "OrderQty",
+      "digits": 3,
+      "value": 25,
+      "x": 30,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "accept",
+      "label": "Accept",
+      "tag": "AcceptPB",
+      "color": "green",
+      "x": 30,
+      "y": 140
+    },
+    {
+      "type": "pushButton",
+      "id": "clear",
+      "label": "Clear",
+      "tag": "ClearPB",
+      "color": "red",
+      "x": 30,
+      "y": 230
+    },
+    {
+      "type": "numericDisplay",
+      "id": "accepted",
+      "label": "Accepted order",
+      "tag": "Accepted",
+      "digits": 3,
+      "x": 260,
+      "y": 90
+    }
+  ]
+}

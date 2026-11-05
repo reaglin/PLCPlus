@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "m6-pump-service",
+  "title": "Pump with a service light",
+  "description": "A pump started and stopped by buttons (Stop wired normally closed). Its seals need a service after a set running time in all, over many starts. A Service light shows when; a Reset key switch, turned by the maintenance technician, clears it.",
+  "width": 440,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 30,
+      "y": 130
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "key",
+      "label": "Reset key",
+      "tag": "ResetKey",
+      "positions": [
+        "Run",
+        "Reset"
+      ],
+      "x": 30,
+      "y": 230
+    },
+    {
+      "type": "pilotLight",
+      "id": "service",
+      "label": "Service due",
+      "tag": "ServiceLight",
+      "color": "amber",
+      "x": 190,
+      "y": 30
+    },
+    {
+      "type": "motor",
+      "id": "pump",
+      "label": "Pump",
+      "runTag": "Pump",
+      "startTimeMs": 600,
+      "x": 310,
+      "y": 150
+    }
+  ]
+}

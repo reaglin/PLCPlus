@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "id": "u6.warning-horn",
+  "title": "Warn for 3 s, then start the conveyor",
+  "brief": "Press Start: the warning horn sounds for 3 s, then the horn stops and the conveyor motor starts, and it keeps running. Stop stops everything at any moment, during the warning too. Every start gets the full 3 s warning.",
+  "scene": "m6-warning-horn",
+  "constraints": {
+    "requiredInstructions": [
+      "TON"
+    ],
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Remember that Start was pressed in a memory tag (RunRequest) with a seal-in, stopped by Stop.",
+    "RunRequest starts an on-delay timer (TON) with PT T#3s.",
+    "The horn sounds while RunRequest is on AND the timer has NOT finished; the motor runs once the timer's Q is on."
+  ],
+  "scenarios": [
+    {
+      "name": "Start: 3 s of horn, then the belt",
+      "points": 1,
+      "durationSeconds": 4.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "WarnHorn",
+          "expect": "TRUE",
+          "says": "The horn should sound as soon as Start is pressed."
+        },
+        {
+          "at": 2.5,
+          "tag": "ConvMotor",
+          "expect": "FALSE",
+          "says": "The motor must not start during the 3 s warning."
+        },
+        {
+          "at": 3.2,
+          "tag": "WarnHorn",
+          "expect": "FALSE",
+          "says": "The horn should stop when the motor starts, 3 s after Start."
+        },
+        {
+          "at": 3.5,
+          "tag": "ConvMotor",
+          "expect": "TRUE",
+          "says": "The motor should be running 3 s after Start, after Start was let go."
+        }
+      ],
+      "windows": [
+        {
+          "tag": "ConvMotor",
+          "expect": "TRUE",
+          "after": 0,
+          "from": 2.95,
+          "to": 3.05,
+          "says": "The motor should start 3 s after Start is pressed, between 2.95 and 3.05 s."
+        }
+      ]
+    },
+    {
+      "name": "Stop during the warning",
+      "points": 1,
+      "durationSeconds": 4.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.5,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 1.7,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.6,
+          "tag": "WarnHorn",
+          "expect": "FALSE",
+          "says": "Stop should silence the horn during the warning."
+        },
+        {
+          "at": 4.0,
+          "tag": "ConvMotor",
+          "expect": "FALSE",
+          "says": "After Stop during the warning, the motor must not start."
+        }
+      ]
+    },
+    {
+      "name": "Stop stops the running belt",
+      "points": 1,
+      "durationSeconds": 5.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 4.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 4.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 3.8,
+          "tag": "ConvMotor",
+          "expect": "TRUE",
+          "says": "The motor should be running before Stop."
+        },
+        {
+          "at": 4.1,
+          "tag": "ConvMotor",
+          "expect": "FALSE",
+          "says": "Stop should stop the motor 0.1 s after it is pressed."
+        },
+        {
+          "at": 4.6,
+          "tag": "WarnHorn",
+          "expect": "FALSE",
+          "says": "The horn should stay quiet after Stop."
+        }
+      ]
+    },
+    {
+      "name": "A new start gets the full warning",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 5.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.5,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 1.7,
+          "operate": "stop",
+          "active": false
+        },
+        {
+          "t": 2.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 2.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 4.9,
+          "tag": "ConvMotor",
+          "expect": "FALSE",
+          "says": "After a stop, the next start must warn for the full 3 s again."
+        },
+        {
+          "at": 5.2,
+          "tag": "ConvMotor",
+          "expect": "TRUE",
+          "says": "The motor should start 3 s after the second Start."
+        }
+      ]
+    }
+  ]
+}

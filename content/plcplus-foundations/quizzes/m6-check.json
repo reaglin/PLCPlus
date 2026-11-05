@@ -1,0 +1,153 @@
+{
+  "id": "plc.m6.check.quiz",
+  "title": "Module 6 check: timers and counters",
+  "passThreshold": 0.8,
+  "practice": false,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "numeric",
+      "objective": "plc.m6.o1",
+      "prompt": "An on-delay timer (TON) has PT T#3s. Its IN turns on at 2 s and stays on. At what time does its Q turn on?",
+      "answer": 5,
+      "tolerance": 0,
+      "unit": "s",
+      "explanation": "Q turns on when IN has been on for PT: 2 s + 3 s = 5 s."
+    },
+    {
+      "id": "q2",
+      "kind": "numeric",
+      "objective": "plc.m6.o1",
+      "prompt": "An off-delay timer (TOF) has PT T#5s. Its IN turns on at 1 s and off at 4 s. At what time does its Q turn **off**?",
+      "answer": 9,
+      "tolerance": 0,
+      "unit": "s",
+      "explanation": "A TOF's Q is on while IN is on, and for PT after IN goes off: 4 s + 5 s = 9 s. The time IN was on does not matter."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m6.o1",
+      "prompt": "A pulse timer (TP) has PT T#2s. Its IN turns on at 0 s and is held on until 6 s. When is its Q on?",
+      "options": [
+        "From 0 s to 2 s; then off, although IN is still on",
+        "From 0 s to 6 s; Q follows IN for as long as IN is held",
+        "From 2 s to 6 s; Q waits PT, then stays on while IN is on",
+        "From 0 s to 8 s; Q stays on for 2 s after IN goes off"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A pulse timer gives one pulse of exactly PT from the moment IN turns on, whatever IN does during it. On until 6 s would be IN itself; from 2 s would be a TON; until 8 s would be a TOF."
+    },
+    {
+      "id": "q4",
+      "kind": "fault",
+      "objective": "plc.m6.o1",
+      "machine": "u6.warning-horn",
+      "program": "Works",
+      "fault": "WarnHorn:failed",
+      "prompt": "This conveyor runs the working program from the Example in 6.1, but one device is faulty. Press **Start**, and watch the horn, the motor and the rungs for 4 s. Which fault does it have?",
+      "options": [
+        "The horn has failed: the PLC turns WarnHorn on for 3 s, but the horn does not sound",
+        "The motor has failed: the PLC turns Motor on after 3 s, but the belt does not move",
+        "The wire to Start is broken: Start always reads FALSE, so RunRequest never seals in",
+        "The wire to Stop is broken: Stop always reads FALSE, so RunRequest drops at once"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "On the rungs everything is right: RunRequest seals in, T1 counts to 3 s, WarnHorn is TRUE for those 3 s, and then the motor starts. Only the horn itself stays quiet, so the program is fine and the device (or its wiring) has failed. A broken Start or Stop wire would keep anything from starting. On a real conveyor, nobody would be warned: fix it before running the belt."
+    },
+    {
+      "id": "q5",
+      "kind": "numeric",
+      "objective": "plc.m6.o2",
+      "prompt": "A retentive timer (TONR; RTO on Allen-Bradley) has PT T#10s, and nothing turns on its R. Its IN is on from 0 s to 4 s, off from 4 s to 7 s, and on again from 7 s. At what time does its Q turn on?",
+      "answer": 13,
+      "tolerance": 0,
+      "unit": "s",
+      "explanation": "It keeps the 4 s while IN is off, and carries on from 7 s: it needs 6 s more, so Q turns on at 7 s + 6 s = 13 s. A TON would have started again from 0 at 7 s and finished at 17 s."
+    },
+    {
+      "id": "q6",
+      "kind": "multiple",
+      "objective": "plc.m6.o2",
+      "prompt": "Which of these jobs need a **retentive** timer, one that keeps its time while its input is off? Choose every one.",
+      "options": [
+        "A Service due light after a pump has run 500 hours in all, over many starts",
+        "A horn that sounds for 3 s before a conveyor starts, every time it starts",
+        "A part that must bake for 20 minutes in all, even if the oven door is opened part-way",
+        "A fan that runs on for 5 s after a heater turns off",
+        "An hour meter showing a machine's total running time"
+      ],
+      "correct": [
+        0,
+        2,
+        4
+      ],
+      "explanation": "Each of these adds time up over several runs, so the time must survive a stop: a TONR (RTO), cleared on purpose by its R input (RES on Allen-Bradley). The start-up warning must be the full 3 s every time (a TON), and the fan's run-on is an off-delay (a TOF)."
+    },
+    {
+      "id": "q7",
+      "kind": "choice",
+      "objective": "plc.m6.o3",
+      "prompt": "An up counter (CTU) has PV 5 and nothing in its R. A photo eye on its rung sees 7 parts go by. What do its CV and Q show?",
+      "options": [
+        "CV is 7 and Q is TRUE: it counts past PV, and Q is on from 5",
+        "CV is 5 and Q is TRUE: it stops counting when it reaches PV",
+        "CV is 2 and Q is FALSE: it starts again from 0 at PV",
+        "CV is 7 and Q is FALSE: Q is on only when CV equals PV"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A counter keeps counting past PV, and Q is TRUE while CV is at least PV. Only R sets it back to 0, so a program must reset it, or stop the parts, itself."
+    },
+    {
+      "id": "q8",
+      "kind": "fault",
+      "objective": "plc.m6.o3",
+      "machine": "u6.car-park",
+      "program": "Works",
+      "fault": "CarOut:open",
+      "prompt": "This car park runs the working program from the Example in 6.4, but one input is faulty. Press **Car in** five times, then **Car out**, and watch the display and the counter's rung. Which fault does it have?",
+      "options": [
+        "The exit sensor's wire is broken: CarOut always reads FALSE, so cars leaving are never counted",
+        "The entry sensor is shorted: CarIn always reads TRUE, so the count never goes up",
+        "The Full light has failed: the PLC turns Full on at 5, but the light stays dark",
+        "The Reset button is shorted: ResetPB always reads TRUE, so the count stays at 0"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Cars in count up to 5 and Full lights at 5, so the entry sensor, PV and the light are fine. Car out changes nothing: on the rung CarOut never turns TRUE, so CD never sees an edge."
+    },
+    {
+      "id": "q9",
+      "kind": "numeric",
+      "objective": "plc.m6.o4",
+      "prompt": "In the case packer, C1 counts bottles (PV 6) and is cleared each time it finishes; C2 counts each time C1 finishes (PV 4). Since the case was started, the displays show **Packs 2** and **Bottles 5**. How many bottles have passed the eye since the case was started?",
+      "answer": 17,
+      "tolerance": 0,
+      "unit": "bottles",
+      "explanation": "Each pack is 6 bottles, so 2 packs are 12, and 5 more make 17."
+    },
+    {
+      "id": "q10",
+      "kind": "choice",
+      "objective": "plc.m6.o4",
+      "prompt": "In the alarm beacon of 6.5, T1 (a TON, 0.5 s) times the beacon's on part, and T2 (a TON, 0.5 s, started by T1.Q) times the off part. What makes T1 start timing again after the off part?",
+      "options": [
+        "A normally closed contact of T2.Q on T1's rung: when T2 is done it breaks the rung, T1 resets, and T2 resets in turn",
+        "Nothing on the rungs: a TON resets itself when its ET reaches PT, and T1 starts again from 0",
+        "A normally closed contact of the Beacon on T1's rung: when the beacon goes off, T1 resets",
+        "The flash counter's Q in T1's R input: each counted flash clears T1, and it starts again"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A TON stays done while its IN is on; it resets only when IN goes off. T2 finishing turns T1's IN off for a scan, which resets T1, which resets T2, which lets T1 start again."
+    }
+  ]
+}

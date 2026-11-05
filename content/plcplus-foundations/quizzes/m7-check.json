@@ -1,0 +1,154 @@
+{
+  "id": "plc.m7.check.quiz",
+  "title": "Module 7 check: data and math",
+  "passThreshold": 0.8,
+  "practice": false,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "choice",
+      "objective": "plc.m7.o1",
+      "prompt": "A lamp must light once the count C1.CV reaches the number in Target, and **stay lit** if the count goes past it. Which box goes in front of the lamp's coil?",
+      "options": [
+        "EQ  IN1 C1.CV, IN2 Target",
+        "GE  IN1 C1.CV, IN2 Target",
+        "GT  IN1 C1.CV, IN2 Target",
+        "LE  IN1 C1.CV, IN2 Target"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "GE (GEQ on Allen-Bradley) passes power when C1.CV is greater than or equal to Target, so it lights at the target and stays lit past it. EQ is true only at exactly the target; GT lights one count late; LE is true below the target."
+    },
+    {
+      "id": "q2",
+      "kind": "match",
+      "objective": "plc.m7.o1",
+      "prompt": "Match each IEC compare box to its Allen-Bradley name.",
+      "pairs": [
+        { "left": "EQ (equal)", "right": "EQU" },
+        { "left": "NE (not equal)", "right": "NEQ" },
+        { "left": "GT (greater than)", "right": "GRT" },
+        { "left": "GE (greater than or equal)", "right": "GEQ" },
+        { "left": "LT (less than)", "right": "LES" },
+        { "left": "LE (less than or equal)", "right": "LEQ" }
+      ],
+      "explanation": "EQ is EQU, NE is NEQ, GT is GRT, GE is GEQ, LT is LES and LE is LEQ. They do the same job: pass power when the comparison is true."
+    },
+    {
+      "id": "q3",
+      "kind": "numeric",
+      "objective": "plc.m7.o3",
+      "prompt": "Total is 7 and RejectCount is 2 (both INT). The rung is: **GT Total 0**, then **MUL RejectCount 100** into Scaled, then **DIV Scaled Total** into RejectPct (an INT). What number does RejectPct hold?",
+      "answer": 28,
+      "tolerance": 0,
+      "unit": "%",
+      "explanation": "2 × 100 = 200, and 200 ÷ 7 = 28.57. Whole-number division drops the remainder (it does not round), so RejectPct is 28."
+    },
+    {
+      "id": "q4",
+      "kind": "numeric",
+      "objective": "plc.m7.o3",
+      "prompt": "Count is an INT holding 32767. The rung **ADD Count 1** into Count runs once. What does Count hold now?",
+      "answer": -32768,
+      "tolerance": 0,
+      "explanation": "32,767 is the largest number an INT can hold. One more does not fit, so the 16-bit value wraps round to the most negative INT, −32,768. Use a DINT for counts that can grow that large."
+    },
+    {
+      "id": "q5",
+      "kind": "fault",
+      "objective": "plc.m7.o3",
+      "machine": "u7.packing",
+      "program": "Works",
+      "fault": "PerBox:open",
+      "prompt": "This packing station runs the working program, but one of its parts is faulty. Turn both thumbwheels with their − and +, and watch the displays, the light and the numbers on the rungs. Which fault does it have?",
+      "options": [
+        "The wire from the Parts per box thumbwheel is broken: the PLC reads 0, whatever is dialled",
+        "The wire from the Parts made thumbwheel is broken: the PLC reads 0, whatever is dialled",
+        "The Full boxes display has failed: the PLC sends it the right number, but it shows 0",
+        "The program divides by zero: the PLC has stopped with a math fault, so nothing changes"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Per box is 0 is lit whatever Parts per box shows, and on the rungs PerBox reads 0. So the compare GT PerBox 0 never passes power, DIV and MOD never run, and the displays stay at 0. The PLC is still running (the light is on), and its check stops it from dividing by 0."
+    },
+    {
+      "id": "q6",
+      "kind": "fault",
+      "objective": "plc.m7.o4",
+      "machine": "u7.order-display",
+      "program": "Works",
+      "fault": "AcceptPB:shorted",
+      "prompt": "This order panel runs the working program, but one of its inputs is faulty. Turn the thumbwheel, press Accept and Clear, and watch the display and the rungs. Which fault does it have?",
+      "options": [
+        "The Accept button is shorted: the PLC reads it as pressed all the time",
+        "The wire to the Accept button is broken: the PLC never sees it pressed",
+        "The Clear button is shorted: the PLC reads it as pressed all the time",
+        "The Accepted order display has failed: it shows the thumbwheel, not the PLC's number"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The display follows the thumbwheel without anyone pressing Accept: on the rungs AcceptPB is TRUE all the time, so its MOVE copies on every scan. Clear sets 0 only while it is held; on the next scan without Clear, the Accept rung copies the thumbwheel again."
+    },
+    {
+      "id": "q7",
+      "kind": "choice",
+      "objective": "plc.m7.o4",
+      "prompt": "Rung 1 is **MOVE 5** into Target, and rung 2 is **MOVE 8** into Target. Neither rung has a contact. What does the Target display show?",
+      "options": [
+        "5: the first MOVE to write a tag keeps it",
+        "8: the lower rung writes last in every scan",
+        "5 and 8 in turn: the display flickers between them",
+        "0: the two MOVEs clash and neither one is written"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Both MOVEs run on every scan, top to bottom, so Target is 5 for a moment and then 8. The outputs are written only at the end of the scan, by which time Target is 8, so the display shows 8 steadily. To choose between them, give each MOVE its own contact."
+    },
+    {
+      "id": "q8",
+      "kind": "text",
+      "objective": "plc.m7.o2",
+      "prompt": "A tag must hold the parts made in a year: up to 2,000,000, always a whole number. Type the data type it should have.",
+      "answers": [
+        "DINT"
+      ],
+      "explanation": "An INT holds only up to 32,767. A DINT holds whole numbers up to about 2.1 billion. A REAL could hold the number, but a count is always whole, and a DINT keeps it exact."
+    },
+    {
+      "id": "q9",
+      "kind": "choice",
+      "objective": "plc.m7.o2",
+      "prompt": "Times is **ARRAY[1..4] OF TIME**. Step is 5 when the rung **MOVE Times[Step]** into FillPT runs. What happens in PLC+?",
+      "options": [
+        "The PLC stops with an index fault, and every output goes off",
+        "MOVE copies Times[4], the last element, and the PLC runs on",
+        "MOVE copies T#0s, as the element does not exist, and the PLC runs on",
+        "The index wraps round to 1, so MOVE copies Times[1], and the PLC runs on"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Times has no element 5. Using an index outside the array stops the PLC with a fault (an Allen-Bradley Logix controller does the same). Check the index with compares, such as GE Step 1 and LE Step 4, before the MOVE."
+    },
+    {
+      "id": "q10",
+      "kind": "choice",
+      "objective": "plc.m7.o2",
+      "prompt": "A numeric display is wired for **BCD** (four bits for each digit). The program moves the plain number 12 into its tag, with no conversion. What does the display show in PLC+?",
+      "options": [
+        "12",
+        "Err",
+        "18",
+        "6"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "12 is 0000 1100 in binary. A BCD display reads each group of four bits as one digit, and 1100 (twelve) is not a digit from 0 to 9, so PLC+ shows Err. The program must convert the number to BCD first: TOD on Allen-Bradley (FRD converts the other way)."
+    }
+  ]
+}

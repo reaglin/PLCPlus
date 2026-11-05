@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "m6-bake-oven",
+  "title": "Bake oven",
+  "description": "An oven that must bake for 8 s in all. Opening the door pauses the heat; when it is shut again, baking carries on where it left off. A Bake switch, the door switch, a Clear button, the heater and a Done light.",
+  "width": 440,
+  "height": 330,
+  "components": [
+    {
+      "type": "selectorSwitch",
+      "id": "bake",
+      "label": "Bake",
+      "tag": "BakeSW",
+      "positions": [
+        "Off",
+        "On"
+      ],
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "door",
+      "label": "Oven door",
+      "tag": "DoorShut",
+      "positions": [
+        "Open",
+        "Shut"
+      ],
+      "on": true,
+      "x": 30,
+      "y": 130
+    },
+    {
+      "type": "pushButton",
+      "id": "clear",
+      "label": "Clear",
+      "tag": "ClearPB",
+      "color": "green",
+      "x": 30,
+      "y": 230
+    },
+    {
+      "type": "pilotLight",
+      "id": "heater",
+      "label": "Heater",
+      "tag": "Heater",
+      "color": "red",
+      "x": 260,
+      "y": 60
+    },
+    {
+      "type": "pilotLight",
+      "id": "done",
+      "label": "Done",
+      "tag": "DoneLight",
+      "color": "green",
+      "x": 260,
+      "y": 200
+    }
+  ]
+}

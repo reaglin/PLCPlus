@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "id": "u11.compressor-alarm",
+  "title": "Fix the compressor's alarm",
+  "brief": "Start runs the compressor, and it keeps running; Stop stops it. If the temperature gets too high or the oil runs low, the compressor stops and stays stopped until someone presses Start again, that fault's own light comes on (High temperature or Low oil), and the horn sounds while either fault is there. Your program starts as someone else wrote it, and the horn does not always sound: find out when, and fix it.",
+  "scene": "m11-compressor",
+  "startProgram": "programs/m11-compressor-mistake.json",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Make it fail first: start the compressor, turn Temperature to Too hot, and watch every rung. Then try Oil level on its own.",
+    "How many rungs have a coil of Horn? In every scan the lower rung has the last word.",
+    "An output should have one coil. Put everything that sounds the horn on that one rung."
+  ],
+  "scenarios": [
+    {
+      "name": "Start runs the compressor, Stop stops it",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "Compressor",
+          "expect": "TRUE",
+          "says": "The compressor should run after Start, and keep running when Start is let go."
+        },
+        {
+          "at": 0.5,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "The horn should be quiet while there is no fault."
+        },
+        {
+          "at": 1.5,
+          "tag": "Compressor",
+          "expect": "FALSE",
+          "says": "Stop should stop the compressor."
+        }
+      ]
+    },
+    {
+      "name": "Too hot stops it and sounds the horn",
+      "points": 1,
+      "durationSeconds": 3.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "temp",
+          "active": true
+        },
+        {
+          "t": 2.0,
+          "operate": "temp",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.2,
+          "tag": "Compressor",
+          "expect": "FALSE",
+          "says": "The compressor should stop when the temperature is too high."
+        },
+        {
+          "at": 1.2,
+          "tag": "TempLight",
+          "expect": "TRUE",
+          "says": "The High temperature light should come on."
+        },
+        {
+          "at": 1.2,
+          "tag": "Horn",
+          "expect": "TRUE",
+          "says": "The horn should sound while the temperature is too high."
+        },
+        {
+          "at": 2.5,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "The horn should stop when the temperature is back to Normal."
+        },
+        {
+          "at": 2.5,
+          "tag": "Compressor",
+          "expect": "FALSE",
+          "says": "The compressor should stay stopped until someone presses Start again."
+        }
+      ]
+    },
+    {
+      "name": "Low oil stops it and sounds the horn",
+      "points": 1,
+      "durationSeconds": 3.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "oil",
+          "active": true
+        },
+        {
+          "t": 2.0,
+          "operate": "oil",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.2,
+          "tag": "Compressor",
+          "expect": "FALSE",
+          "says": "The compressor should stop when the oil is low."
+        },
+        {
+          "at": 1.2,
+          "tag": "OilLight",
+          "expect": "TRUE",
+          "says": "The Low oil light should come on."
+        },
+        {
+          "at": 1.2,
+          "tag": "Horn",
+          "expect": "TRUE",
+          "says": "The horn should sound while the oil is low."
+        },
+        {
+          "at": 2.5,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "The horn should stop when the oil is OK again."
+        }
+      ]
+    },
+    {
+      "name": "Both faults, then one clears",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 3.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "temp",
+          "active": true
+        },
+        {
+          "t": 1.5,
+          "operate": "oil",
+          "active": true
+        },
+        {
+          "t": 2.0,
+          "operate": "oil",
+          "active": false
+        },
+        {
+          "t": 2.5,
+          "operate": "temp",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.7,
+          "tag": "Horn",
+          "expect": "TRUE",
+          "says": "The horn should sound while both faults are there."
+        },
+        {
+          "at": 2.3,
+          "tag": "Horn",
+          "expect": "TRUE",
+          "says": "The horn should keep sounding while the temperature is still too high."
+        },
+        {
+          "at": 2.3,
+          "tag": "OilLight",
+          "expect": "FALSE",
+          "says": "The Low oil light should go out when the oil is OK."
+        },
+        {
+          "at": 3.0,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "The horn should stop once both faults are gone."
+        }
+      ]
+    }
+  ]
+}

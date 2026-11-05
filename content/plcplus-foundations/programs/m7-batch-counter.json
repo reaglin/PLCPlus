@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "name": "A batch counter (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "PartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Part button (stands for the part sensor): TRUE while pressed"
+    },
+    {
+      "name": "ResetPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Reset button: TRUE while pressed"
+    },
+    {
+      "name": "BatchSize",
+      "type": "INT",
+      "io": "input",
+      "comment": "Batch size thumbwheel: 0 to 99"
+    },
+    {
+      "name": "Filling",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "BatchDone",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "C1",
+      "type": "CTU",
+      "comment": "counts the parts"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Count each part. Reset sets the count back to 0. PV is not used: the compares below decide.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "PartPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "CTU",
+                "instance": "C1",
+                "operands": {
+                  "PV": "99",
+                  "R": "ResetPB"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Batch done once the count is at least the batch size: GE (GEQ on Allen-Bradley), so it stays lit past the size.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "GE",
+                "operands": {
+                  "IN1": "C1.CV",
+                  "IN2": "BatchSize"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "BatchDone",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Filling while 0 < count < batch size: two compares in series (AND).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "GT",
+                "operands": {
+                  "IN1": "C1.CV",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "LT",
+                "operands": {
+                  "IN1": "C1.CV",
+                  "IN2": "BatchSize"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "Filling",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

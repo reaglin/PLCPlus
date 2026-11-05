@@ -11,7 +11,7 @@ public partial class AboutWindow : Window
     {
         InitializeComponent();
         var v = Assembly.GetExecutingAssembly().GetName().Version;
-        VersionText.Text = $"Version {v?.ToString(3)} — early preview (phase 0)";
+        VersionText.Text = $"Version {v?.ToString(3)}";
     }
 
     private void Link_RequestNavigate(object sender, RequestNavigateEventArgs e)

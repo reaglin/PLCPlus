@@ -1,0 +1,292 @@
+{
+  "schemaVersion": 1,
+  "id": "u7.parts-low",
+  "title": "A parts-low warning",
+  "brief": "Refill puts 10 parts in the bin; each press of Part used takes one out. Parts low is lit while there are some parts left but no more than the number on the Warn at thumbwheel. Bin empty is lit when no parts are left (the bin starts empty).",
+  "scene": "m7-parts-bin",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "A down counter (CTD) keeps the number of parts left: LD (Refill) loads 10, and each Part used counts down one.",
+    "Parts low: the count is at most WarnAt (LE) AND more than 0 (GT).",
+    "Bin empty: the count is 0 or less (LE 0), which still works if someone presses Part used once too often."
+  ],
+  "scenarios": [
+    {
+      "name": "The bin starts empty",
+      "points": 1,
+      "durationSeconds": 0.3,
+      "events": [],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "BinEmpty",
+          "expect": "TRUE",
+          "says": "At power-up there are no parts: Bin empty should be lit."
+        }
+      ]
+    },
+    {
+      "name": "Parts low at 3 left",
+      "points": 1,
+      "durationSeconds": 2.2,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "refill",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "refill",
+          "active": false
+        },
+        {
+          "t": 0.4,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 0.6,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 0.7,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 0.8,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 0.9,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 1.1,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 1.2,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 1.3,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 1.4,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 1.5,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 1.6,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 1.7,
+          "operate": "use",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "BinEmpty",
+          "expect": "FALSE",
+          "says": "After Refill there are 10 parts: Bin empty should be off."
+        },
+        {
+          "at": 0.3,
+          "tag": "PartsLow",
+          "expect": "FALSE",
+          "says": "10 parts are plenty: Parts low should be off."
+        },
+        {
+          "at": 1.55,
+          "tag": "PartsLow",
+          "expect": "FALSE",
+          "says": "4 parts left is more than 3: Parts low should still be off."
+        },
+        {
+          "at": 1.9,
+          "tag": "PartsLow",
+          "expect": "TRUE",
+          "says": "3 parts left, and the thumbwheel says warn at 3: Parts low should be lit (3 is at most 3)."
+        }
+      ]
+    },
+    {
+      "name": "Ten parts used: empty",
+      "points": 1,
+      "durationSeconds": 2.8,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "refill",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "refill",
+          "active": false
+        },
+        {
+          "t": 0.3,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 0.4,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 0.5,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 0.6,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 0.7,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 0.8,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 0.9,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 1.0,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 1.1,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 1.3,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 1.4,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 1.5,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 1.6,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 1.7,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 1.8,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 1.9,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 2.0,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 2.1,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 2.2,
+          "operate": "use",
+          "active": false
+        },
+        {
+          "t": 2.3,
+          "operate": "use",
+          "active": true
+        },
+        {
+          "t": 2.4,
+          "operate": "use",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.15,
+          "tag": "BinEmpty",
+          "expect": "TRUE",
+          "says": "After 10 parts are used the bin is empty."
+        },
+        {
+          "at": 2.15,
+          "tag": "PartsLow",
+          "expect": "FALSE",
+          "says": "With no parts left, Bin empty is lit instead of Parts low."
+        },
+        {
+          "at": 2.6,
+          "tag": "BinEmpty",
+          "expect": "TRUE",
+          "says": "Pressing Part used once too often must not turn Bin empty off."
+        }
+      ]
+    }
+  ]
+}

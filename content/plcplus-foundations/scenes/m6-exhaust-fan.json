@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "m6-exhaust-fan",
+  "title": "Heater with an exhaust fan",
+  "description": "A process heater and the exhaust fan that clears its fumes. A Heater switch, a Purge button for clearing the air by hand, the Heater output (its light shows it is heating) and the fan motor.",
+  "width": 440,
+  "height": 300,
+  "components": [
+    {
+      "type": "selectorSwitch",
+      "id": "heatsw",
+      "label": "Heater switch",
+      "tag": "HeatSW",
+      "positions": [
+        "Off",
+        "On"
+      ],
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "purge",
+      "label": "Purge",
+      "tag": "PurgePB",
+      "color": "green",
+      "x": 30,
+      "y": 160
+    },
+    {
+      "type": "pilotLight",
+      "id": "heater",
+      "label": "Heater",
+      "tag": "Heater",
+      "color": "red",
+      "x": 190,
+      "y": 30
+    },
+    {
+      "type": "motor",
+      "id": "fan",
+      "label": "Exhaust fan",
+      "runTag": "Fan",
+      "startTimeMs": 500,
+      "x": 310,
+      "y": 130
+    }
+  ]
+}

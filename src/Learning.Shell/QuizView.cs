@@ -37,6 +37,9 @@ public sealed class QuizView : UserControl
     /// <summary>What to read again when an answer to a check is wrong (the item that teaches the question's outcome).</summary>
     public Func<Question, string?>? WhereToLook { get; set; }
 
+    /// <summary>Who is answering (the learner's ID): each learner sees the options in an order of their own (<see cref="OptionOrder"/>).</summary>
+    public string ShuffleSeed { get; set; } = "";
+
     public QuizView() => Content = _panel;
 
     private static Brush Res(string key) => (Brush)Application.Current.FindResource(key);
@@ -148,19 +151,22 @@ public sealed class QuizView : UserControl
             {
                 if (q.Kind == QuestionKind.Fault && FaultMachine?.Invoke(q) is { } machine)
                     card.Children.Add(new Border { Child = machine, BorderBrush = Res("LineBrush"), BorderThickness = new Thickness(1), Padding = new Thickness(8), Margin = new Thickness(0, 0, 0, 8) });
-                var buttons = q.Options.Select(o => new RadioButton { Content = Wrapped(o), GroupName = $"q{n}-{q.Id}", Margin = new Thickness(0, 2, 0, 2) }).ToList();
+                // buttons[k] shows the option at place order[k] in the file; answers are kept by the file's places.
+                var order = OptionOrder.For(ShuffleSeed, _quiz?.Id ?? "", q);
+                var buttons = order.Select(i => new RadioButton { Content = Wrapped(q.Options[i]), GroupName = $"q{n}-{q.Id}", Margin = new Thickness(0, 2, 0, 2) }).ToList();
                 foreach (var b in buttons) card.Children.Add(b);
-                return (() => new QuestionAnswer { Chosen = [.. buttons.Select((b, i) => (b, i)).Where(x => x.b.IsChecked == true).Select(x => x.i)] },
-                        a => { for (var i = 0; i < buttons.Count; i++) buttons[i].IsChecked = a.Chosen.Contains(i); });
+                return (() => new QuestionAnswer { Chosen = [.. buttons.Select((b, k) => (b, k)).Where(x => x.b.IsChecked == true).Select(x => order[x.k])] },
+                        a => { for (var k = 0; k < buttons.Count; k++) buttons[k].IsChecked = a.Chosen.Contains(order[k]); });
             }
             case QuestionKind.Multiple:
             {
                 if (!q.Prompt.Contains("every one", StringComparison.OrdinalIgnoreCase))
                     card.Children.Add(Para("Choose every one that is right.", 0, 4, muted: true));
-                var boxes = q.Options.Select(o => new CheckBox { Content = Wrapped(o), Margin = new Thickness(0, 2, 0, 2) }).ToList();
+                var order = OptionOrder.For(ShuffleSeed, _quiz?.Id ?? "", q);
+                var boxes = order.Select(i => new CheckBox { Content = Wrapped(q.Options[i]), Margin = new Thickness(0, 2, 0, 2) }).ToList();
                 foreach (var b in boxes) card.Children.Add(b);
-                return (() => new QuestionAnswer { Chosen = [.. boxes.Select((b, i) => (b, i)).Where(x => x.b.IsChecked == true).Select(x => x.i)] },
-                        a => { for (var i = 0; i < boxes.Count; i++) boxes[i].IsChecked = a.Chosen.Contains(i); });
+                return (() => new QuestionAnswer { Chosen = [.. boxes.Select((b, k) => (b, k)).Where(x => x.b.IsChecked == true).Select(x => order[x.k])] },
+                        a => { for (var k = 0; k < boxes.Count; k++) boxes[k].IsChecked = a.Chosen.Contains(order[k]); });
             }
             case QuestionKind.Numeric:
             {

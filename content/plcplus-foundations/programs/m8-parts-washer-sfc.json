@@ -1,0 +1,569 @@
+{
+  "schemaVersion": 1,
+  "name": "A parts washer, by step number (written as an SFC)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "BasketIsDown",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Basket extended sensor: TRUE when the basket is fully down in the tank"
+    },
+    {
+      "name": "BasketIsUp",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Basket retracted sensor: TRUE when the basket is fully up"
+    },
+    {
+      "name": "BasketDown",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "SprayPump",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Step",
+      "type": "INT",
+      "io": "output",
+      "comment": "shows the active step on the Step display"
+    },
+    {
+      "name": "WashTimer",
+      "type": "TON",
+      "comment": "wash time"
+    },
+    {
+      "name": "DripTimer",
+      "type": "TON",
+      "comment": "drip time"
+    },
+    {
+      "name": "S0",
+      "type": "BOOL",
+      "initial": "TRUE",
+      "comment": "step S0, idle: the initial step, so it starts TRUE"
+    },
+    {
+      "name": "S1",
+      "type": "BOOL",
+      "comment": "step S1: lower the basket"
+    },
+    {
+      "name": "S2",
+      "type": "BOOL",
+      "comment": "step S2: wash"
+    },
+    {
+      "name": "S3",
+      "type": "BOOL",
+      "comment": "step S3: raise the basket"
+    },
+    {
+      "name": "S4",
+      "type": "BOOL",
+      "comment": "step S4: drip dry"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Step S0, the INITIAL step (its tag starts TRUE): entered after the last step's transition, or by Stop; left when step S1 starts.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S4",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "DripTimer.Q",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S0",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StopPB",
+                        "contact": "normallyClosed"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "S1",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "S0",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step S1, lower the basket. Transition into it: S0 AND Start.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S0",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "StopPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "S2",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "S1",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step S2, wash. Transition: S1 AND BasketIsDown.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S1",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "BasketIsDown",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S2",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "S3",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "S2",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step S3, raise the basket. Transition: S2 AND the wash time is up.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S2",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "WashTimer.Q",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S3",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "S4",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "S3",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step S4, drip dry. Transition: S3 AND BasketIsUp.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S3",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "BasketIsUp",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S4",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "S0",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "S4",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Action of S2: time the wash.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "S2",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "WashTimer",
+                "operands": {
+                  "PT": "T#3s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Action of S4: time the drip.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "S4",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "DripTimer",
+                "operands": {
+                  "PT": "T#2s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Action of S1 and S2: the basket down.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S2",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "BasketDown",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Action of S2: the spray pump.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "S2",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "SprayPump",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Show the active step on the Step display: S0 shows 0.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "S0",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "S1 shows 1.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "S1",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "1",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "S2 shows 2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "S2",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "2",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "S3 shows 3.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "S3",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "3",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "S4 shows 4.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "S4",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "4",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

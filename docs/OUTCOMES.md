@@ -52,28 +52,31 @@ and **Ron reviews them** (plan 9.6). Written by `tools/make-outcomes.py`; do not
 | `plc.m5.o4` | Use set and reset coils to latch a memory tag, and control a process with it. | 5.4 Set and reset: fill and drain a tank | 2 / 0 |
 | `plc.m5.o5` | Use an edge contact to act once when a signal changes, and remember an event until it is acted on. | 5.5 Edges and memory: sort metal from plastic | 1 / 0 |
 
-## Module 6: Timers and counters (outline)
+## Module 6: Timers and counters (draft)
 
 | ID | The learner can | Taught in | Questions (check / practice) |
 |---|---|---|---|
-| `plc.m6.o1` | Use on-delay, off-delay and pulse timers (TON, TOF, TP) to time events. | 6.1 On-delay timers: a traffic light; 6.2 Off-delay and pulse timers | — |
-| `plc.m6.o2` | Explain retentive timing, and when a timer must keep its time through a stop. | 6.2 Off-delay and pulse timers | — |
-| `plc.m6.o3` | Count events with up, down and up/down counters (CTU, CTD, CTUD). | 6.3 Counters | — |
-| `plc.m6.o4` | Cascade timers and counters to time or count beyond one instruction. | 6.4 Cascading timers and counters | — |
+| `plc.m6.o1` | Use on-delay, off-delay and pulse timers (TON, TOF, TP) to time events. | 6.1 On-delay timers: a traffic light; 6.2 Off-delay and pulse timers: an exhaust fan | 4 / 0 |
+| `plc.m6.o2` | Use a retentive timer (TONR; RTO on Allen-Bradley) to add up time over several runs, and explain when a timer must keep its time through a stop. | 6.3 Retentive timing: a pump's service light | 2 / 0 |
+| `plc.m6.o3` | Count events with up, down and up/down counters (CTU, CTD, CTUD). | 6.4 Counters: parts in a batch | 2 / 0 |
+| `plc.m6.o4` | Cascade timers and counters to time or count beyond one instruction. | 6.5 Cascading timers and counters: a case packer | 2 / 0 |
 
-## Module 7: Data and math (coming-later)
-
-| ID | The learner can | Taught in | Questions (check / practice) |
-|---|---|---|---|
-| `plc.m7.o1` | Compare, calculate with and move numbers in a program. | — | — |
-| `plc.m7.o2` | Choose data types and use arrays. | — | — |
-
-## Module 8: Sequencing and state machines (coming-later)
+## Module 7: Data and math (draft)
 
 | ID | The learner can | Taught in | Questions (check / practice) |
 |---|---|---|---|
-| `plc.m8.o1` | Program a machine as a sequence of steps. | — | — |
-| `plc.m8.o2` | Design a state machine, and read an introductory SFC chart. | — | — |
+| `plc.m7.o1` | Compare numbers with EQ, NE, GT, GE, LT and LE (EQU, NEQ, GRT, GEQ, LES, LEQ on Allen-Bradley) to make decisions in a program. | 7.1 Compare numbers | 2 / 0 |
+| `plc.m7.o2` | Choose a data type (BOOL, INT, DINT, REAL, TIME) for a value, and use an array with an index, checking the index before it is used. | 7.3 MOVE and data types; 7.4 Arrays: a table of values | 3 / 0 |
+| `plc.m7.o3` | Calculate with ADD, SUB, MUL, DIV and MOD, and explain whole-number division, overflow and dividing by zero. | 7.2 Math: add, subtract, multiply, divide | 3 / 0 |
+| `plc.m7.o4` | Copy values with MOVE (MOV) to set presets, displays and recipes. | 7.3 MOVE and data types | 2 / 0 |
+
+## Module 8: Sequencing and state machines (draft)
+
+| ID | The learner can | Taught in | Questions (check / practice) |
+|---|---|---|---|
+| `plc.m8.o1` | Program a machine as a sequence of steps, one memory bit per step, each step moving on only when a sensor says the step before has finished. | 8.1 Step logic: a stamping station; 8.2 Sequencers with a step number: a batch tank | 3 / 0 |
+| `plc.m8.o2` | Design a state machine (named states, the moves between them and their conditions, a stop or fault state and the way back to idle), and read an introductory SFC chart. | 8.3 State machines: a gate that can stop anywhere; 8.4 An introduction to SFC (Sequential Function Chart) | 4 / 7 |
+| `plc.m8.o3` | Run a sequence from a step number (an INT tag), with compare instructions choosing the outputs and MOVE choosing the next step. | 8.2 Sequencers with a step number: a batch tank | 3 / 0 |
 
 ## Module 9: Analog and process control (coming-later)
 
@@ -89,12 +92,13 @@ and **Ron reviews them** (plan 9.6). Written by `tools/make-outcomes.py`; do not
 | `plc.m10.o1` | Write logic in Structured Text. | — | — |
 | `plc.m10.o2` | Organize a program into function blocks and routines. | — | — |
 
-## Module 11: Troubleshooting (coming-later)
+## Module 11: Troubleshooting (draft)
 
 | ID | The learner can | Taught in | Questions (check / practice) |
 |---|---|---|---|
-| `plc.m11.o1` | Use diagnostics to find a fault. | — | — |
-| `plc.m11.o2` | Find the fault in a machine with a wiring or device failure. | — | — |
+| `plc.m11.o1` | Follow a troubleshooting method, and use diagnostic tools (live values on the rungs, the wiring list, stepping one scan, forcing, the replay of a failed test) to find where a fault is. | 11.1 A method, and the tools to use; 11.2 Input faults: wires, shorts and stuck sensors; 11.3 Output and device faults; 11.4 Find and fix the bug: a double coil; 11.5 Find and fix the bug: a seal-in on the wrong tag; 11.6 Find and fix the bug: a timer reset every scan | 3 / 8 |
+| `plc.m11.o2` | Find the fault in a machine with a wiring or device failure (a broken wire, a short, two wires crossed, a stuck sensor, or an output device that does not work), and tell it apart from a program fault. | 11.2 Input faults: wires, shorts and stuck sensors; 11.3 Output and device faults | 4 / 14 |
+| `plc.m11.o3` | Find a bug in a program that does not do what its task asks (a double coil, a seal-in on the wrong tag, a timer reset every scan), fix it, and test the fix. | 11.4 Find and fix the bug: a double coil; 11.5 Find and fix the bug: a seal-in on the wrong tag; 11.6 Find and fix the bug: a timer reset every scan | 3 / 0 |
 
 ## Module 12: Industrial systems (coming-later)
 

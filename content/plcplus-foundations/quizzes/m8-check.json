@@ -1,0 +1,146 @@
+{
+  "id": "plc.m8.check.quiz",
+  "title": "Module 8 check: sequencing and state machines",
+  "passThreshold": 0.8,
+  "practice": false,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "choice",
+      "objective": "plc.m8.o1",
+      "prompt": "In step logic (one memory bit per step), what ends step 2 of the stamping station?",
+      "options": [
+        "Step 3 starting: a normally closed contact of Step3 in step 2's rung (or Stop)",
+        "Start being let go: a normally open contact of StartPB in step 2's rung (or Stop)",
+        "StampDown turning off: a normally open contact of StampDown in step 2's rung (or Stop)",
+        "A timer: a normally closed contact of a TON's Q, timed to the step, in step 2's rung"
+      ],
+      "correct": [0],
+      "explanation": "Each step is a seal-in that the NEXT step breaks. So exactly one step is on: the moment step 3 starts, step 2 ends."
+    },
+    {
+      "id": "q2",
+      "kind": "fault",
+      "objective": "plc.m8.o1",
+      "machine": "u8.stamping",
+      "program": "Works",
+      "fault": "ClampIsOut:open",
+      "prompt": "This stamping station runs the working program, but something is wrong with its wiring or its cylinders. Turn **Part in place** to *Part in*, press Start, and watch the cylinders and the rungs. Which fault does it have?",
+      "options": [
+        "The clamp's fully-out sensor (ClampIsOut) has a broken wire: it always reads FALSE",
+        "The clamp's solenoid has failed: ClampOut turns on, but the clamp never moves",
+        "The stamp's solenoid has failed: StampDown turns on, but the stamp does not move",
+        "The Part in place switch has a broken wire: PartIn always reads FALSE"
+      ],
+      "correct": [0],
+      "explanation": "The clamp goes fully out, but the station waits in step 1: StampDown never turns on, because ClampIsOut never reads TRUE. A failed stamp solenoid would show StampDown ON on the rungs, with the stamp not moving."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "objective": "plc.m8.o1",
+      "prompt": "The stamping station is working. The clamp is fully out, StampDown is off, and the stamp is on its way back up (StampIsDown and StampIsUp are both FALSE). Which step is on?",
+      "options": ["Step 1", "Step 2", "Step 3", "Step 4"],
+      "correct": [2],
+      "explanation": "Step 3 (stamp up) starts when the stamp is fully down and lasts until it is fully up. The clamp stays out in step 3; it is released in step 4."
+    },
+    {
+      "id": "q4",
+      "kind": "numeric",
+      "objective": "plc.m8.o3",
+      "prompt": "The batch tank runs the working program. The tank is at 50 % and rising, the fill valve is open and the mixer is off. What number does the **Step** display show?",
+      "answer": 1,
+      "tolerance": 0,
+      "explanation": "Step 1 fills: the fill valve is open only in step 1, until the high float."
+    },
+    {
+      "id": "q5",
+      "kind": "fault",
+      "objective": "plc.m8.o3",
+      "machine": "u8.batch-tank",
+      "program": "Works",
+      "fault": "HighFloat:open",
+      "prompt": "This batch tank runs the working program, but one input is faulty. Press Start and watch the tank, the **Step** display and the rungs. Which fault does it have?",
+      "options": [
+        "The high float has a broken wire: it always reads FALSE, so step 1 never ends and the tank overflows",
+        "The low float has a broken wire: it always reads FALSE, so step 3 ends at once and the tank never drains",
+        "The fill valve has failed: FillValve turns on, but no water comes in and the tank stays empty",
+        "The mixer has failed: the step moves to 2, but the mixer does not turn and the batch is not mixed"
+      ],
+      "correct": [0],
+      "explanation": "The tank passes 80 % and the display stays at 1: the rung that moves to step 2 needs HighFloat, and it never reads TRUE. The tank fills until it overflows, which is why real tanks also have an overflow pipe and a high-high alarm."
+    },
+    {
+      "id": "q6",
+      "kind": "choice",
+      "objective": "plc.m8.o3",
+      "prompt": "Why does the batch tank's Start rung need an **EQ Step 0** box?",
+      "options": [
+        "Without it, Start pressed in the middle of a batch moves Step back to 1 and fills the tank again",
+        "Without it, Start would move Step to 1 on every scan while held, and the tank would never fill",
+        "Without it, Stop could not move Step back to 0, because MOVE 1 would always run after it",
+        "Without it, the program will not run: a MOVE box must have a compare box in front of it"
+      ],
+      "correct": [0],
+      "explanation": "MOVE 1 runs whenever power reaches it. The EQ box limits Start to step 0, idle."
+    },
+    {
+      "id": "q7",
+      "kind": "fault",
+      "objective": "plc.m8.o2",
+      "machine": "u8.gate",
+      "program": "Works",
+      "fault": "GateClose:failed",
+      "prompt": "This gate runs the working program, but something has failed. Press Open and watch the gate, the **State** display and the rungs for 5 s. Which fault does it have?",
+      "options": [
+        "The close solenoid has failed: the PLC turns GateClose on, but the gate does not move",
+        "The fully-closed sensor (GateIsClosed) has a broken wire: the gate closes, but the state stays at 3",
+        "The air pressure is low: AirOK reads FALSE, so the gate stops and the state goes to 9",
+        "The open timer never runs out: the state stays at 2 and the gate stays open"
+      ],
+      "correct": [0],
+      "explanation": "After 3 s open, the state goes to 3 (Closing) and the GateClose rung is ON, but the gate stays fully open. With a broken GateIsClosed wire the gate would close and the state would stay at 3; with low air the state would be 9."
+    },
+    {
+      "id": "q8",
+      "kind": "choice",
+      "objective": "plc.m8.o2",
+      "prompt": "The gate stopped half open, and the State display shows 9 (Stopped). Stop is let go and the air pressure is OK. Someone presses **Reset**. Which state comes next, and why?",
+      "options": [
+        "Closing (3): the gate could be anywhere, so it closes before the machine is idle",
+        "Closed (0): Reset always takes a state machine straight back to idle",
+        "Opening (1): the gate was half open, so it finishes opening first",
+        "Stopped (9): Reset only clears the light; the state waits for Open"
+      ],
+      "correct": [0],
+      "explanation": "Closed (0) assumes the gate is closed. Going there straight from a half-open gate would leave the program believing something untrue, and nothing would close it."
+    },
+    {
+      "id": "q9",
+      "kind": "match",
+      "objective": "plc.m8.o2",
+      "prompt": "Match each idea to its place in a ladder program.",
+      "pairs": [
+        { "left": "A transition from state 3 to state 1", "right": "EQ State 3, the condition, MOVE 1 to State" },
+        { "left": "A move from any state to Stopped", "right": "The condition, MOVE 9 to State, with no EQ box" },
+        { "left": "An output on in states 1 and 3", "right": "EQ State 1 and EQ State 3 side by side, then one coil" },
+        { "left": "The SFC initial step", "right": "A step bit that starts TRUE, or state 0" }
+      ],
+      "explanation": "Transitions are EQ, condition, MOVE; a move from any state has no EQ; an output gets one rung; the initial step is active when the PLC starts."
+    },
+    {
+      "id": "q10",
+      "kind": "choice",
+      "objective": "plc.m8.o2",
+      "prompt": "In the gate program, the rung that moves to Stopped (9) when Stop is pressed comes **after** all the other transitions. Why?",
+      "options": [
+        "If another transition happens in the same scan, the stop runs last and wins",
+        "Rungs above the transitions run before the inputs are read, so Stop would be missed",
+        "A rung without an EQ box runs only once it is below every rung that has one",
+        "So that Stop works only once the other transitions have finished moving the gate"
+      ],
+      "correct": [0],
+      "explanation": "The PLC runs rungs top to bottom; the last MOVE into State in a scan is the one that counts. The safety move must have the last word."
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "m11-doorbell",
+  "title": "Doorbell with two buttons",
+  "description": "A house bell with a button at the front door and one at the back. A light beside the bell shows which door it was.",
+  "width": 440,
+  "height": 300,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "front",
+      "label": "Front door",
+      "tag": "FrontPB",
+      "color": "green",
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "back",
+      "label": "Back door",
+      "tag": "BackPB",
+      "color": "green",
+      "x": 30,
+      "y": 150
+    },
+    {
+      "type": "pilotLight",
+      "id": "frontlight",
+      "label": "Front",
+      "tag": "FrontLight",
+      "color": "amber",
+      "x": 190,
+      "y": 30
+    },
+    {
+      "type": "pilotLight",
+      "id": "backlight",
+      "label": "Back",
+      "tag": "BackLight",
+      "color": "amber",
+      "x": 190,
+      "y": 150
+    },
+    {
+      "type": "horn",
+      "id": "bell",
+      "label": "Bell",
+      "tag": "Bell",
+      "x": 320,
+      "y": 90
+    }
+  ]
+}

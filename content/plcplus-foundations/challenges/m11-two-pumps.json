@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "id": "u11.two-pumps",
+  "title": "Fix the two-pump station",
+  "brief": "Pump 1 start runs pump 1, and it keeps running; Pump 1 stop stops it. Pump 2 works the same way with its own two buttons. The pumps are independent: starting or stopping one never starts or stops the other. Each running light is lit while its pump is told to run. Your program starts as someone else wrote it, and pump 2 misbehaves: find out how, and fix it.",
+  "scene": "m11-two-pumps",
+  "startProgram": "programs/m11-two-pumps-mistake.json",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Make it fail first: start pump 1 on its own and watch pump 2. Then start pump 2 on its own and let go of the button.",
+    "Read rung 2 contact by contact. Which tag does each contact read, and which tag should it read?",
+    "A seal-in contact holds its own coil on."
+  ],
+  "scenarios": [
+    {
+      "name": "Pump 1 starts and stops on its own",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start1",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start1",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "stop1",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "stop1",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "Pump1",
+          "expect": "TRUE",
+          "says": "Pump 1 should run after its Start, and keep running when the button is let go."
+        },
+        {
+          "at": 0.5,
+          "tag": "Light1",
+          "expect": "TRUE",
+          "says": "The Pump 1 running light should be lit."
+        },
+        {
+          "at": 0.5,
+          "tag": "Pump2",
+          "expect": "FALSE",
+          "says": "Starting pump 1 must not start pump 2."
+        },
+        {
+          "at": 1.5,
+          "tag": "Pump1",
+          "expect": "FALSE",
+          "says": "Pump 1 stop should stop pump 1."
+        }
+      ]
+    },
+    {
+      "name": "Pump 2 keeps running after its Start",
+      "points": 1,
+      "durationSeconds": 2.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start2",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start2",
+          "active": false
+        },
+        {
+          "t": 1.5,
+          "operate": "stop2",
+          "active": true
+        },
+        {
+          "t": 1.7,
+          "operate": "stop2",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "Pump2",
+          "expect": "TRUE",
+          "says": "Pump 2 should start with its Start button."
+        },
+        {
+          "at": 1.0,
+          "tag": "Pump2",
+          "expect": "TRUE",
+          "says": "Pump 2 should keep running after its Start button is let go."
+        },
+        {
+          "at": 1.0,
+          "tag": "Light2",
+          "expect": "TRUE",
+          "says": "The Pump 2 running light should be lit while pump 2 runs."
+        },
+        {
+          "at": 2.0,
+          "tag": "Pump2",
+          "expect": "FALSE",
+          "says": "Pump 2 stop should stop pump 2."
+        }
+      ]
+    },
+    {
+      "name": "Each Stop stops only its own pump",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 2.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start1",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start1",
+          "active": false
+        },
+        {
+          "t": 0.3,
+          "operate": "start2",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "start2",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "stop1",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "stop1",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.5,
+          "tag": "Pump1",
+          "expect": "FALSE",
+          "says": "Pump 1 stop should stop pump 1."
+        },
+        {
+          "at": 1.5,
+          "tag": "Pump2",
+          "expect": "TRUE",
+          "says": "Pump 1 stop must not stop pump 2."
+        }
+      ]
+    }
+  ]
+}

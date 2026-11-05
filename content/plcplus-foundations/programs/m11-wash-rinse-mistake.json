@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "name": "A spray washer: wash, then rinse (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "WashPump",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "RinsePump",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "T1",
+      "type": "TON",
+      "comment": "the wash time"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Wash: Start, sealed in, until the wash time is up (T1.Q) or Stop.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "WashPump",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "WashPump",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The wash time, 4 s, while the wash pump runs.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "WashPump",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#4s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Rinse: starts when the wash time is up, sealed in, until the rinse time is up or Stop (it reads T1.Q, the timer the programmer thought was the rinse timer).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "T1.Q",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "RinsePump",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "RinsePump",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "MISTAKE: copied from rung 2, and the box still uses T1. While the rinse pump is off this box has no power, so it resets T1 in every scan.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "RinsePump",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#3s"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

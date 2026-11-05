@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "id": "m11-compressor",
+  "title": "Air compressor",
+  "description": "An air compressor with Start and Stop buttons (Stop wired normally closed), a temperature switch, an oil level switch, a High temperature light, a Low oil light and a horn.",
+  "width": 530,
+  "height": 380,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 20,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 20,
+      "y": 110
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "temp",
+      "label": "Temperature",
+      "tag": "HighTemp",
+      "positions": [
+        "Normal",
+        "Too hot"
+      ],
+      "x": 20,
+      "y": 200
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "oil",
+      "label": "Oil level",
+      "tag": "LowOil",
+      "positions": [
+        "OK",
+        "Low"
+      ],
+      "x": 20,
+      "y": 290
+    },
+    {
+      "type": "pilotLight",
+      "id": "templight",
+      "label": "High temperature",
+      "tag": "TempLight",
+      "color": "red",
+      "x": 190,
+      "y": 20
+    },
+    {
+      "type": "pilotLight",
+      "id": "oillight",
+      "label": "Low oil",
+      "tag": "OilLight",
+      "color": "amber",
+      "x": 190,
+      "y": 110
+    },
+    {
+      "type": "horn",
+      "id": "horn",
+      "label": "Horn",
+      "tag": "Horn",
+      "x": 190,
+      "y": 210
+    },
+    {
+      "type": "motor",
+      "id": "compressor",
+      "label": "Compressor",
+      "runTag": "Compressor",
+      "startTimeMs": 800,
+      "x": 400,
+      "y": 110
+    }
+  ]
+}

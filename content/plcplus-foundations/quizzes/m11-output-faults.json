@@ -1,0 +1,124 @@
+{
+  "id": "plc.m11.output-faults.quiz",
+  "title": "Output and device faults",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.motor-start-stop",
+      "program": "Works",
+      "fault": "Motor:failed",
+      "prompt": "This motor station runs its working program, but something is faulty. Press **Start**, then look at the rungs and at **What every part is doing**. Which fault does it have?",
+      "options": [
+        "The motor or its contactor has failed: the PLC turns Motor on, and the motor does not turn",
+        "The Start button's wire is broken: Start always reads FALSE, so Motor never turns on",
+        "The program has no seal-in: Motor turns on only while Start is held down",
+        "The Stop button's wire is broken: Stop always reads FALSE, so Motor never turns on"
+      ],
+      "correct": [0],
+      "explanation": "The Motor coil is TRUE and stays TRUE, and the Running light (driven by the same tag) is lit, so the inputs and the program have done their job. The motor is still stopped: the fault is past the output."
+    },
+    {
+      "id": "q2",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.tank",
+      "program": "Works",
+      "fault": "FillValve:failed",
+      "prompt": "This tank runs its working program, but something is faulty. Turn the Mode switch to **Auto** and wait a few seconds. Which fault does it have?",
+      "options": [
+        "The fill valve has failed: FillValve is TRUE on the rungs, but the valve stays closed and the level does not rise",
+        "The low float is shorted: LowFloat is always TRUE, so the program never starts to fill",
+        "The Auto switch's wire is broken: Auto is always FALSE, so FillValve never turns on",
+        "The high float is shorted: HighFloat is always TRUE, so the program thinks the tank is full"
+      ],
+      "correct": [0],
+      "explanation": "Auto is TRUE, LowFloat is FALSE (the tank is low), Filling is set and the FillValve coil is TRUE. What every part is doing says the fill valve is closed. The program asks for the right thing; the valve does not do it."
+    },
+    {
+      "id": "q3",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.reversing-conveyor",
+      "program": "Works",
+      "fault": "Reverse:failed",
+      "prompt": "This reversing conveyor runs its working program, but something is faulty. Run it **Forward**, **Stop** it, then press **Reverse**. Which fault does it have?",
+      "options": [
+        "The reverse contactor has failed: the Reverse coil is TRUE and the Reverse light is lit, but the motor does not turn",
+        "The Reverse button's wire is broken: Reverse always reads FALSE, so the Reverse coil never turns on",
+        "The interlock stops Reverse: the Forward contact on the Reverse rung keeps the Reverse coil off",
+        "The Reverse light has failed: the motor turns in reverse, but the light that shows it stays dark"
+      ],
+      "correct": [0],
+      "explanation": "Forward works, so the motor itself turns. In reverse the coil is TRUE and the light it drives is lit, but the motor stays stopped: the fault is in the reverse contactor or its wiring."
+    },
+    {
+      "id": "q4",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.overheat-alarm",
+      "program": "Works",
+      "fault": "Horn:failed",
+      "prompt": "This overheat alarm runs its working program, but something is faulty. Turn the Thermostat to **Too hot**. Which fault does it have?",
+      "options": [
+        "The horn has failed: the Horn coil is TRUE, but the horn is quiet",
+        "The thermostat's wire is broken: it never reads Too hot",
+        "The Alarm reset button is shorted: the alarm clears at once",
+        "The program has no rung for the horn: no coil turns it on"
+      ],
+      "correct": [0],
+      "explanation": "The Alarm light comes on, so the thermostat and the alarm memory work. Rung 4 turns Horn TRUE, yet What every part is doing says the horn is quiet."
+    },
+    {
+      "id": "q5",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.conveyor-sorter",
+      "program": "Works",
+      "fault": "Divert:failed",
+      "prompt": "This sorter runs its working program, but something is faulty. Press **Start** and watch the first metal part all the way along the belt, and rung 3. Which fault does it have?",
+      "options": [
+        "The diverter has failed: Divert turns TRUE when the metal part reaches it, but the diverter stays in",
+        "The metal sensor's wire is broken: Prox never turns TRUE, so MetalSeen is never set",
+        "The photo-eye's wire is broken: Eye never turns TRUE, so Divert never turns on",
+        "The program forgets MetalSeen before the part reaches the eye, so Divert stays off"
+      ],
+      "correct": [0],
+      "explanation": "Prox sets MetalSeen, and when the part reaches the eye rung 3 turns Divert TRUE. The diverter does not move, so the metal part rides on to Bin B. Everything up to the output works."
+    },
+    {
+      "id": "q6",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u8.transfer-arm",
+      "program": "Works",
+      "fault": "ArmOut:failed",
+      "prompt": "This transfer arm runs its working program, but something is faulty. Press **Start** and watch the steps, the outputs and the two cylinders. Which fault does it have?",
+      "options": [
+        "The arm cylinder does not extend: ArmOut is TRUE in step 2, the arm stays in, and the sequence waits for ever",
+        "The arm's fully-out sensor (ArmIsOut) has a broken wire: the arm goes out, but the sequence never sees it",
+        "The gripper's fully-closed sensor (GripIsClosed) has a broken wire: the sequence never leaves step 1",
+        "The Start button's wire is broken: Start never reads TRUE, so step 1 never begins"
+      ],
+      "correct": [0],
+      "explanation": "The gripper closes and step 2 turns ArmOut on, but What every part is doing shows the arm still in. If the arm went out and only its sensor failed, you would see the arm out and ArmIsOut FALSE. A cylinder that does not move (no air, a jammed rod, a dead solenoid) shows up as a sequence that stops and waits."
+    },
+    {
+      "id": "q7",
+      "kind": "choice",
+      "objective": "plc.m11.o1",
+      "prompt": "A pump does not run. Its coil is TRUE. You force the pump's output ON, and it still does not run. What have you learned?",
+      "options": [
+        "The program and the inputs are not the cause: look at the output circuit (module light, fuse, contactor, overload) and the pump",
+        "The program is the cause: forcing did not help, so look again at the pump's rung, its contacts and its coil",
+        "The inputs are the cause: the Start button or its wire is broken, so check them with a meter before anything else",
+        "Nothing yet: forcing an output only tells you something once you have forced every input on its rung too"
+      ],
+      "correct": [0],
+      "explanation": "Forcing takes the program out of the question. The device still does not respond, so the fault is between the output and the pump, or in the pump."
+    }
+  ]
+}

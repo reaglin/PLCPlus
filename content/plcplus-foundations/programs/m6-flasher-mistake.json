@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "name": "Flash a beacon, and sound the horn after 3 flashes (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "AlarmSW",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Alarm switch: TRUE in On"
+    },
+    {
+      "name": "Beacon",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Horn",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "FlashCount",
+      "type": "INT",
+      "io": "output",
+      "comment": "the Flashes display"
+    },
+    {
+      "name": "AlarmOff",
+      "type": "BOOL",
+      "comment": "on while the alarm is off: resets the count"
+    },
+    {
+      "name": "T1",
+      "type": "TON",
+      "comment": "the beacon's on time"
+    },
+    {
+      "name": "C1",
+      "type": "CTU",
+      "comment": "the flashes"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "MISTAKE: one timer that resets itself: its Q is on for one scan only, so the beacon is off for just 10 ms.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "AlarmSW",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#500ms"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The beacon is on while the timer is not done.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "AlarmSW",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Beacon",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "A memory tag that is on while the alarm is off, to reset the counter.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "AlarmSW",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "AlarmOff",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Count the flashes.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Beacon",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "CTU",
+                "instance": "C1",
+                "operands": {
+                  "PV": "3",
+                  "R": "AlarmOff"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The horn from the third flash on.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "AlarmSW",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "C1.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Horn",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Show the count.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "C1.CV",
+                  "OUT": "FlashCount"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

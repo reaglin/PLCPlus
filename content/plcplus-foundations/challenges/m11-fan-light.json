@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "id": "u11.fan-light",
+  "title": "A workshop fan and light",
+  "brief": "Fan start runs the exhaust fan, and it keeps running; Fan stop stops it. Light on turns the work light on, and it stays on; Light off turns it off. Each works on its own: the fan's buttons never change the light, and the light's buttons never change the fan.",
+  "scene": "m11-fan-light",
+  "constraints": {
+    "maxRungs": 4
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Press Light on and let go. Then start the fan. Which of them does something it should not?",
+    "A seal-in contact holds its own coil on, so it must read the same tag as that coil.",
+    "On the light's rung, the contact beside LightOn should read WorkLight."
+  ],
+  "scenarios": [
+    {
+      "name": "The fan starts and stops on its own",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "fanstart",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "fanstart",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "fanstop",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "fanstop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "Fan",
+          "expect": "TRUE",
+          "says": "The fan should run after Fan start, and keep running when the button is let go."
+        },
+        {
+          "at": 0.5,
+          "tag": "WorkLight",
+          "expect": "FALSE",
+          "says": "Starting the fan must not turn the light on."
+        },
+        {
+          "at": 1.5,
+          "tag": "Fan",
+          "expect": "FALSE",
+          "says": "Fan stop should stop the fan."
+        }
+      ]
+    },
+    {
+      "name": "The light stays on after Light on",
+      "points": 1,
+      "durationSeconds": 2.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "lighton",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "lighton",
+          "active": false
+        },
+        {
+          "t": 1.5,
+          "operate": "lightoff",
+          "active": true
+        },
+        {
+          "t": 1.7,
+          "operate": "lightoff",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "WorkLight",
+          "expect": "TRUE",
+          "says": "The light should come on with Light on."
+        },
+        {
+          "at": 1.0,
+          "tag": "WorkLight",
+          "expect": "TRUE",
+          "says": "The light should stay on after Light on is let go."
+        },
+        {
+          "at": 2.0,
+          "tag": "WorkLight",
+          "expect": "FALSE",
+          "says": "Light off should turn the light off."
+        }
+      ]
+    },
+    {
+      "name": "Light off does not stop the fan",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "fanstart",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "fanstart",
+          "active": false
+        },
+        {
+          "t": 0.3,
+          "operate": "lighton",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "lighton",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "lightoff",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "lightoff",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.5,
+          "tag": "WorkLight",
+          "expect": "FALSE",
+          "says": "Light off should turn the light off."
+        },
+        {
+          "at": 1.5,
+          "tag": "Fan",
+          "expect": "TRUE",
+          "says": "Light off must not stop the fan."
+        }
+      ]
+    }
+  ]
+}

@@ -34,8 +34,8 @@ public static class StoreUpdates
         if (StorePage.Length == 0)
         {
             MessageBox.Show(owner,
-                $"PLC+ is not on the Microsoft Store yet: this is a preview (version {CurrentVersion}). Once it is on the Store, this " +
-                "checks for a new version and installs it. Until then, new previews come from your instructor or from softwareplus.ai/plcplus.",
+                $"This copy of PLC+ (version {CurrentVersion}) cannot check the Microsoft Store for a new version yet. " +
+                "New versions are announced at softwareplus.ai/plcplus.",
                 title, MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }

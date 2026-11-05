@@ -1,0 +1,160 @@
+{
+  "id": "plc.m11.check.quiz",
+  "title": "Module 11 check: troubleshooting",
+  "passThreshold": 0.8,
+  "practice": false,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "choice",
+      "objective": "plc.m11.o1",
+      "prompt": "Which order follows the troubleshooting method?",
+      "options": [
+        "Observe the symptom, check the outputs, check the inputs, compare with the program, divide the problem, fix, test, record",
+        "Fix what looks wrong, test, observe the symptom, check the outputs, check the inputs, compare with the program, record",
+        "Change the parts most likely to fail, observe the symptom, check the inputs, check the outputs, divide the problem, test, record",
+        "Compare with the program, rewrite the rungs that look wrong, check the inputs, check the outputs, divide the problem, test, record"
+      ],
+      "correct": [0],
+      "explanation": "See the symptom first, then let the PLC show you which side of the machine it is on, and narrow it down before you change anything. Test everything after the fix, and write down what you found."
+    },
+    {
+      "id": "q2",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u11.doorbell",
+      "program": "Works",
+      "fault": "FrontPB:swapped:BackPB",
+      "prompt": "This doorbell runs its working program, but one input is wired wrong. Press the **Front door** button alone, then the **Back door** button alone, and watch FrontPB and BackPB on the rungs. Which fault does it have?",
+      "options": [
+        "FrontPB's input is wired to the back door button: the front button does nothing, and the back button lights both lights",
+        "The front button's wire is broken: FrontPB is always FALSE, so the front button does nothing",
+        "The program has a double coil of Bell: the lower rung turns the bell off for the front door",
+        "The bell has failed: the PLC turns Bell on for either button, but the bell does not ring"
+      ],
+      "correct": [0],
+      "explanation": "The front button changes nothing, and the back button turns FrontPB and BackPB both TRUE, so the Front light comes on for the back door. A broken front wire would leave the Front light dark when the back button is pressed."
+    },
+    {
+      "id": "q3",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u11.wash-rinse",
+      "program": "Works",
+      "fault": "RinsePump:failed",
+      "prompt": "This spray washer runs its working program, but something is faulty. Press **Start** and watch it for 8 s: the rungs, the timers and **What every part is doing**. Which fault does it have?",
+      "options": [
+        "The rinse pump has failed: after 4 s RinsePump is TRUE for 3 s, but the rinse pump does not turn",
+        "The same timer is used for the wash and the rinse: T1's ET stays at 0, so the wash never ends",
+        "The Stop button's wire is broken: StopPB always reads FALSE, so nothing starts at all",
+        "The Start button is shorted: StartPB always reads TRUE, so the wash starts again after the rinse"
+      ],
+      "correct": [0],
+      "explanation": "The wash runs and ends on time, and T1 hands over to the rinse: the RinsePump coil is TRUE and T2 counts its 3 s. The program does everything right, and the rinse pump stays stopped."
+    },
+    {
+      "id": "q4",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u11.fan-light",
+      "program": "Works",
+      "fault": "LightOff:open",
+      "prompt": "This workshop fan and light run their working program, but one input is faulty. Start and stop the fan, then press **Light on**, and watch rung 2. Which fault does it have?",
+      "options": [
+        "The Light off button's wire is broken: LightOff is always FALSE, as if Light off were held down",
+        "The Light on button's wire is broken: LightOn is always FALSE, as if nobody ever pressed it",
+        "The work light's lamp has failed: the PLC turns WorkLight on, but the lamp stays dark",
+        "The light's seal-in contact reads the wrong tag: the light goes out when Light on is let go"
+      ],
+      "correct": [0],
+      "explanation": "The fan works. LightOn turns TRUE when pressed, but LightOff is FALSE with nobody pressing it, so rung 2 never passes power and the WorkLight coil stays FALSE. Light off is wired normally closed, so a broken wire fails safe: the light will not come on."
+    },
+    {
+      "id": "q5",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.conveyor-sorter",
+      "program": "Works",
+      "fault": "Eye:shorted",
+      "prompt": "This sorter runs its working program, but one input is faulty. Press **Start** and watch the Prox and Eye contacts, MetalSeen and the diverter for the first two parts. Which fault does it have?",
+      "options": [
+        "The photo-eye's input is always TRUE: from the first metal part on, the diverter stays out and every part goes to Bin A",
+        "The metal sensor's input is always TRUE: every part, metal or not, is diverted one at a time",
+        "The diverter has failed: the PLC turns Divert on for each metal part, but the arm does not move",
+        "The metal sensor's wire is broken: Prox is always FALSE, so no part is ever diverted"
+      ],
+      "correct": [0],
+      "explanation": "Eye reads TRUE with no part in front of it. When Prox sees the first metal part, MetalSeen is set and Divert turns on straight away; Eye never turns off, so the falling edge that resets MetalSeen never comes, and the diverter stays out. Prox itself turns on only for metal."
+    },
+    {
+      "id": "q6",
+      "kind": "choice",
+      "objective": "plc.m11.o3",
+      "prompt": "Rung 3 is HighTemp → Horn and rung 5 is LowOil → Horn. The temperature is too high and the oil is OK. Does the horn sound?",
+      "options": [
+        "No, never: rung 5 writes FALSE last, and the outputs are written at the end of the scan",
+        "Yes, all the time: rung 3 turns Horn on, and a coil that has been turned on stays on",
+        "It buzzes on and off: rung 3 turns it on and rung 5 turns it off, in every scan",
+        "Only for one scan: rung 3 turns it on, then rung 5 turns it off from the next scan on"
+      ],
+      "correct": [0],
+      "explanation": "Rung 3 sets the Horn tag TRUE and rung 5 sets it FALSE again, in the same scan. Only the value at the end of the scan is written to the output, so the horn never sounds, not even for a moment. A double coil: put both faults on one rung."
+    },
+    {
+      "id": "q7",
+      "kind": "choice",
+      "objective": "plc.m11.o3",
+      "prompt": "Pump 2's rung is (Start2 OR **Pump1**) AND Stop2 → Pump2. What does the machine do?",
+      "options": [
+        "Pump 2 runs only while Start2 is held, and starts by itself whenever pump 1 runs",
+        "Pump 2 works normally: the Pump1 contact only adds a second way to start it",
+        "Pump 2 never runs: the Pump1 contact blocks the power from Start2",
+        "Pump 2 runs and seals in, but pump 1 stops whenever pump 2 starts"
+      ],
+      "correct": [0],
+      "explanation": "The seal-in contact reads Pump1, so nothing holds pump 2 on after Start2 is let go, and pump 1 running passes power to Pump2. The fix: the seal-in contact reads Pump2, the coil it holds."
+    },
+    {
+      "id": "q8",
+      "kind": "choice",
+      "objective": "plc.m11.o3",
+      "prompt": "Press Start: the horn sounds, rung 2's TON box T1 has power, and its ET stays at 0 for ever. Rung 5, further down, also has a TON box called T1, and it has no power. What is wrong, and what is the fix?",
+      "options": [
+        "Rung 5 resets T1 in every scan. Give rung 5's box a timer of its own (T2), and make the contacts that read its time read T2.Q",
+        "T1's preset is too long for the warning. Type a shorter PT in rung 2's box, such as T#3s, and test it again",
+        "The horn is a double coil, and the lower rung wins. Delete rung 2 and put the horn's conditions on one rung",
+        "The PLC scans too fast for the timer to count. Slow the scan down so that T1 has time to add to its ET"
+      ],
+      "correct": [0],
+      "explanation": "A TON resets whenever its box runs without power. Two boxes on one timer means one starts it and the other resets it, every scan. One timer per timing job."
+    },
+    {
+      "id": "q9",
+      "kind": "multiple",
+      "objective": "plc.m11.o1",
+      "prompt": "A valve does not open when it should. Which of these show you whether the fault is in the program or outside it? Choose every one.",
+      "options": [
+        "Look at the valve's coil on the rungs: TRUE means the program asked for it",
+        "Compare the rungs with What every part is doing: does the valve match its coil?",
+        "Force the valve's output ON, and see whether the valve opens",
+        "Rewrite the valve's rung from the start, and see whether the valve then opens"
+      ],
+      "correct": [0, 1, 2],
+      "explanation": "The coil, the part's real state and a force divide the problem into program and machine. Rewriting a rung that may be right is guessing, and can add a bug."
+    },
+    {
+      "id": "q10",
+      "kind": "choice",
+      "objective": "plc.m11.o1",
+      "prompt": "You have found and fixed a broken wire to a limit switch, and the door now opens. What should you do **before** you hand the machine back?",
+      "options": [
+        "Test everything it should do (open, close, stop, the safety eye), remove any forces, and record what you found and fixed",
+        "Nothing more: the door opens, so the fault is fixed; leave any forces on for the next technician to remove",
+        "Leave the force on the limit switch, in case the wire breaks again, and record what you fixed",
+        "Test only the door's opening, since that is what failed, remove any forces, and hand it back"
+      ],
+      "correct": [0],
+      "explanation": "Steps 7 and 8 of the method: test the whole machine, not just the part that failed, and write it down. A force left on hides the next fault and bypasses what the program checks."
+    }
+  ]
+}

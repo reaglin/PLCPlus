@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "name": "Look up a target in a table (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Shift",
+      "type": "INT",
+      "io": "input",
+      "comment": "Shift thumbwheel: 0 to 9"
+    },
+    {
+      "name": "Target",
+      "type": "INT",
+      "io": "output",
+      "comment": "Target display"
+    },
+    {
+      "name": "NoShift",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Targets",
+      "type": "ARRAY[1..3] OF INT",
+      "comment": "the target of shifts 1 to 3"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The table: an array of three INTs, filled on every scan.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "120",
+                  "OUT": "Targets[1]"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "100",
+                  "OUT": "Targets[2]"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "80",
+                  "OUT": "Targets[3]"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "MISTAKE: the index is not checked. Dial 0 or 4 and Targets[Shift] does not exist: the PLC stops with an index-out-of-range fault.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "Targets[Shift]",
+                  "OUT": "Target"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "No such shift (but the PLC has stopped before it gets here).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "box",
+                        "instruction": "LT",
+                        "operands": {
+                          "IN1": "Shift",
+                          "IN2": "1"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "box",
+                        "instruction": "GT",
+                        "operands": {
+                          "IN1": "Shift",
+                          "IN2": "3"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "NoShift",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "id": "u6.flasher",
+  "title": "Flash a beacon, and sound the horn after 3 flashes",
+  "brief": "While the Alarm switch is On, the beacon flashes: on for 0.5 s, off for 0.5 s, over and over. The display counts the flashes; from the third flash on, the horn sounds too. Alarm Off puts out the beacon and the horn and sets the count back to 0.",
+  "scene": "m6-flasher",
+  "constraints": {
+    "requiredInstructions": [
+      "TON",
+      "CTU"
+    ],
+    "maxRungs": 8
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "One timer cannot flash on its own: use two TONs, each started by the other. T1 times the on part; T2, started by T1.Q, times the off part; T2 finishing resets T1.",
+    "The beacon is on while the alarm is on and T1 has not finished.",
+    "Count the beacon's flashes with a CTU, PV 3; its Q sounds the horn. Reset it with a memory tag that is on while the alarm is off."
+  ],
+  "scenarios": [
+    {
+      "name": "The beacon flashes",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "alarm",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.25,
+          "tag": "Beacon",
+          "expect": "TRUE",
+          "says": "The beacon should be on for the first 0.5 s."
+        },
+        {
+          "at": 0.75,
+          "tag": "Beacon",
+          "expect": "FALSE",
+          "says": "The beacon should be off from 0.5 s to 1.0 s."
+        },
+        {
+          "at": 1.25,
+          "tag": "Beacon",
+          "expect": "TRUE",
+          "says": "The beacon should come on again after 1 s."
+        },
+        {
+          "at": 1.75,
+          "tag": "Beacon",
+          "expect": "FALSE",
+          "says": "The beacon should go off again 0.5 s later."
+        }
+      ]
+    },
+    {
+      "name": "The horn joins in on the third flash",
+      "points": 1,
+      "durationSeconds": 3.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "alarm",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.5,
+          "tag": "FlashCount",
+          "expect": "2",
+          "says": "Two flashes by 1.5 s."
+        },
+        {
+          "at": 1.5,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "The horn should wait for the third flash."
+        },
+        {
+          "at": 2.5,
+          "tag": "Horn",
+          "expect": "TRUE",
+          "says": "The horn should sound from the third flash on."
+        }
+      ]
+    },
+    {
+      "name": "Alarm Off resets everything",
+      "points": 1,
+      "durationSeconds": 3.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "alarm",
+          "active": true
+        },
+        {
+          "t": 3.0,
+          "operate": "alarm",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 3.1,
+          "tag": "Beacon",
+          "expect": "FALSE",
+          "says": "Alarm Off should put the beacon out."
+        },
+        {
+          "at": 3.1,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "Alarm Off should silence the horn."
+        },
+        {
+          "at": 3.2,
+          "tag": "FlashCount",
+          "expect": "0",
+          "says": "Alarm Off should set the count back to 0."
+        }
+      ]
+    },
+    {
+      "name": "A new alarm counts from 0",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 7.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "alarm",
+          "active": true
+        },
+        {
+          "t": 3.0,
+          "operate": "alarm",
+          "active": false
+        },
+        {
+          "t": 4.0,
+          "operate": "alarm",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 5.5,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "After Alarm Off and On again, the horn should wait for three new flashes."
+        },
+        {
+          "at": 6.5,
+          "tag": "Horn",
+          "expect": "TRUE",
+          "says": "The horn should sound from the third new flash."
+        }
+      ]
+    }
+  ]
+}

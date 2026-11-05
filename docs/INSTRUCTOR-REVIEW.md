@@ -15,16 +15,16 @@ students can share one computer, each with a PIN-protected progress file they ca
 ## What this preview shows, and what it does not
 
 **It shows:**
-- **the learning path:** twelve modules, from electrical foundations to industrial systems. Modules 1 to 5 (electrical foundations,
-  logic and number systems, relay control, PLC fundamentals, basic ladder programming) are **first drafts** for you to judge;
-  6 is an outline; 7–12 show only their outcomes and topics;
+- **the learning path:** twelve modules, from electrical foundations to industrial systems. Modules 1 to 8 and 11 (electrical
+  foundations to sequencing, and troubleshooting) are **first drafts** for you to judge; 9, 10 and 12 (analog and process
+  control, structured programming, industrial systems) show only their outcomes and topics;
 - **each module's first page:** what to finish first (recommended, never enforced), what the learner will be able to do, its
   topics and its items;
 - **each item in four tabs:** **Learn** (the lesson), **Example** (a simulated machine running a working program, and a
   common mistake), **Exercise** (the learner writes the program and the software checks it) and **Reference** (the symbols
   and rules, to look up);
 - the learner's progress: ✓ complete, ◐ started, ○ not started, on every module and item, and on each module's outcomes;
-- **practice questions** on the items of modules 1, 2 and 4, and **the module checks** of modules 1 to 5: questions of six kinds
+- **practice questions** on the items of modules 1, 2 and 4, and **the module checks** of every written module: questions of six kinds
   (a typed answer, such as a number in binary or hex, is the sixth), including machines with a faulty wire to diagnose
   (the review site lists every question with its answer);
 - the PLC engine running ladder programs with power flow drawn live, six simulated machines for the exercises and five more
@@ -129,10 +129,10 @@ Please answer whichever you can. Short notes are fine.
 7. **Your course.** Which topics and machines from your course would you most want to see?
 8. **Reports.** When students hand in a progress report, what do you need to see on it?
 9. **The editor.** Is it quick enough to build a rung? What do your students reach for that is missing?
-10. **The drafts.** Read the Learn pages of modules 1 to 5. Is the wording right for your students? Is anything wrong, or
+10. **The drafts.** Read the Learn pages of modules 1 to 8 and 11. Is the wording right for your students? Is anything wrong, or
     taught in a way you would not teach it? In particular: the lockout/tagout steps (1.4), the panel voltages (1.3), sinking and
     sourcing (4.2), and the Allen-Bradley names and addresses (2.2, 4.5). The review site lists the questions marked for you.
-11. **The module checks.** Modules 1 to 5 end with questions (choices, a truth table, matching symbols, a number, and in
+11. **The module checks.** Every written module ends with questions (choices, a truth table, matching symbols, a number, and in
     module 5 two machines with a faulty wire to diagnose). Are they the right questions? Is 80 % the right pass mark? A learner can
     retry freely and a wrong answer does not show the right one; is that how you would want it?
 

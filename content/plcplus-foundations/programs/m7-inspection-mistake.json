@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "name": "Count good parts and rejects (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "GoodPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Good part button: TRUE while pressed"
+    },
+    {
+      "name": "RejectPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Reject button: TRUE while pressed"
+    },
+    {
+      "name": "GoodCount",
+      "type": "INT",
+      "io": "output",
+      "comment": "Good display"
+    },
+    {
+      "name": "RejectCount",
+      "type": "INT",
+      "io": "output",
+      "comment": "Rejects display"
+    },
+    {
+      "name": "Total",
+      "type": "INT",
+      "io": "output",
+      "comment": "Total display"
+    },
+    {
+      "name": "RejectPct",
+      "type": "INT",
+      "io": "output",
+      "comment": "Rejects % display"
+    },
+    {
+      "name": "Scaled",
+      "type": "INT",
+      "comment": "RejectCount x 100"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Count good parts: once per press (rising edge), add 1.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "GoodPB",
+                "contact": "positiveEdge"
+              },
+              {
+                "kind": "box",
+                "instruction": "ADD",
+                "operands": {
+                  "IN1": "GoodCount",
+                  "IN2": "1",
+                  "OUT": "GoodCount"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Count rejects the same way.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "RejectPB",
+                "contact": "positiveEdge"
+              },
+              {
+                "kind": "box",
+                "instruction": "ADD",
+                "operands": {
+                  "IN1": "RejectCount",
+                  "IN2": "1",
+                  "OUT": "RejectCount"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Total = good + rejects.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "ADD",
+                "operands": {
+                  "IN1": "GoodCount",
+                  "IN2": "RejectCount",
+                  "OUT": "Total"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "MISTAKE: divides first. In whole numbers 1 / 3 is 0, and 0 x 100 is still 0.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "GT",
+                "operands": {
+                  "IN1": "Total",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "DIV",
+                "operands": {
+                  "IN1": "RejectCount",
+                  "IN2": "Total",
+                  "OUT": "Scaled"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "MUL",
+                "operands": {
+                  "IN1": "Scaled",
+                  "IN2": "100",
+                  "OUT": "RejectPct"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "name": "Choose a recipe with MOVE (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "RecipeB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Recipe switch: TRUE on B, FALSE on A"
+    },
+    {
+      "name": "ScoopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Scoop button (the scoop sensor): TRUE while pressed"
+    },
+    {
+      "name": "ResetPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Reset button: TRUE while pressed"
+    },
+    {
+      "name": "Target",
+      "type": "INT",
+      "io": "output",
+      "comment": "Scoops needed display"
+    },
+    {
+      "name": "ScoopCount",
+      "type": "INT",
+      "io": "output",
+      "comment": "Scoops added display"
+    },
+    {
+      "name": "Done",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "C1",
+      "type": "CTU",
+      "comment": "counts scoops"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Recipe A: 5 scoops.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "RecipeB",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "5",
+                  "OUT": "Target"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Recipe B: 8 scoops.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "RecipeB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "8",
+                  "OUT": "Target"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Count scoops up to the target.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "ScoopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "CTU",
+                "instance": "C1",
+                "operands": {
+                  "PV": "Target",
+                  "R": "ResetPB"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Show the count.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "C1.CV",
+                  "OUT": "ScoopCount"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Done once the count reaches the target.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "C1.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Done",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

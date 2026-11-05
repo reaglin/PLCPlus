@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "m6-warning-horn",
+  "title": "Conveyor with a start-up warning",
+  "description": "A long conveyor that people work beside. Before the belt moves, a horn warns everyone for 3 s. Start and Stop buttons (Stop wired normally closed), the warning horn and the conveyor motor.",
+  "width": 440,
+  "height": 300,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 30,
+      "y": 150
+    },
+    {
+      "type": "horn",
+      "id": "horn",
+      "label": "Warning horn",
+      "tag": "WarnHorn",
+      "x": 180,
+      "y": 30
+    },
+    {
+      "type": "motor",
+      "id": "motor",
+      "label": "Conveyor motor",
+      "runTag": "ConvMotor",
+      "startTimeMs": 600,
+      "x": 300,
+      "y": 130
+    }
+  ]
+}

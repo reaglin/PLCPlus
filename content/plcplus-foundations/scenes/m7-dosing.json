@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "m7-dosing",
+  "title": "Dosing station with two recipes",
+  "description": "Scoops of powder are added to a mixer. Recipe A needs 5 scoops and recipe B needs 8. A selector switch chooses the recipe; the Scoop button stands for the sensor that sees each scoop drop; Reset starts a new batch.",
+  "width": 470,
+  "height": 330,
+  "components": [
+    {
+      "type": "selectorSwitch",
+      "id": "recipe",
+      "label": "Recipe",
+      "tag": "RecipeB",
+      "positions": [
+        "A",
+        "B"
+      ],
+      "x": 30,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "scoop",
+      "label": "Scoop",
+      "tag": "ScoopPB",
+      "color": "green",
+      "x": 30,
+      "y": 120
+    },
+    {
+      "type": "pushButton",
+      "id": "reset",
+      "label": "Reset",
+      "tag": "ResetPB",
+      "color": "amber",
+      "x": 30,
+      "y": 220
+    },
+    {
+      "type": "numericDisplay",
+      "id": "target",
+      "label": "Scoops needed",
+      "tag": "Target",
+      "digits": 2,
+      "x": 230,
+      "y": 20
+    },
+    {
+      "type": "numericDisplay",
+      "id": "count",
+      "label": "Scoops added",
+      "tag": "ScoopCount",
+      "digits": 2,
+      "x": 350,
+      "y": 20
+    },
+    {
+      "type": "pilotLight",
+      "id": "done",
+      "label": "Recipe done",
+      "tag": "Done",
+      "color": "green",
+      "x": 270,
+      "y": 180
+    }
+  ]
+}

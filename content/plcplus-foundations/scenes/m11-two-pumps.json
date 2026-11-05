@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "id": "m11-two-pumps",
+  "title": "Two-pump station",
+  "description": "Two pumps, each with its own Start and Stop buttons (the Stops wired normally closed) and its own running light.",
+  "width": 500,
+  "height": 310,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start1",
+      "label": "Pump 1 start",
+      "tag": "Start1",
+      "color": "green",
+      "x": 20,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "stop1",
+      "label": "Pump 1 stop",
+      "tag": "Stop1",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 20,
+      "y": 120
+    },
+    {
+      "type": "pushButton",
+      "id": "start2",
+      "label": "Pump 2 start",
+      "tag": "Start2",
+      "color": "green",
+      "x": 130,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "stop2",
+      "label": "Pump 2 stop",
+      "tag": "Stop2",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 130,
+      "y": 120
+    },
+    {
+      "type": "pilotLight",
+      "id": "light1",
+      "label": "Pump 1 running",
+      "tag": "Light1",
+      "color": "green",
+      "x": 20,
+      "y": 240
+    },
+    {
+      "type": "pilotLight",
+      "id": "light2",
+      "label": "Pump 2 running",
+      "tag": "Light2",
+      "color": "green",
+      "x": 220,
+      "y": 240
+    },
+    {
+      "type": "motor",
+      "id": "pump1",
+      "label": "Pump 1",
+      "runTag": "Pump1",
+      "startTimeMs": 800,
+      "x": 360,
+      "y": 20
+    },
+    {
+      "type": "motor",
+      "id": "pump2",
+      "label": "Pump 2",
+      "runTag": "Pump2",
+      "startTimeMs": 800,
+      "x": 360,
+      "y": 160
+    }
+  ]
+}

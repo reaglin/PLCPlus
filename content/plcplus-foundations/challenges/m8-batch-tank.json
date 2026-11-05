@@ -1,0 +1,365 @@
+{
+  "schemaVersion": 1,
+  "id": "u8.batch-tank",
+  "title": "Fill, mix and drain a batch, by step number",
+  "brief": "Run the batch from a step number, an INT tag called Step (the Step display shows it). Step 0 is idle: nothing on. Start in step 0 begins a batch. Step 1 fills: the fill valve is open until the high float (80 %), then step 2. Step 2 mixes: the mixer runs for 4 s, then step 3. Step 3 drains: the drain valve is open until the level is below the low float (10 %), then back to step 0. Start does nothing in steps 1, 2 and 3. Stop goes back to step 0 from any step, and everything stops. Stop is wired normally closed.",
+  "scene": "m8-batch-tank",
+  "constraints": {
+    "maxRungs": 16
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Each output has one rung: an EQ box (EQU on Allen-Bradley) that passes power when Step equals that step's number, then the coil.",
+    "Each move to the next step is a rung: an EQ box for the step you are in, the condition, then a MOVE box that puts the next number in Step.",
+    "The mixing time is a TON box on a rung of its own, powered by EQ Step 2. Its .Q tells the next rung to move on.",
+    "Is Start checked only in step 0?"
+  ],
+  "scenarios": [
+    {
+      "name": "One batch: fill, mix, drain",
+      "points": 1,
+      "durationSeconds": 13.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "Step",
+          "expect": "1",
+          "says": "Start in step 0 should go to step 1 (fill)."
+        },
+        {
+          "at": 1.0,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "In step 1 the fill valve should be open."
+        },
+        {
+          "at": 6.0,
+          "tag": "Step",
+          "expect": "2",
+          "says": "At the high float the batch should be in step 2 (mix)."
+        },
+        {
+          "at": 6.0,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "In step 2 the fill valve should be closed."
+        },
+        {
+          "at": 6.0,
+          "tag": "Mixer",
+          "expect": "TRUE",
+          "says": "In step 2 the mixer should run."
+        },
+        {
+          "at": 10.0,
+          "tag": "Step",
+          "expect": "3",
+          "says": "After 4 s of mixing the batch should be in step 3 (drain)."
+        },
+        {
+          "at": 10.0,
+          "tag": "Mixer",
+          "expect": "FALSE",
+          "says": "In step 3 the mixer should be off."
+        },
+        {
+          "at": 10.0,
+          "tag": "DrainValve",
+          "expect": "TRUE",
+          "says": "In step 3 the drain valve should be open."
+        },
+        {
+          "at": 12.5,
+          "tag": "Step",
+          "expect": "0",
+          "says": "Below the low float the batch is done: back to step 0."
+        },
+        {
+          "at": 12.5,
+          "tag": "DrainValve",
+          "expect": "FALSE",
+          "says": "In step 0 the drain valve should be closed."
+        }
+      ],
+      "windows": [
+        {
+          "tag": "Mixer",
+          "expect": "TRUE",
+          "after": 0,
+          "from": 4.0,
+          "to": 4.2,
+          "says": "The mixer should start when the tank reaches the high float, about 4.1 s after Start."
+        },
+        {
+          "tag": "DrainValve",
+          "expect": "TRUE",
+          "after": 0,
+          "from": 8.05,
+          "to": 8.25,
+          "says": "Draining should start after 4 s of mixing, about 8.1 s after Start."
+        }
+      ],
+      "order": [
+        {
+          "first": "FillValve",
+          "then": "Mixer",
+          "after": 0,
+          "says": "The tank should fill before the mixer runs."
+        },
+        {
+          "first": "Mixer",
+          "then": "DrainValve",
+          "after": 0,
+          "says": "The batch should be mixed before it drains."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "FillValve",
+            "DrainValve"
+          ],
+          "says": "The fill and drain valves must never be open together."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.overflow"
+          ],
+          "says": "The tank must never overflow."
+        }
+      ]
+    },
+    {
+      "name": "Start in the middle of a batch does nothing",
+      "points": 1,
+      "durationSeconds": 10.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 6.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 6.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 9.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 9.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 6.5,
+          "tag": "Mixer",
+          "expect": "TRUE",
+          "says": "Start pressed while mixing must do nothing: it is for step 0 only."
+        },
+        {
+          "at": 9.5,
+          "tag": "DrainValve",
+          "expect": "TRUE",
+          "says": "Start pressed while draining must do nothing: the batch keeps draining."
+        },
+        {
+          "at": 9.5,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "Start pressed while draining must not open the fill valve again."
+        },
+        {
+          "at": 9.5,
+          "tag": "Step",
+          "expect": "3",
+          "says": "Start pressed in step 3 must leave the batch in step 3."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "FillValve",
+            "DrainValve"
+          ],
+          "says": "The fill and drain valves must never be open together."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.overflow"
+          ],
+          "says": "The tank must never overflow."
+        }
+      ],
+      "hint": "Start should move to step 1 only from step 0: put an EQ box for step 0 on Start's rung."
+    },
+    {
+      "name": "Stop goes back to step 0",
+      "points": 1,
+      "durationSeconds": 4.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 2.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 2.2,
+          "operate": "stop",
+          "active": false
+        },
+        {
+          "t": 3.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 3.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.1,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "Stop should close the fill valve at once."
+        },
+        {
+          "at": 2.1,
+          "tag": "Step",
+          "expect": "0",
+          "says": "Stop should go back to step 0."
+        },
+        {
+          "at": 2.8,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "After Stop nothing should start until Start is pressed."
+        },
+        {
+          "at": 3.5,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "After Stop, Start should begin a batch again (step 1)."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "FillValve",
+            "DrainValve"
+          ],
+          "says": "The fill and drain valves must never be open together."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.overflow"
+          ],
+          "says": "The tank must never overflow."
+        }
+      ]
+    },
+    {
+      "name": "Two batches in a row",
+      "points": 1,
+      "durationSeconds": 21.0,
+      "hidden": true,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 12.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 12.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 13.0,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "After a batch, Start should begin the next one."
+        },
+        {
+          "at": 17.0,
+          "tag": "Mixer",
+          "expect": "TRUE",
+          "says": "The second batch should mix."
+        },
+        {
+          "at": 20.5,
+          "tag": "DrainValve",
+          "expect": "TRUE",
+          "says": "The second batch should drain after 4 s of mixing."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "FillValve",
+            "DrainValve"
+          ],
+          "says": "The fill and drain valves must never be open together."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.overflow"
+          ],
+          "says": "The tank must never overflow."
+        }
+      ]
+    }
+  ]
+}

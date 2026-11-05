@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "name": "A parts-low warning (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "RefillPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Refill button: TRUE while pressed"
+    },
+    {
+      "name": "UsePB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Part used button: TRUE while pressed"
+    },
+    {
+      "name": "WarnAt",
+      "type": "INT",
+      "io": "input",
+      "comment": "Warn at thumbwheel: 0 to 99"
+    },
+    {
+      "name": "PartsLow",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "BinEmpty",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "C1",
+      "type": "CTD",
+      "comment": "parts left in the bin"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Parts left: Refill loads 10 (LD), each Part used counts down one.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "UsePB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "CTD",
+                "instance": "C1",
+                "operands": {
+                  "PV": "10",
+                  "LD": "RefillPB"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Parts low while 0 < parts left <= WarnAt: LE (LEQ on Allen-Bradley) and GT (GRT) in series.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "LE",
+                "operands": {
+                  "IN1": "C1.CV",
+                  "IN2": "WarnAt"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "GT",
+                "operands": {
+                  "IN1": "C1.CV",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "PartsLow",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Bin empty at 0 or less: LE 0, not EQ 0, so one press too many cannot hide it.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "LE",
+                "operands": {
+                  "IN1": "C1.CV",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "BinEmpty",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

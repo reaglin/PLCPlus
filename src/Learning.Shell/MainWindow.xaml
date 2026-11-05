@@ -120,7 +120,7 @@
                     <TextBlock x:Name="HelpScreenText" Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}" />
                     <TextBlock Text="How to use PLC+" Style="{StaticResource PanelTitle}" Margin="0,10,0,6" AutomationProperties.HeadingLevel="Level2" />
                     <TextBlock Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}">
-                        A preview for review. PLC+ teaches PLC programming in modules, with simulated machines in place of real ones.
+                        PLC+ teaches PLC programming in modules, with simulated machines in place of real ones. Each module is a list of items; finish them in order, or in any order you like.
                     </TextBlock>
                     <TextBlock Text="The learning path (left)" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">

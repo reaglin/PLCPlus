@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 1,
+  "name": "A rinse tank as a state machine, with a leak alarm (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "ResetPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Alarm reset button: TRUE while pressed"
+    },
+    {
+      "name": "Leak",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Leak detector under the tank: TRUE while it is wet"
+    },
+    {
+      "name": "HighFloat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "High float: TRUE when the tank is at 80 % or above"
+    },
+    {
+      "name": "LowFloat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Low float: TRUE when the tank is at 10 % or above"
+    },
+    {
+      "name": "FillValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "DrainValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Alarm",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "State",
+      "type": "INT",
+      "io": "output",
+      "comment": "the state, shown on the State display: 0 Idle, 1 Filling, 2 Draining, 8 Leak alarm"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Idle (0) to Filling (1): Start.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "StartPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "1",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Filling (1) to Draining (2): the tank is full.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "HighFloat",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "2",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Draining (2) to Idle (0): the tank is below the low float.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "LowFloat",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Stop: back to Idle (0).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "MISTAKE: no leak state. The leak only blocks the fill valve while the floor is wet ...",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "Leak",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "FillValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "... and the drain valve.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "Leak",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "DrainValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The horn sounds only while it is wet, so when the leak stops, everything carries on by itself.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Leak",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Alarm",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "name": "A gate as a state machine (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "OpenPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Open button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "ResetPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Reset button: TRUE while pressed"
+    },
+    {
+      "name": "AirOK",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Air pressure switch: TRUE while the air pressure is OK"
+    },
+    {
+      "name": "GateIsOpen",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Gate extended sensor: TRUE when the gate is fully open"
+    },
+    {
+      "name": "GateIsClosed",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Gate retracted sensor: TRUE when the gate is fully closed"
+    },
+    {
+      "name": "GateOpen",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "GateClose",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "StopLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "State",
+      "type": "INT",
+      "io": "output",
+      "comment": "the state, shown on the State display: 0 Closed, 1 Opening, 2 Open, 3 Closing, 9 Stopped"
+    },
+    {
+      "name": "HoldTimer",
+      "type": "TON",
+      "comment": "how long the gate stays open"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Closed (0) to Opening (1): Open pressed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "OpenPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "1",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Opening (1) to Open (2): the gate is fully open.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "GateIsOpen",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "2",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Open (2): time how long it has been open.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "HoldTimer",
+                "operands": {
+                  "PT": "T#3s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Open (2) to Closing (3): open for 3 s.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "HoldTimer.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "3",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Closing (3) to Closed (0): the gate is fully closed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "3"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "GateIsClosed",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Closing (3) to Opening (1): Open pressed while it closes (someone needs to get through).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "3"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "OpenPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "1",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Stopped (9) to Closing (3): Reset, once Stop is let go and the air is OK. The gate may be anywhere, so it closes first.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "9"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "ResetPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "AirOK",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "3",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Any state to Stopped (9): Stop pressed or the air pressure low. Last of the moves, so it wins.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StopPB",
+                        "contact": "normallyClosed"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "AirOK",
+                        "contact": "normallyClosed"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "9",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Open the gate in Opening (1).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "GateOpen",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Close the gate in Closing (3).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "3"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "GateClose",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The Stopped light in Stopped (9).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "9"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "StopLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

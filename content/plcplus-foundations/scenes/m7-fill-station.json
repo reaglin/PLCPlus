@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "m7-fill-station",
+  "title": "Drum fill station with a recipe table",
+  "description": "A drum is filled through a valve for a time that depends on the recipe: recipe 1 fills for 2 s, 2 for 3 s, 3 for 5 s and 4 for 8 s (the valve fills 10 % of the drum a second). The operator dials the recipe number on a thumbwheel and presses Start.",
+  "width": 460,
+  "height": 340,
+  "components": [
+    {
+      "type": "thumbwheel",
+      "id": "recipe",
+      "label": "Recipe",
+      "tag": "Recipe",
+      "digits": 1,
+      "value": 1,
+      "x": 20,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 20,
+      "y": 150
+    },
+    {
+      "type": "pilotLight",
+      "id": "bad",
+      "label": "Bad recipe",
+      "tag": "BadRecipe",
+      "color": "red",
+      "x": 20,
+      "y": 250
+    },
+    {
+      "type": "solenoidValve",
+      "id": "fill",
+      "label": "Fill valve",
+      "tag": "FillValve",
+      "tank": "drum",
+      "inlet": true,
+      "ratePercentPerSecond": 10,
+      "x": 230,
+      "y": 10
+    },
+    {
+      "type": "tank",
+      "id": "drum",
+      "label": "Drum",
+      "initialLevelPercent": 0,
+      "x": 220,
+      "y": 60,
+      "width": 120,
+      "height": 220
+    }
+  ]
+}

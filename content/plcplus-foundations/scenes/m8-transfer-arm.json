@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "id": "m8-transfer-arm",
+  "title": "Transfer arm",
+  "description": "An arm that moves a part from one conveyor to the next. A gripper cylinder (one solenoid: it closes while its output is on, and a spring opens it) holds the part, and an arm cylinder with two solenoids (one pushes it out, one pulls it in; with neither on it stays where it is) carries it across. Each cylinder has sensors for fully out and fully in.",
+  "width": 470,
+  "height": 300,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 30,
+      "y": 140
+    },
+    {
+      "type": "cylinder",
+      "id": "gripper",
+      "label": "Gripper",
+      "extendTag": "GripClose",
+      "extendedTag": "GripIsClosed",
+      "retractedTag": "GripIsOpen",
+      "strokeTimeMs": 300,
+      "x": 210,
+      "y": 40
+    },
+    {
+      "type": "cylinder",
+      "id": "arm",
+      "label": "Arm",
+      "extendTag": "ArmOut",
+      "retractTag": "ArmIn",
+      "extendedTag": "ArmIsOut",
+      "retractedTag": "ArmIsIn",
+      "strokeTimeMs": 800,
+      "x": 210,
+      "y": 160
+    }
+  ]
+}

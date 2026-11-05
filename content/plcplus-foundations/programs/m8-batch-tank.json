@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "name": "Fill, mix and drain a batch, by step number (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "HighFloat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "High float: TRUE when the tank is at 80 % or above"
+    },
+    {
+      "name": "LowFloat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Low float: TRUE when the tank is at 10 % or above"
+    },
+    {
+      "name": "FillValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Mixer",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "DrainValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Step",
+      "type": "INT",
+      "io": "output",
+      "comment": "the step number, shown on the Step display: 0 idle, 1 fill, 2 mix, 3 drain"
+    },
+    {
+      "name": "MixTimer",
+      "type": "TON",
+      "comment": "mixing time"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Step 0 (idle): Start begins a batch, step 1.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "StartPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "1",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 1 (fill): when the tank is full, step 2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "HighFloat",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "2",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 2 (mix): time the mixing.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "MixTimer",
+                "operands": {
+                  "PT": "T#4s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 2: after 4 s of mixing, step 3.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "MixTimer.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "3",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 3 (drain): when the tank is below the low float, back to step 0.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "3"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "LowFloat",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Stop: back to step 0 from any step.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The fill valve is open in step 1.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "FillValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The mixer runs in step 2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "Mixer",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The drain valve is open in step 3.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "3"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "DrainValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

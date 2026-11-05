@@ -1,0 +1,274 @@
+{
+  "schemaVersion": 1,
+  "id": "u8.rinse-tank",
+  "title": "A rinse tank as a state machine, with a leak alarm",
+  "brief": "States, in the INT tag State: 0 Idle, 1 Filling (fill valve open), 2 Draining (drain valve open), 8 Leak alarm (horn on, both valves closed). Idle to Filling on Start; Filling to Draining at the high float; Draining to Idle below the low float. Stop goes back to Idle from Filling or Draining. From any state, a wet leak detector goes to Leak alarm, and it stays there, even after the floor is dry, until Alarm reset is pressed with the floor dry: then Draining, to empty the tank. Stop is wired normally closed.",
+  "scene": "m8-rinse-tank",
+  "constraints": {
+    "maxRungs": 14
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "One rung per move: EQ for the state it leaves, the condition, MOVE the new number.",
+    "The leak move has no EQ: it comes from every state. Put it last.",
+    "The outputs follow the state: one EQ and a coil each."
+  ],
+  "scenarios": [
+    {
+      "name": "Fill and drain",
+      "points": 1,
+      "durationSeconds": 7.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "State",
+          "expect": "1",
+          "says": "Start in Idle (0) should go to Filling (1)."
+        },
+        {
+          "at": 1.0,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "In Filling (1) the fill valve should be open."
+        },
+        {
+          "at": 4.0,
+          "tag": "State",
+          "expect": "2",
+          "says": "At the high float, Draining (2)."
+        },
+        {
+          "at": 4.0,
+          "tag": "DrainValve",
+          "expect": "TRUE",
+          "says": "In Draining (2) the drain valve should be open."
+        },
+        {
+          "at": 4.0,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "In Draining (2) the fill valve should be closed."
+        },
+        {
+          "at": 6.6,
+          "tag": "State",
+          "expect": "0",
+          "says": "Below the low float, back to Idle (0)."
+        },
+        {
+          "at": 6.6,
+          "tag": "DrainValve",
+          "expect": "FALSE",
+          "says": "In Idle (0) both valves should be closed."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "FillValve",
+            "DrainValve"
+          ],
+          "says": "The fill and drain valves must never be open together."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.overflow"
+          ],
+          "says": "The tank must never overflow."
+        }
+      ]
+    },
+    {
+      "name": "A leak stops everything until Alarm reset",
+      "points": 1,
+      "durationSeconds": 4.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "leak",
+          "active": true
+        },
+        {
+          "t": 1.5,
+          "operate": "leak",
+          "active": false
+        },
+        {
+          "t": 2.5,
+          "operate": "reset",
+          "active": true
+        },
+        {
+          "t": 2.7,
+          "operate": "reset",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.1,
+          "tag": "State",
+          "expect": "8",
+          "says": "A wet leak detector should go to Leak alarm (8)."
+        },
+        {
+          "at": 1.1,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "In Leak alarm (8) the fill valve should close."
+        },
+        {
+          "at": 1.1,
+          "tag": "Alarm",
+          "expect": "TRUE",
+          "says": "In Leak alarm (8) the horn should sound."
+        },
+        {
+          "at": 2.0,
+          "tag": "Alarm",
+          "expect": "TRUE",
+          "says": "The alarm should stay on after the floor is dry, until someone presses Alarm reset."
+        },
+        {
+          "at": 2.0,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "After the leak stops, nothing should start again by itself."
+        },
+        {
+          "at": 2.6,
+          "tag": "State",
+          "expect": "2",
+          "says": "Alarm reset with the floor dry should go to Draining (2)."
+        },
+        {
+          "at": 2.6,
+          "tag": "DrainValve",
+          "expect": "TRUE",
+          "says": "After Alarm reset the tank should drain."
+        },
+        {
+          "at": 2.6,
+          "tag": "Alarm",
+          "expect": "FALSE",
+          "says": "Alarm reset should silence the horn."
+        },
+        {
+          "at": 3.6,
+          "tag": "State",
+          "expect": "0",
+          "says": "Once drained, back to Idle (0)."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "FillValve",
+            "DrainValve"
+          ],
+          "says": "The fill and drain valves must never be open together."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.overflow"
+          ],
+          "says": "The tank must never overflow."
+        }
+      ]
+    },
+    {
+      "name": "Stop goes back to Idle",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "stop",
+          "active": false
+        },
+        {
+          "t": 1.5,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 1.7,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.1,
+          "tag": "State",
+          "expect": "0",
+          "says": "Stop should go back to Idle (0)."
+        },
+        {
+          "at": 1.1,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "Stop should close the fill valve."
+        },
+        {
+          "at": 1.6,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "After Stop, Start should fill again."
+        }
+      ],
+      "invariants": [
+        {
+          "neverAllTrue": [
+            "FillValve",
+            "DrainValve"
+          ],
+          "says": "The fill and drain valves must never be open together."
+        },
+        {
+          "neverAllTrue": [
+            "@tank.overflow"
+          ],
+          "says": "The tank must never overflow."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "name": "A stair light on a pulse timer and a porch light on an off-delay (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StairBottom",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Button at the bottom of the stairs: TRUE while pressed"
+    },
+    {
+      "name": "StairTop",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Button at the top of the stairs: TRUE while pressed"
+    },
+    {
+      "name": "DoorOpen",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Front door switch: TRUE while the door is open"
+    },
+    {
+      "name": "StairLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "PorchLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "T1",
+      "type": "TP",
+      "comment": "the stair light's 5 s pulse"
+    },
+    {
+      "name": "T2",
+      "type": "TOF",
+      "comment": "the porch light's 4 s off-delay"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Either stair button starts a 5 s pulse (TP).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StairBottom",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StairTop",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "box",
+                "instruction": "TP",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#5s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The stair light follows the pulse.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "StairLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The door open starts the off-delay (TOF): Q stays on 4 s after the door shuts.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "DoorOpen",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TOF",
+                "instance": "T2",
+                "operands": {
+                  "PT": "T#4s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The porch light follows the off-delay.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "T2.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "PorchLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

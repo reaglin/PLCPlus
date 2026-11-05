@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "id": "u11.wash-rinse",
+  "title": "A spray washer: wash, then rinse",
+  "brief": "Start runs the wash pump for 4 s. Then the wash pump stops and the rinse pump runs for 3 s, and then the washer stops by itself. Stop stops it at any time.",
+  "scene": "m11-wash-rinse",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Press Start and watch the timer boxes: does T1's time (ET) count up while the wash pump runs?",
+    "A timer box with no power resets its timer. Count the boxes that use T1.",
+    "Each timing job needs a timer of its own: the rinse time should use T2, and the rinse rung should read T2.Q."
+  ],
+  "scenarios": [
+    {
+      "name": "Wash, then rinse, then stop",
+      "points": 1,
+      "durationSeconds": 9.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.0,
+          "tag": "WashPump",
+          "expect": "TRUE",
+          "says": "The wash pump should run for the first 4 s."
+        },
+        {
+          "at": 2.0,
+          "tag": "RinsePump",
+          "expect": "FALSE",
+          "says": "The rinse pump should wait until the wash is over."
+        },
+        {
+          "at": 5.0,
+          "tag": "WashPump",
+          "expect": "FALSE",
+          "says": "The wash pump should stop after 4 s."
+        },
+        {
+          "at": 5.0,
+          "tag": "RinsePump",
+          "expect": "TRUE",
+          "says": "The rinse pump should run from 4 s to 7 s."
+        },
+        {
+          "at": 8.0,
+          "tag": "RinsePump",
+          "expect": "FALSE",
+          "says": "The rinse pump should stop after 3 s, and the washer stop by itself."
+        }
+      ]
+    },
+    {
+      "name": "Stop during the wash",
+      "points": 1,
+      "durationSeconds": 6.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.5,
+          "tag": "WashPump",
+          "expect": "FALSE",
+          "says": "Stop should stop the wash pump."
+        },
+        {
+          "at": 5.0,
+          "tag": "RinsePump",
+          "expect": "FALSE",
+          "says": "After Stop, the rinse must not start by itself."
+        }
+      ]
+    },
+    {
+      "name": "Stop during the rinse",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 9.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 5.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 5.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 5.5,
+          "tag": "RinsePump",
+          "expect": "FALSE",
+          "says": "Stop should stop the rinse pump."
+        },
+        {
+          "at": 8.0,
+          "tag": "WashPump",
+          "expect": "FALSE",
+          "says": "After Stop, nothing should start again by itself."
+        },
+        {
+          "at": 8.0,
+          "tag": "RinsePump",
+          "expect": "FALSE",
+          "says": "After Stop, nothing should start again by itself."
+        }
+      ]
+    }
+  ]
+}

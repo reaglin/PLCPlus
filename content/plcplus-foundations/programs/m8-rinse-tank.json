@@ -1,0 +1,311 @@
+{
+  "schemaVersion": 1,
+  "name": "A rinse tank as a state machine, with a leak alarm (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "ResetPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Alarm reset button: TRUE while pressed"
+    },
+    {
+      "name": "Leak",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Leak detector under the tank: TRUE while it is wet"
+    },
+    {
+      "name": "HighFloat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "High float: TRUE when the tank is at 80 % or above"
+    },
+    {
+      "name": "LowFloat",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Low float: TRUE when the tank is at 10 % or above"
+    },
+    {
+      "name": "FillValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "DrainValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Alarm",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "State",
+      "type": "INT",
+      "io": "output",
+      "comment": "the state, shown on the State display: 0 Idle, 1 Filling, 2 Draining, 8 Leak alarm"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Idle (0) to Filling (1): Start.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "StartPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "1",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Filling (1) to Draining (2): the tank is full.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "HighFloat",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "2",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Draining (2) to Idle (0): the tank is below the low float.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "LowFloat",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Stop: back to Idle (0) from any state except the leak alarm, which only Reset clears.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "NE",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "8"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Leak alarm (8) to Draining (2): Reset, once the floor is dry. Draining empties the tank before it is used again.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "8"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "ResetPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Leak",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "2",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Any state to Leak alarm (8): the leak detector is wet. Last of the moves, so it wins.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Leak",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "8",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The fill valve in Filling (1).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "FillValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The drain valve in Draining (2).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "DrainValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The horn in Leak alarm (8).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "8"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "Alarm",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

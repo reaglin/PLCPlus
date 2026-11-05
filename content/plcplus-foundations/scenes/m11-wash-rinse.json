@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "m11-wash-rinse",
+  "title": "Spray washer",
+  "description": "A spray washer with a wash pump and a rinse pump, a Start button and a Stop button (wired normally closed).",
+  "width": 440,
+  "height": 300,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 30,
+      "y": 150
+    },
+    {
+      "type": "motor",
+      "id": "wash",
+      "label": "Wash pump",
+      "runTag": "WashPump",
+      "startTimeMs": 600,
+      "x": 220,
+      "y": 20
+    },
+    {
+      "type": "motor",
+      "id": "rinse",
+      "label": "Rinse pump",
+      "runTag": "RinsePump",
+      "startTimeMs": 600,
+      "x": 220,
+      "y": 160
+    }
+  ]
+}

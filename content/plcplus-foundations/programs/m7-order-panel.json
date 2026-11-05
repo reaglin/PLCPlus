@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "name": "Accept an order with MOVE (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "OrderQty",
+      "type": "INT",
+      "io": "input",
+      "comment": "Order quantity thumbwheel: 0 to 999"
+    },
+    {
+      "name": "AcceptPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Accept button: TRUE while pressed"
+    },
+    {
+      "name": "ClearPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Clear button: TRUE while pressed"
+    },
+    {
+      "name": "Accepted",
+      "type": "INT",
+      "io": "output",
+      "comment": "Accepted order display"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Accept: copy the thumbwheel to the display. MOVE (MOV on Allen-Bradley) runs only while Accept is pressed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "AcceptPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "OrderQty",
+                  "OUT": "Accepted"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Clear: copy 0 to the display.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "ClearPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "Accepted"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

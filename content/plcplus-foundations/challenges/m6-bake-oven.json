@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "id": "u6.bake-oven",
+  "title": "Bake for 8 s in all, through a door opening",
+  "brief": "With Bake On and the door shut, the heater heats. When it has heated for 8 s in all, the heater turns off and Done lights. Opening the door turns the heater off but keeps the baking time so far: shutting it carries on from there. Clear sets the time back to 0 for the next bake.",
+  "scene": "m6-bake-oven",
+  "constraints": {
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "The time must be kept while the door is open, so a TON will not do: use a retentive timer, TONR (RTO on Allen-Bradley).",
+    "The heater runs with Bake On AND the door shut AND the timer not yet done; the timer's IN is the Heater.",
+    "The TONR's R input clears it: put ClearPB in R."
+  ],
+  "scenarios": [
+    {
+      "name": "8 s of heat, then Done",
+      "points": 1,
+      "durationSeconds": 9.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "bake",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "Heater",
+          "expect": "TRUE",
+          "says": "The heater should heat with Bake On and the door shut."
+        },
+        {
+          "at": 8.2,
+          "tag": "Heater",
+          "expect": "FALSE",
+          "says": "The heater should turn off when the bake is done."
+        },
+        {
+          "at": 8.2,
+          "tag": "DoneLight",
+          "expect": "TRUE",
+          "says": "Done should light after 8 s of heat."
+        }
+      ],
+      "windows": [
+        {
+          "tag": "DoneLight",
+          "expect": "TRUE",
+          "after": 0,
+          "from": 7.95,
+          "to": 8.05,
+          "says": "Done should light after 8 s of heat, between 7.95 and 8.05 s."
+        }
+      ]
+    },
+    {
+      "name": "Opening the door pauses the bake",
+      "points": 1,
+      "durationSeconds": 11.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "bake",
+          "active": true
+        },
+        {
+          "t": 3.0,
+          "operate": "door",
+          "active": false
+        },
+        {
+          "t": 5.0,
+          "operate": "door",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 4.0,
+          "tag": "Heater",
+          "expect": "FALSE",
+          "says": "The heater should be off while the door is open."
+        },
+        {
+          "at": 9.8,
+          "tag": "DoneLight",
+          "expect": "FALSE",
+          "says": "3 s before the door opened and 4.8 s after: not yet 8 s of heat."
+        },
+        {
+          "at": 10.2,
+          "tag": "DoneLight",
+          "expect": "TRUE",
+          "says": "3 s before the door opened and 5 s after make 8 s: Done should light at 10 s."
+        }
+      ]
+    },
+    {
+      "name": "Clear starts a new bake",
+      "points": 1,
+      "durationSeconds": 10.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "bake",
+          "active": true
+        },
+        {
+          "t": 8.5,
+          "operate": "bake",
+          "active": false
+        },
+        {
+          "t": 9.0,
+          "operate": "clear",
+          "active": true
+        },
+        {
+          "t": 9.2,
+          "operate": "clear",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 8.8,
+          "tag": "DoneLight",
+          "expect": "TRUE",
+          "says": "Done should stay lit until Clear."
+        },
+        {
+          "at": 9.3,
+          "tag": "DoneLight",
+          "expect": "FALSE",
+          "says": "Clear should put Done out."
+        }
+      ]
+    },
+    {
+      "name": "After Clear, a bake takes the full 8 s",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 19.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "bake",
+          "active": true
+        },
+        {
+          "t": 8.5,
+          "operate": "bake",
+          "active": false
+        },
+        {
+          "t": 9.0,
+          "operate": "clear",
+          "active": true
+        },
+        {
+          "t": 9.2,
+          "operate": "clear",
+          "active": false
+        },
+        {
+          "t": 10.0,
+          "operate": "bake",
+          "active": true
+        }
+      ],
+      "assertions": [
+        {
+          "at": 17.8,
+          "tag": "DoneLight",
+          "expect": "FALSE",
+          "says": "After Clear, the next bake should take 8 s from the start."
+        },
+        {
+          "at": 18.2,
+          "tag": "DoneLight",
+          "expect": "TRUE",
+          "says": "The second bake should be done 8 s after Bake On."
+        }
+      ]
+    }
+  ]
+}

@@ -51,8 +51,9 @@ public static class ProjectValidator
             var isElementary = typeRef is TypeRef.Elementary;
             if (tag.Io != IoDirection.None && !isElementary)
                 list.Add(new(Severity.Error, "Tags", 0, "", $"'{tag.Name}' is wired to the machine, so it must be a single value (BOOL), not {tag.Type}."));
-            else if (tag.Io != IoDirection.None && typeRef is TypeRef.Elementary { Type: not DataType.Bool })
-                list.Add(new(Severity.Warning, "Tags", 0, "", $"'{tag.Name}' is wired to the machine but is not BOOL. Analog I/O comes in a later unit."));
+            // Whole numbers on the machine are thumbwheels and displays; a REAL there would be an analog signal, not wired yet.
+            else if (tag.Io != IoDirection.None && typeRef is TypeRef.Elementary { Type: not (DataType.Bool or DataType.Int or DataType.DInt) })
+                list.Add(new(Severity.Warning, "Tags", 0, "", $"'{tag.Name}' is wired to the machine as {tag.Type}. Only BOOL (switches, lights) and whole numbers, INT or DINT (thumbwheels, displays), are wired so far; analog I/O comes in a later unit."));
             if (tag.Initial is not null && !isElementary)
                 list.Add(new(Severity.Error, "Tags", 0, "", $"'{tag.Name}' is {tag.Type}: only a single value (BOOL, INT, DINT, REAL, TIME) can have a starting value. Arrays and structures start at zero."));
             else if (tag.Initial is not null && !PlcValue.TryParseLiteral(tag.Initial, out _))

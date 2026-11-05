@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "m7-parts-bin",
+  "title": "Parts bin with a low warning",
+  "description": "A bin of 10 parts beside an assembly bench. Refill fills it up; each press of Part used takes one part out. The Warn at thumbwheel says how few parts are left when the Parts low light should come on, so someone brings more in time.",
+  "width": 460,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "refill",
+      "label": "Refill",
+      "tag": "RefillPB",
+      "color": "green",
+      "x": 30,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "use",
+      "label": "Part used",
+      "tag": "UsePB",
+      "color": "amber",
+      "x": 30,
+      "y": 120
+    },
+    {
+      "type": "thumbwheel",
+      "id": "warn",
+      "label": "Warn at",
+      "tag": "WarnAt",
+      "digits": 2,
+      "value": 3,
+      "x": 30,
+      "y": 220
+    },
+    {
+      "type": "pilotLight",
+      "id": "low",
+      "label": "Parts low",
+      "tag": "PartsLow",
+      "color": "amber",
+      "x": 270,
+      "y": 40
+    },
+    {
+      "type": "pilotLight",
+      "id": "empty",
+      "label": "Bin empty",
+      "tag": "BinEmpty",
+      "color": "red",
+      "x": 270,
+      "y": 170
+    }
+  ]
+}

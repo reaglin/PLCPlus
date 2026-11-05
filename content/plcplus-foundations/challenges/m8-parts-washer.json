@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "id": "u8.parts-washer",
+  "title": "A parts washer, by step number",
+  "brief": "A step number, the INT tag Step, runs the wash. Step 0 is idle. Start in step 0 goes to step 1: the basket lowers into the tank until BasketIsDown, then step 2: the spray pump runs for 3 s with the basket down, then step 3: the basket rises until BasketIsUp, then step 4: the parts drip dry for 2 s, then back to step 0. Stop goes back to step 0 from any step. Stop is wired normally closed.",
+  "scene": "m8-parts-washer",
+  "constraints": {
+    "maxRungs": 16
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Each output: an EQ box for its step, then the coil.",
+    "An output on in two steps gets ONE rung, with two EQ boxes side by side (OR).",
+    "Each move on: EQ for the step it leaves, the condition, then MOVE the next number into Step."
+  ],
+  "scenarios": [
+    {
+      "name": "One wash",
+      "points": 1,
+      "durationSeconds": 7.5,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.5,
+          "tag": "Step",
+          "expect": "1",
+          "says": "Start in step 0 should go to step 1 (lower the basket)."
+        },
+        {
+          "at": 0.5,
+          "tag": "BasketDown",
+          "expect": "TRUE",
+          "says": "In step 1 the basket should go down."
+        },
+        {
+          "at": 2.0,
+          "tag": "Step",
+          "expect": "2",
+          "says": "With the basket fully down, the washer should be in step 2 (wash)."
+        },
+        {
+          "at": 2.0,
+          "tag": "BasketDown",
+          "expect": "TRUE",
+          "says": "In step 2 the basket should stay down."
+        },
+        {
+          "at": 2.0,
+          "tag": "SprayPump",
+          "expect": "TRUE",
+          "says": "In step 2 the spray pump should run."
+        },
+        {
+          "at": 4.3,
+          "tag": "Step",
+          "expect": "3",
+          "says": "After 3 s of washing, step 3 (raise the basket)."
+        },
+        {
+          "at": 4.3,
+          "tag": "SprayPump",
+          "expect": "FALSE",
+          "says": "In step 3 the spray pump should be off."
+        },
+        {
+          "at": 4.3,
+          "tag": "BasketDown",
+          "expect": "FALSE",
+          "says": "In step 3 the basket should rise."
+        },
+        {
+          "at": 5.5,
+          "tag": "Step",
+          "expect": "4",
+          "says": "With the basket fully up, step 4 (drip dry)."
+        },
+        {
+          "at": 7.2,
+          "tag": "Step",
+          "expect": "0",
+          "says": "After 2 s of dripping, back to step 0."
+        }
+      ],
+      "order": [
+        {
+          "first": "@basket.extended",
+          "then": "SprayPump",
+          "after": 0,
+          "says": "The spray should start only when the basket is fully down in the tank."
+        }
+      ]
+    },
+    {
+      "name": "Stop goes back to step 0",
+      "points": 1,
+      "durationSeconds": 3.0,
+      "events": [
+        {
+          "t": 0.1,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 2.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 2.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.1,
+          "tag": "SprayPump",
+          "expect": "FALSE",
+          "says": "Stop should stop the spray pump at once."
+        },
+        {
+          "at": 2.1,
+          "tag": "BasketDown",
+          "expect": "FALSE",
+          "says": "Stop should let the basket rise."
+        },
+        {
+          "at": 2.1,
+          "tag": "Step",
+          "expect": "0",
+          "says": "Stop should go back to step 0."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,407 @@
+{
+  "schemaVersion": 1,
+  "id": "u7.recipe-select",
+  "title": "Choose a recipe with MOVE",
+  "brief": "Target (the Scoops needed display) shows 5 when the Recipe switch is on A and 8 when it is on B. Count the scoops with an up counter whose preset (PV) is Target, reset by Reset. ScoopCount (the Scoops added display) shows the count so far. Recipe done is lit once the scoops added reach the target.",
+  "scene": "m7-dosing",
+  "constraints": {
+    "requiredInstructions": [
+      "MOVE",
+      "CTU"
+    ],
+    "maxRungs": 8
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Two rungs: with RecipeB off (a normally closed contact), MOVE 5 into Target; with RecipeB on, MOVE 8 into Target.",
+    "A CTU box for the scoops, with Target in its PV and ResetPB in its R. Its Q is on once the count reaches PV.",
+    "A display only shows a number the program writes to it: MOVE C1.CV into ScoopCount."
+  ],
+  "scenarios": [
+    {
+      "name": "Recipe A: 5 scoops",
+      "points": 1,
+      "durationSeconds": 1.5,
+      "events": [
+        {
+          "t": 0.2,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 0.4,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 0.6,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.7,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 0.8,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.9,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 1.1,
+          "operate": "scoop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "Target",
+          "expect": "5",
+          "says": "With the Recipe switch on A, Scoops needed (Target) should show 5."
+        },
+        {
+          "at": 0.95,
+          "tag": "ScoopCount",
+          "expect": "4",
+          "says": "After 4 scoops, Scoops added should show 4."
+        },
+        {
+          "at": 0.95,
+          "tag": "Done",
+          "expect": "FALSE",
+          "says": "4 scoops are not enough for recipe A."
+        },
+        {
+          "at": 1.3,
+          "tag": "Done",
+          "expect": "TRUE",
+          "says": "The 5th scoop completes recipe A: Recipe done should be lit."
+        },
+        {
+          "at": 1.3,
+          "tag": "ScoopCount",
+          "expect": "5",
+          "says": "Scoops added should show 5."
+        }
+      ]
+    },
+    {
+      "name": "Recipe B: 8 scoops",
+      "points": 1,
+      "durationSeconds": 2.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "recipe",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 0.4,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 0.6,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.7,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 0.8,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.9,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 1.1,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 1.2,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 1.3,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 1.4,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 1.5,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 1.6,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 1.7,
+          "operate": "scoop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.1,
+          "tag": "Target",
+          "expect": "8",
+          "says": "With the Recipe switch on B, Scoops needed (Target) should show 8."
+        },
+        {
+          "at": 1.35,
+          "tag": "Done",
+          "expect": "FALSE",
+          "says": "After 6 scoops recipe B is not done (it needs 8)."
+        },
+        {
+          "at": 1.8,
+          "tag": "Done",
+          "expect": "TRUE",
+          "says": "The 8th scoop completes recipe B."
+        }
+      ]
+    },
+    {
+      "name": "Reset, then the other recipe",
+      "points": 1,
+      "durationSeconds": 3.5,
+      "hidden": true,
+      "events": [
+        {
+          "t": 0,
+          "operate": "recipe",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.3,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 0.4,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 0.6,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.7,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 0.8,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 0.9,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 1.1,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 1.2,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 1.3,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 1.4,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 1.5,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 1.6,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 1.7,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 1.9,
+          "operate": "reset",
+          "active": true
+        },
+        {
+          "t": 2.0,
+          "operate": "reset",
+          "active": false
+        },
+        {
+          "t": 2.1,
+          "operate": "recipe",
+          "active": false
+        },
+        {
+          "t": 2.2,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 2.3,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 2.4,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 2.5,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 2.6,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 2.7,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 2.8,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 2.9,
+          "operate": "scoop",
+          "active": false
+        },
+        {
+          "t": 3.0,
+          "operate": "scoop",
+          "active": true
+        },
+        {
+          "t": 3.1,
+          "operate": "scoop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.05,
+          "tag": "ScoopCount",
+          "expect": "0",
+          "says": "Reset should set the count back to 0."
+        },
+        {
+          "at": 2.05,
+          "tag": "Done",
+          "expect": "FALSE",
+          "says": "After Reset the recipe is not done."
+        },
+        {
+          "at": 2.15,
+          "tag": "Target",
+          "expect": "5",
+          "says": "Back on recipe A, Target should be 5 again."
+        },
+        {
+          "at": 3.25,
+          "tag": "Done",
+          "expect": "TRUE",
+          "says": "5 scoops complete recipe A."
+        }
+      ]
+    }
+  ]
+}

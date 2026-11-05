@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "name": "Count parts into batches of 5 (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button (normally open): TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "NextPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Next batch button: TRUE while pressed"
+    },
+    {
+      "name": "PartEye",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Photo eye: TRUE while a part is in front of it"
+    },
+    {
+      "name": "Belt",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "BatchDone",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "PartCount",
+      "type": "INT",
+      "io": "output",
+      "comment": "the Parts display"
+    },
+    {
+      "name": "C1",
+      "type": "CTU",
+      "comment": "parts in this batch"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The belt: a seal-in, stopped by Stop, and by the batch being done.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Belt",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "C1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Belt",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Count each part the eye sees (CTU, PV 5). Next batch sets the count back to 0.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "PartEye",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "CTU",
+                "instance": "C1",
+                "operands": {
+                  "PV": "5",
+                  "R": "NextPB"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Batch done when the count reaches 5.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "C1.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "BatchDone",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Show the count.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "C1.CV",
+                  "OUT": "PartCount"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -151,7 +151,8 @@ Components: `pushButton`, `selectorSwitch`, `emergencyStop`, `pilotLight`, `horn
 - In a scenario, `{ "t": 1.0, "operate": "batch", "value": 7 }` sets a thumbwheel. Assertions on numbers: `"expect": "7"`.
 - A challenge can give the learner a program to start from instead of a blank one: `"startProgram": "programs/x-start.json"` (a
   "find and fix the bug" exercise). Usually it is the challenge's *A common mistake*.
-- Faults for find-the-fault questions: `Tag:open`, `Tag:shorted`, `Tag:swapped:OtherTag` on an input, and `Tag:failed` on an
+- Faults for find-the-fault questions: `Tag:open`, `Tag:shorted`, `Tag:swapped:OtherTag` (Tag's input is wired to OtherTag's device, so
+  it follows that device and its own does nothing) on an input, and `Tag:failed` on an
   **output**: the PLC turns it on, but the motor, valve, cylinder or lamp does not respond. A scene can also carry faults of its
   own (`"wiringFaults"`), and components `"stuckAt"` (buttons, sensors), `"failed"` (motors) and `"stuck"` (cylinders).
 - Timers: TON, TOF, TP and **TONR** (retentive on-delay: adds up the time IN is on, Q stays on until R; RTO on Allen-Bradley).

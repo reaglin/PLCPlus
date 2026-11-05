@@ -140,7 +140,7 @@ public enum WiringFaultKind
     Open,
     /// <summary>A short to the supply: the input always reads TRUE.</summary>
     Shorted,
-    /// <summary>Two inputs wired to each other's terminals.</summary>
+    /// <summary>An input wired to another device's terminal: <c>A:swapped:B</c> makes A read what B's device does (A's own device is wired to nothing).</summary>
     SwappedWith,
     /// <summary>The device on an output has failed (a burned-out motor, a stuck valve): the PLC turns the output on, nothing happens.</summary>
     Failed,

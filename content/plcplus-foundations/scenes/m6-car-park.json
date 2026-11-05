@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "m6-car-park",
+  "title": "Car park counter",
+  "description": "A small car park with 5 spaces. A sensor at the entry and one at the exit (shown as buttons: press one when a car passes), a Count reset button for the attendant, a display of the cars inside, and Spaces and Full signs.",
+  "width": 440,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "in",
+      "label": "Car in",
+      "tag": "CarIn",
+      "color": "green",
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "out",
+      "label": "Car out",
+      "tag": "CarOut",
+      "color": "green",
+      "x": 30,
+      "y": 130
+    },
+    {
+      "type": "pushButton",
+      "id": "reset",
+      "label": "Count reset",
+      "tag": "ResetPB",
+      "color": "red",
+      "x": 30,
+      "y": 230
+    },
+    {
+      "type": "numericDisplay",
+      "id": "cars",
+      "label": "Cars inside",
+      "tag": "CarCount",
+      "digits": 2,
+      "x": 190,
+      "y": 30
+    },
+    {
+      "type": "pilotLight",
+      "id": "spaces",
+      "label": "Spaces",
+      "tag": "SpacesLight",
+      "color": "green",
+      "x": 190,
+      "y": 160
+    },
+    {
+      "type": "pilotLight",
+      "id": "full",
+      "label": "Full",
+      "tag": "FullLight",
+      "color": "red",
+      "x": 310,
+      "y": 160
+    }
+  ]
+}

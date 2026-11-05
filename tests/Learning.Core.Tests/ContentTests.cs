@@ -64,9 +64,9 @@ public class PackageTests
     {
         var p = Foundations();
         Assert.Equal(Enumerable.Range(1, 12), p.Modules.Select(m => m.Number));
-        Assert.All(p.Modules.Where(m => m.Number >= 7), m => Assert.Equal(ModuleStatus.ComingLater, m.Status));
-        Assert.Equal(ModuleStatus.Draft, p.Modules[2].Status);
-        Assert.Equal(ModuleStatus.Draft, p.Modules[4].Status);
+        // The instructors' release (D24): modules 1-8 and 11 written; 9, 10 and 12 coming later.
+        Assert.Equal([9, 10, 12], p.Modules.Where(m => m.Status == ModuleStatus.ComingLater).Select(m => m.Number));
+        Assert.All(p.Modules.Where(m => m.Number is <= 8 or 11), m => Assert.Equal(ModuleStatus.Draft, m.Status));
     }
 
     [Fact]
@@ -230,7 +230,9 @@ public class ProgressTests
     public void AnOutlineIsNotAMissingPrerequisite()
     {
         var p = ContentPackage.Load(Repo.Foundations);
-        Assert.Empty(new LearningProgress().MissingPrerequisites(p, p.FindModule("plc.m8")!)); // module 6 is an outline
+        // Only a module a learner can work through (a draft or ready) counts as a prerequisite to finish first.
+        Assert.False(LearningProgress.Learnable(p.FindModule("plc.m9")!));                               // coming later
+        Assert.True(LearningProgress.Learnable(p.FindModule("plc.m6")!));
         Assert.Contains(new LearningProgress().MissingPrerequisites(p, p.FindModule("plc.m5")!), m => m.Id == "plc.m4"); // a draft counts
     }
 
@@ -254,7 +256,8 @@ public class ProgressTests
         progress.MarkRead(p.FindItem("plc.m3.relays")!, T0);
         progress.MarkRead(p.FindItem("plc.m3.seal-in")!, T0);
         Assert.Equal("3.4", progress.NextAfter(p, p.FindItem("plc.m3.seal-in")!)!.Number);
-        Assert.Equal("1.1", progress.NextAfter(p, p.FindItem("plc.m5.check")!)!.Number); // past the end: back to the start
+        Assert.Equal("6.1", progress.NextAfter(p, p.FindItem("plc.m5.check")!)!.Number);
+        Assert.Equal("1.1", progress.NextAfter(p, p.FindItem("plc.m11.check")!)!.Number); // past the end: back to the start
 
         progress.Opened(p, p.FindItem("plc.m5.seal-in")!, T0.AddMinutes(1));
         Assert.Equal("5.2", progress.Continue(p)!.Number);

@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "name": "A parts-low warning (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "RefillPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Refill button: TRUE while pressed"
+    },
+    {
+      "name": "UsePB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Part used button: TRUE while pressed"
+    },
+    {
+      "name": "WarnAt",
+      "type": "INT",
+      "io": "input",
+      "comment": "Warn at thumbwheel: 0 to 99"
+    },
+    {
+      "name": "PartsLow",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "BinEmpty",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "C1",
+      "type": "CTD",
+      "comment": "parts left in the bin"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Parts left: Refill loads 10, each Part used counts down one.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "UsePB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "CTD",
+                "instance": "C1",
+                "operands": {
+                  "PV": "10",
+                  "LD": "RefillPB"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "MISTAKE: LT (LES) is 'less than', so with Warn at 3 the light waits for 2 parts left: one part late.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "LT",
+                "operands": {
+                  "IN1": "C1.CV",
+                  "IN2": "WarnAt"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "GT",
+                "operands": {
+                  "IN1": "C1.CV",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "PartsLow",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Bin empty at 0 or less.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "LE",
+                "operands": {
+                  "IN1": "C1.CV",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "BinEmpty",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

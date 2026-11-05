@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "name": "Fix the two-pump station (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Start1",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Pump 1 start button: TRUE while pressed"
+    },
+    {
+      "name": "Stop1",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Pump 1 stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "Start2",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Pump 2 start button: TRUE while pressed"
+    },
+    {
+      "name": "Stop2",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Pump 2 stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "Pump1",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Pump2",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Light1",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Light2",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Pump 1: start/stop with its seal-in.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Start1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Pump1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "Stop1",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Pump1",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Pump 2: start/stop with its own seal-in.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Start2",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Pump2",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "Stop2",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Pump2",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Pump 1's running light.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Pump1",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Light1",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Pump 2's running light.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Pump2",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Light2",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "name": "Light Service due after 10 s of pumping in all (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button (normally open): TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "ResetKey",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Reset key switch: TRUE in Reset"
+    },
+    {
+      "name": "ServiceLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Pump",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "T1",
+      "type": "TONR",
+      "comment": "the pump's running time in all"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The pump: a seal-in, stopped by Stop.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Pump",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Pump",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "MISTAKE: nothing in the timer's R input, so the Reset key does nothing.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Pump",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TONR",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#10s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Service due once the timer is done.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "ServiceLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

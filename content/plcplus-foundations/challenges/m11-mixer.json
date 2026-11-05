@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "id": "u11.mixer",
+  "title": "Fix the batch mixer",
+  "brief": "Before the mixer moves, it warns anyone near it: Start sounds the horn for 3 s, then the horn stops and the mixer runs for 10 s, then it stops by itself. Stop stops the horn or the mixer at any time. Your program starts as someone else wrote it, and it never gets past the horn: find out why, and fix it.",
+  "scene": "m11-mixer",
+  "startProgram": "programs/m11-mixer-mistake.json",
+  "constraints": {
+    "maxRungs": 7
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Make it fail first: press Start and watch the timer boxes. Does T1's time (ET) count up while the horn sounds?",
+    "A timer box with no power resets its timer, in every scan. How many boxes use T1, and which of them has no power while the horn sounds?",
+    "Each timing job needs a timer of its own. A new TON box (Box ▾) gets a timer of its own; then check which timer every contact reads."
+  ],
+  "scenarios": [
+    {
+      "name": "The horn for 3 s, then the mixer",
+      "points": 1,
+      "hint": "The mixer starts when the warning time is up (the warning timer's Q) and stops when the mixing time is up (the mixing timer's Q). Check which timer each contact on the mixer's rung reads.",
+      "durationSeconds": 4.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "Horn",
+          "expect": "TRUE",
+          "says": "The horn should sound for the first 3 s after Start."
+        },
+        {
+          "at": 2.8,
+          "tag": "Mixer",
+          "expect": "FALSE",
+          "says": "The mixer must not move during the 3 s warning."
+        },
+        {
+          "at": 3.2,
+          "tag": "Mixer",
+          "expect": "TRUE",
+          "says": "The mixer should start 3 s after Start."
+        },
+        {
+          "at": 3.2,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "The horn should stop when the mixer starts."
+        }
+      ]
+    },
+    {
+      "name": "The mixer stops by itself after 10 s",
+      "points": 1,
+      "durationSeconds": 15.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 12.8,
+          "tag": "Mixer",
+          "expect": "TRUE",
+          "says": "The mixer should run for 10 s, from 3 s to 13 s."
+        },
+        {
+          "at": 13.2,
+          "tag": "Mixer",
+          "expect": "FALSE",
+          "says": "The mixer should stop by itself 10 s after it started."
+        },
+        {
+          "at": 14.5,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "Once the batch is done, nothing should start again by itself."
+        }
+      ]
+    },
+    {
+      "name": "Stop during the warning",
+      "points": 1,
+      "durationSeconds": 5.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 1.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.5,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "Stop should stop the horn."
+        },
+        {
+          "at": 4.0,
+          "tag": "Mixer",
+          "expect": "FALSE",
+          "says": "After Stop, the mixer must not start."
+        }
+      ]
+    },
+    {
+      "name": "Stop while mixing",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 9.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 5.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 5.2,
+          "operate": "stop",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 5.5,
+          "tag": "Mixer",
+          "expect": "FALSE",
+          "says": "Stop should stop the mixer."
+        },
+        {
+          "at": 8.0,
+          "tag": "Mixer",
+          "expect": "FALSE",
+          "says": "After Stop, nothing should start again by itself."
+        },
+        {
+          "at": 8.0,
+          "tag": "Horn",
+          "expect": "FALSE",
+          "says": "After Stop, nothing should start again by itself."
+        }
+      ]
+    }
+  ]
+}

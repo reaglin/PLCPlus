@@ -40,7 +40,45 @@ public static class PackageChecks
         foreach (var item in package.AllItems)
             if (item.Example is { } id && item.ExampleProgram is { } title && challenges.TryGetValue(id, out var programs) && !programs.Contains(title, StringComparer.OrdinalIgnoreCase))
                 problems.Add($"{item.File}: example-program \"{title}\" is not one of the programs of {id} ({string.Join(", ", programs)}).");
+        problems.AddRange(CheckAnswersStayHidden(folder, package));
         return problems;
+    }
+
+    /// <summary>
+    /// D21: an exercise is the learner's to write, so nothing shows its working program before they have done it. An Example tab
+    /// runs a machine like the exercise's, never an exercise's own; a ladder picture never draws an exercise's working program;
+    /// a find-the-fault question (which runs the machine's working program) comes only after that machine's exercise.
+    /// </summary>
+    public static IEnumerable<string> CheckAnswersStayHidden(string folder, ContentPackage package)
+    {
+        var works = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        using (var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, "manifest.json"))))
+            foreach (var c in doc.RootElement.GetProperty("challenges").EnumerateArray())
+            {
+                var path = Path.Combine(folder, c.GetProperty("file").GetString()!);
+                if (!File.Exists(path)) continue;
+                var first = c.GetProperty("programs").EnumerateArray().FirstOrDefault();
+                if (first.ValueKind == JsonValueKind.Object && first.TryGetProperty("file", out var f))
+                    works[PlcChallengeRunner.LoadChallenge(File.ReadAllText(path)).Id] = f.GetString()!.Replace("\\", "/", StringComparison.Ordinal);
+            }
+        var items = package.AllItems.ToList();
+        var exerciseAt = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < items.Count; i++)
+            if (items[i].Exercise is { } e) exerciseAt.TryAdd(e, i);
+        for (var i = 0; i < items.Count; i++)
+        {
+            var item = items[i];
+            if (item.Example is { } ex && exerciseAt.TryGetValue(ex, out var at))
+                yield return $"{item.File}: its Example runs {ex}, the exercise of {items[at].Number} {items[at].Title}, which shows that exercise's answer. Use a similar machine of its own (D21).";
+            foreach (var w in Widgets.In(item.Learn).Where(w => w.Name == "ladder"))
+                foreach (var (id, file) in works)
+                    if (exerciseAt.TryGetValue(id, out var e) && string.Equals(w.Argument.Trim().Replace("\\", "/", StringComparison.Ordinal), file, StringComparison.OrdinalIgnoreCase))
+                        yield return $"{item.File}: the ladder picture {w.Argument} is the answer to the exercise of {items[e].Number} {items[e].Title}.";
+            if (item.Quiz is { } quiz)
+                foreach (var q in quiz.Questions.Where(q => q.Machine is not null))
+                    if (exerciseAt.TryGetValue(q.Machine!, out var e) && e > i)
+                        yield return $"{item.File}: question {q.Id} runs {q.Machine}'s working program before its exercise ({items[e].Number}) is done.";
+        }
     }
 
     /// <summary>Null if the widget is fine; otherwise what is wrong with it.</summary>

@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "id": "u7.recipe-table",
+  "title": "Fill times from a recipe table",
+  "brief": "This exercise starts with a program that is nearly done. FillTime is an array that holds the fill time of recipes 1 to 4. Start opens the fill valve for the fill time of the recipe dialled on the Recipe thumbwheel. Today it always uses recipe 1's time, and nothing checks the number: fix it. With a recipe number that is not 1 to 4, the Bad recipe light is lit and Start does nothing (and the PLC must not stop).",
+  "scene": "m7-fill-station",
+  "startProgram": "programs/m7-fill-station-mistake.json",
+  "constraints": {
+    "maxRungs": 10
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "In the MOVE that sets FillPT, use the thumbwheel as the index: FillTime[Recipe].",
+    "An index outside 1 to 4 stops the PLC with a fault. Put two compares in front of that MOVE: Recipe GE 1 and Recipe LE 4.",
+    "Bad recipe: Recipe LT 1, in parallel with Recipe GT 4. Then a normally closed contact of BadRecipe in the fill valve's rung."
+  ],
+  "scenarios": [
+    {
+      "name": "Recipe 3 fills for 5 s",
+      "points": 1,
+      "durationSeconds": 6.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "recipe",
+          "value": 3
+        },
+        {
+          "t": 0.5,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.7,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.6,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "Start should open the fill valve."
+        },
+        {
+          "at": 5.3,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "Recipe 3 fills for 5 s, so the valve should still be open 4.8 s after Start. If it closed after 2 s, the program still uses recipe 1's time: index the table with Recipe."
+        },
+        {
+          "at": 5.7,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "Recipe 3 fills for 5 s: the valve should be shut 5.2 s after Start."
+        },
+        {
+          "at": 6.0,
+          "tag": "@drum.level",
+          "expect": "50",
+          "says": "5 s at 10 % a second should fill the drum to 50 %.",
+          "tolerance": 2
+        }
+      ]
+    },
+    {
+      "name": "Recipe 7 is refused",
+      "points": 1,
+      "durationSeconds": 1.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "recipe",
+          "value": 7
+        },
+        {
+          "t": 0.5,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.7,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.3,
+          "tag": "BadRecipe",
+          "expect": "TRUE",
+          "says": "There is no recipe 7: Bad recipe should be lit (and the PLC should still be running)."
+        },
+        {
+          "at": 0.6,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "With a bad recipe, Start must not open the fill valve."
+        },
+        {
+          "at": 1.2,
+          "tag": "@drum.level",
+          "expect": "0",
+          "says": "With a bad recipe the drum should stay empty.",
+          "tolerance": 0.5
+        }
+      ]
+    },
+    {
+      "name": "Recipe 1 fills for 2 s",
+      "points": 1,
+      "durationSeconds": 3.0,
+      "events": [
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.4,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.1,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "Recipe 1 fills for 2 s: still open 1.9 s after Start."
+        },
+        {
+          "at": 2.4,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "Recipe 1 fills for 2 s: shut 2.2 s after Start."
+        },
+        {
+          "at": 2.4,
+          "tag": "BadRecipe",
+          "expect": "FALSE",
+          "says": "1 is a good recipe: Bad recipe should be off."
+        }
+      ]
+    },
+    {
+      "name": "Recipe 0, then recipe 4",
+      "points": 1,
+      "durationSeconds": 10.0,
+      "hidden": true,
+      "events": [
+        {
+          "t": 0,
+          "operate": "recipe",
+          "value": 0
+        },
+        {
+          "t": 0.3,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.5,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 0.8,
+          "operate": "recipe",
+          "value": 4
+        },
+        {
+          "t": 1.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 1.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 0.4,
+          "tag": "BadRecipe",
+          "expect": "TRUE",
+          "says": "There is no recipe 0: Bad recipe should be lit."
+        },
+        {
+          "at": 0.4,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "Recipe 0 must not fill."
+        },
+        {
+          "at": 8.8,
+          "tag": "FillValve",
+          "expect": "TRUE",
+          "says": "Recipe 4 fills for 8 s."
+        },
+        {
+          "at": 9.2,
+          "tag": "FillValve",
+          "expect": "FALSE",
+          "says": "Recipe 4 fills for 8 s, then stops."
+        },
+        {
+          "at": 9.5,
+          "tag": "@drum.level",
+          "expect": "80",
+          "says": "8 s at 10 % a second: 80 %.",
+          "tolerance": 2
+        }
+      ]
+    }
+  ]
+}

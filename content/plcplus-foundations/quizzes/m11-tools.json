@@ -1,0 +1,109 @@
+{
+  "id": "plc.m11.tools.quiz",
+  "title": "A method, and the tools to use",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "choice",
+      "objective": "plc.m11.o1",
+      "prompt": "A conveyor will not start. What is the **first** step of the method?",
+      "options": [
+        "Observe the symptom: press Start, and see exactly what does and does not happen",
+        "Change the motor's contactor: it is the part most likely to fail on a conveyor",
+        "Rewrite the Start rung: a program fault is the most common cause of no start",
+        "Force the motor's output ON: if the belt then runs, the motor side is fine"
+      ],
+      "correct": [0],
+      "explanation": "First see the symptom for yourself, on purpose. Changing parts or the program before you know where the fault is is guessing."
+    },
+    {
+      "id": "q2",
+      "kind": "choice",
+      "objective": "plc.m11.o1",
+      "prompt": "On the rungs, the Motor coil is TRUE, but **What every part is doing** says the motor is stopped. Where is the fault?",
+      "options": [
+        "On the output side: between the PLC's output and the motor (wiring, contactor, overload, the motor itself)",
+        "On the input side: in the Start button's wiring, so the PLC never saw Start pressed",
+        "In the program: the Motor rung is wrong, so it turns on the coil at the wrong moment",
+        "In the scan: the PLC is too slow, so the output is turned on too late for the motor"
+      ],
+      "correct": [0],
+      "explanation": "The program has done its job: it turned Motor on. The inputs and the program are not the cause, so look past the output."
+    },
+    {
+      "id": "q3",
+      "kind": "match",
+      "objective": "plc.m11.o1",
+      "prompt": "Match each tool to what it tells you.",
+      "pairs": [
+        { "left": "Live values on the rungs", "right": "What the PLC sees and sets, tag by tag" },
+        { "left": "What every part is doing", "right": "What each part of the machine is really doing" },
+        { "left": "The wiring: which tag is which", "right": "Which tag goes with which device, and when it is TRUE" },
+        { "left": "Step one scan", "right": "One pass through the program, 10 ms, while paused" },
+        { "left": "Replay the failed test", "right": "A failed test run again on the machine, up to the moment it failed" }
+      ],
+      "explanation": "Comparing the first two is the heart of troubleshooting: where what the PLC sees and what the machine does disagree, the fault is in between."
+    },
+    {
+      "id": "q4",
+      "kind": "fault",
+      "objective": "plc.m11.o1",
+      "machine": "u5.pump-start-stop",
+      "program": "Works",
+      "fault": "OverloadOK:open",
+      "prompt": "This pump station runs its working program, but one input is faulty. Press **Start** and watch every contact on rung 1, and open **What every part is doing**. Which fault does it have?",
+      "options": [
+        "The overload relay's wire is broken: OverloadOK reads FALSE although the relay says OK",
+        "The Stop button's wire is broken: PumpStop reads FALSE although nobody presses Stop",
+        "The pump motor has failed: the PLC turns the pump on, but the pump does not run",
+        "The Start button's wire is broken: PumpStart never turns TRUE when Start is pressed"
+      ],
+      "correct": [0],
+      "explanation": "PumpStart turns TRUE when pressed and PumpStop is TRUE, but OverloadOK stays FALSE although the machine says the relay is OK. The pump coil never turns on, so it is not the motor."
+    },
+    {
+      "id": "q5",
+      "kind": "choice",
+      "objective": "plc.m11.o1",
+      "prompt": "You right-click the contact of an **input** and choose **Force … ON**. What happens?",
+      "options": [
+        "The PLC uses TRUE for that input, whatever the machine does, until the force is removed or you press Reset",
+        "The button on the machine is pressed for you, and the machine shows it held down until you let it go",
+        "The PLC uses TRUE for that input for one scan, then reads the machine again as usual",
+        "The wire to that input is mended, so it reads the machine correctly until you press Reset"
+      ],
+      "correct": [0],
+      "explanation": "A force replaces what the PLC reads with the value you choose. The machine itself is unchanged; the rung shows FORCED in place of the value."
+    },
+    {
+      "id": "q6",
+      "kind": "choice",
+      "objective": "plc.m11.o1",
+      "prompt": "A program has two coils of Horn on different rungs, and the **Problems** list is empty. Why does the Problems list not catch it?",
+      "options": [
+        "It lists only what stops the PLC running the program (a missing tag, a wrong type); a program that runs but does the wrong thing is found by testing",
+        "It checks only the Example tab's program (a missing tag, a wrong type); My program is checked only when you press Check my program",
+        "Two coils of one tag are always correct: the PLC runs both rungs, each sets the tag in turn, and the program does what it was written to do",
+        "It is brought up to date only when you press Reset (a missing tag, a wrong type), so until then it still shows the last check's problems"
+      ],
+      "correct": [0],
+      "explanation": "The program is written correctly, so it runs; it just does not do what the task asks. That is what the tests, the replay and your own eyes are for."
+    },
+    {
+      "id": "q7",
+      "kind": "multiple",
+      "objective": "plc.m11.o1",
+      "prompt": "On a **real** machine, which of these are right about forcing? Choose every one.",
+      "options": [
+        "Force only with permission, and with everyone clear of the machine",
+        "A force can move the machine past the guards and interlocks the program checks",
+        "Remove every force when you are done",
+        "Forces are harmless, because the program still runs and checks the guards"
+      ],
+      "correct": [0, 1, 2],
+      "explanation": "A forced output moves whatever the program says. On an Allen-Bradley controller the FORCE light shows that forces are on."
+    }
+  ]
+}

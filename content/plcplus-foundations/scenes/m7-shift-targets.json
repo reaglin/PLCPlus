@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "m7-shift-targets",
+  "title": "Production target by shift",
+  "description": "A board on the shop floor shows the production target for the shift dialled on a thumbwheel: shift 1 makes 120 parts, shift 2 makes 100 and shift 3 makes 80. There is no shift 0 or 4 to 9: for those the No such shift light comes on.",
+  "width": 440,
+  "height": 300,
+  "components": [
+    {
+      "type": "thumbwheel",
+      "id": "shift",
+      "label": "Shift",
+      "tag": "Shift",
+      "digits": 1,
+      "value": 1,
+      "x": 30,
+      "y": 40
+    },
+    {
+      "type": "numericDisplay",
+      "id": "target",
+      "label": "Target",
+      "tag": "Target",
+      "digits": 3,
+      "x": 250,
+      "y": 30
+    },
+    {
+      "type": "pilotLight",
+      "id": "noshift",
+      "label": "No such shift",
+      "tag": "NoShift",
+      "color": "red",
+      "x": 260,
+      "y": 170
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "name": "Full boxes and parts left over (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Parts",
+      "type": "INT",
+      "io": "input",
+      "comment": "Parts made thumbwheel: 0 to 999"
+    },
+    {
+      "name": "PerBox",
+      "type": "INT",
+      "io": "input",
+      "comment": "Parts per box thumbwheel: 0 to 99"
+    },
+    {
+      "name": "FullBoxes",
+      "type": "INT",
+      "io": "output",
+      "comment": "Full boxes display"
+    },
+    {
+      "name": "LeftOver",
+      "type": "INT",
+      "io": "output",
+      "comment": "Left over display"
+    },
+    {
+      "name": "PerBoxZero",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Only while PerBox > 0: DIV gives the full boxes, MOD the parts left over.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "GT",
+                "operands": {
+                  "IN1": "PerBox",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "DIV",
+                "operands": {
+                  "IN1": "Parts",
+                  "IN2": "PerBox",
+                  "OUT": "FullBoxes"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "MOD",
+                "operands": {
+                  "IN1": "Parts",
+                  "IN2": "PerBox",
+                  "OUT": "LeftOver"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Warn when there is nothing to divide by.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "PerBox",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "PerBoxZero",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

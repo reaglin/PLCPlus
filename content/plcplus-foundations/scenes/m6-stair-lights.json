@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "m6-stair-lights",
+  "title": "Stairwell and porch lights",
+  "description": "A stairwell light with a button at the top and at the bottom of the stairs, and a porch light that follows the front door. The stair light stays on for a fixed time per press; the porch light stays on for a while after the door shuts.",
+  "width": 440,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "bottom",
+      "label": "Bottom of stairs",
+      "tag": "StairBottom",
+      "color": "green",
+      "x": 30,
+      "y": 30
+    },
+    {
+      "type": "pushButton",
+      "id": "top",
+      "label": "Top of stairs",
+      "tag": "StairTop",
+      "color": "green",
+      "x": 30,
+      "y": 130
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "door",
+      "label": "Front door",
+      "tag": "DoorOpen",
+      "positions": [
+        "Shut",
+        "Open"
+      ],
+      "x": 30,
+      "y": 230
+    },
+    {
+      "type": "pilotLight",
+      "id": "stair",
+      "label": "Stair light",
+      "tag": "StairLight",
+      "color": "amber",
+      "x": 260,
+      "y": 60
+    },
+    {
+      "type": "pilotLight",
+      "id": "porch",
+      "label": "Porch light",
+      "tag": "PorchLight",
+      "color": "amber",
+      "x": 260,
+      "y": 220
+    }
+  ]
+}

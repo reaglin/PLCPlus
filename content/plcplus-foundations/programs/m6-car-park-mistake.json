@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "name": "Count cars in and out of a car park (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "CarIn",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Entry sensor: TRUE while a car passes"
+    },
+    {
+      "name": "CarOut",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Exit sensor: TRUE while a car passes"
+    },
+    {
+      "name": "ResetPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Count reset button: TRUE while pressed"
+    },
+    {
+      "name": "CarCount",
+      "type": "INT",
+      "io": "output",
+      "comment": "the display of cars inside"
+    },
+    {
+      "name": "SpacesLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "FullLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "C1",
+      "type": "CTUD",
+      "comment": "cars inside"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "MISTAKE: the counter only counts up: nothing is wired to its CD input, so cars leaving are never taken off.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "CarIn",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "CTUD",
+                "instance": "C1",
+                "operands": {
+                  "PV": "5",
+                  "R": "ResetPB"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Full when the count is at PV or more (QU).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "C1.QU",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "FullLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Spaces while it is not full.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "C1.QU",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "SpacesLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Show the count on the display.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "C1.CV",
+                  "OUT": "CarCount"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

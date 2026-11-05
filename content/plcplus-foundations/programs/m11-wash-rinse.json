@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "name": "A spray washer: wash, then rinse (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "WashPump",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "RinsePump",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "T1",
+      "type": "TON",
+      "comment": "the wash time"
+    },
+    {
+      "name": "T2",
+      "type": "TON",
+      "comment": "the rinse time"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Wash: Start, sealed in, until the wash time is up (T1.Q) or Stop.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "WashPump",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "WashPump",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The wash time, 4 s, while the wash pump runs.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "WashPump",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#4s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Rinse: starts when the wash time is up, sealed in, until the rinse time is up (T2.Q) or Stop.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "T1.Q",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "RinsePump",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T2.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "RinsePump",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "FIXED: the rinse time has a timer of its own, T2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "RinsePump",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T2",
+                "operands": {
+                  "PT": "T#3s"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

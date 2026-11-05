@@ -1,0 +1,349 @@
+{
+  "schemaVersion": 1,
+  "name": "A parts washer, by step number (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "BasketIsDown",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Basket extended sensor: TRUE when the basket is fully down in the tank"
+    },
+    {
+      "name": "BasketIsUp",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Basket retracted sensor: TRUE when the basket is fully up"
+    },
+    {
+      "name": "BasketDown",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "SprayPump",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Step",
+      "type": "INT",
+      "io": "output",
+      "comment": "the step number, shown on the Step display: 0 idle, 1 lower, 2 wash, 3 raise, 4 drip"
+    },
+    {
+      "name": "WashTimer",
+      "type": "TON",
+      "comment": "wash time"
+    },
+    {
+      "name": "DripTimer",
+      "type": "TON",
+      "comment": "drip time"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Step 0 (idle): Start begins a wash, step 1.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "StartPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "1",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 1 (lower the basket): when it is fully down, step 2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "BasketIsDown",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "2",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 2 (wash): time the wash.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "WashTimer",
+                "operands": {
+                  "PT": "T#3s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 2: after 3 s, step 3.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "WashTimer.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "3",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 3 (raise the basket): when it is fully up, step 4.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "3"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "BasketIsUp",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "4",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 4 (drip dry): time it.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "4"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "DripTimer",
+                "operands": {
+                  "PT": "T#2s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 4: after 2 s, back to step 0.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "4"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "DripTimer.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Stop: back to step 0 from any step.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The basket is down in steps 1 and 2: both EQ boxes side by side, on ONE rung.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "box",
+                        "instruction": "EQ",
+                        "operands": {
+                          "IN1": "Step",
+                          "IN2": "1"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "box",
+                        "instruction": "EQ",
+                        "operands": {
+                          "IN1": "Step",
+                          "IN2": "2"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "BasketDown",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The spray pump runs in step 2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "SprayPump",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

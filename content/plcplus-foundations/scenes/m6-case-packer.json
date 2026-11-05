@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "id": "m6-case-packer",
+  "title": "Bottle case packer",
+  "description": "A conveyor carries bottles past a photo eye to a packer. Every 6 bottles make a pack, and 4 packs fill a case. Start and Stop (Stop wired normally closed) run the belt; two displays show the bottles in this pack and the packs in this case; Case full lights when a case is full; Case removed is pressed when it has been taken away.",
+  "width": 460,
+  "height": 330,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 20,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 110,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "removed",
+      "label": "Case removed",
+      "tag": "CaseRemoved",
+      "color": "green",
+      "x": 200,
+      "y": 20
+    },
+    {
+      "type": "numericDisplay",
+      "id": "bottles",
+      "label": "Bottles in pack",
+      "tag": "BottleCount",
+      "digits": 2,
+      "x": 300,
+      "y": 20
+    },
+    {
+      "type": "numericDisplay",
+      "id": "packs",
+      "label": "Packs in case",
+      "tag": "PackCount",
+      "digits": 2,
+      "x": 380,
+      "y": 20
+    },
+    {
+      "type": "pilotLight",
+      "id": "full",
+      "label": "Case full",
+      "tag": "CaseFull",
+      "color": "amber",
+      "x": 300,
+      "y": 110
+    },
+    {
+      "type": "conveyor",
+      "id": "belt",
+      "label": "Conveyor",
+      "runTag": "Belt",
+      "crossTimeMs": 2000,
+      "feedIntervalMs": 500,
+      "feedPattern": [
+        "bottle"
+      ],
+      "length": 380,
+      "endBinLabel": "Packer",
+      "x": 30,
+      "y": 220
+    },
+    {
+      "type": "photoEye",
+      "id": "eye",
+      "label": "Bottle eye",
+      "tag": "BottleEye",
+      "conveyor": "belt",
+      "at": 0.5,
+      "zone": 0.03,
+      "x": 0,
+      "y": 0
+    }
+  ]
+}

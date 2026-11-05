@@ -1,0 +1,375 @@
+{
+  "schemaVersion": 1,
+  "name": "A stamping station in four steps (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "PartIn",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Part in place switch: TRUE while a part is in the station"
+    },
+    {
+      "name": "ClampIsOut",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Clamp extended sensor: TRUE when the clamp is fully out"
+    },
+    {
+      "name": "ClampIsIn",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Clamp retracted sensor: TRUE when the clamp is fully in"
+    },
+    {
+      "name": "StampIsDown",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stamp extended sensor: TRUE when the stamp is fully down"
+    },
+    {
+      "name": "StampIsUp",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stamp retracted sensor: TRUE when the stamp is fully up"
+    },
+    {
+      "name": "ClampOut",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "StampDown",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Step1",
+      "type": "BOOL",
+      "comment": "step 1: clamp the part"
+    },
+    {
+      "name": "Step2",
+      "type": "BOOL",
+      "comment": "step 2: stamp down"
+    },
+    {
+      "name": "Step3",
+      "type": "BOOL",
+      "comment": "step 3: stamp up"
+    },
+    {
+      "name": "Step4",
+      "type": "BOOL",
+      "comment": "step 4: release the clamp"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Step 1, clamp the part: Start with a part in place while no step is on (the station is idle); held by its own contact; dropped by step 2 or Stop.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "PartIn",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "Step2",
+                        "contact": "normallyClosed"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "Step3",
+                        "contact": "normallyClosed"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "Step4",
+                        "contact": "normallyClosed"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Step2",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Step1",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "MISTAKE: step 2 starts as soon as step 1 does. It does not wait for ClampIsOut, so the stamp comes down on a part that is not clamped yet.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step2",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Step3",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Step2",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 3, stamp up: step 2 AND the stamp is fully down.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step2",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "StampIsDown",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step3",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Step4",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Step3",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 4, release the clamp: step 3 AND the stamp is fully up. It ends when the clamp is fully in: the station is idle again.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step3",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "StampIsUp",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step4",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "ClampIsIn",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Step4",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The clamp is out in steps 1, 2 and 3.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step2",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step3",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "ClampOut",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The stamp comes down in step 2 only.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Step2",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "StampDown",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

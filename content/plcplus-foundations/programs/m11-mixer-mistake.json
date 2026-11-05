@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "name": "Fix the batch mixer (as it was given)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "StopPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Stop button (normally closed): TRUE while NOT pressed"
+    },
+    {
+      "name": "Horn",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Mixer",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Starting",
+      "type": "BOOL",
+      "comment": "the warning is on: remembers Start until the mixer runs"
+    },
+    {
+      "name": "T1",
+      "type": "TON",
+      "comment": "the timer"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The warning: Start, sealed in, until the mixer runs or Stop.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Starting",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Mixer",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Starting",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The warning time, 3 s.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Starting",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#3s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The horn sounds during the warning.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Starting",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Horn",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The mixer: starts when the warning time is up, sealed in, until the mixing time is up or Stop (it reads T1.Q, the timer the programmer thought was the mixing timer).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "T1.Q",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Mixer",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "StopPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Mixer",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The mixing time, 10 s.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Mixer",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#10s"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

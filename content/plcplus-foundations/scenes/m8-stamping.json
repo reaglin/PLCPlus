@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "m8-stamping",
+  "title": "Stamping station",
+  "description": "A station that stamps a mark on a part. A clamp cylinder holds the part, and a stamp cylinder comes down on it. Each cylinder has one solenoid (it extends while its output is on, and a spring pulls it back when it is off) and two sensors, fully out and fully in. A switch stands in for the sensor that sees a part in place.",
+  "width": 470,
+  "height": 320,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "start",
+      "label": "Start",
+      "tag": "StartPB",
+      "color": "green",
+      "x": 30,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 30,
+      "y": 110
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "part",
+      "label": "Part in place",
+      "tag": "PartIn",
+      "positions": [
+        "No part",
+        "Part in"
+      ],
+      "x": 30,
+      "y": 210
+    },
+    {
+      "type": "cylinder",
+      "id": "clamp",
+      "label": "Clamp",
+      "extendTag": "ClampOut",
+      "extendedTag": "ClampIsOut",
+      "retractedTag": "ClampIsIn",
+      "strokeTimeMs": 500,
+      "x": 210,
+      "y": 40
+    },
+    {
+      "type": "cylinder",
+      "id": "stamp",
+      "label": "Stamp",
+      "extendTag": "StampDown",
+      "extendedTag": "StampIsDown",
+      "retractedTag": "StampIsUp",
+      "strokeTimeMs": 400,
+      "x": 210,
+      "y": 170
+    }
+  ]
+}

@@ -54,12 +54,16 @@ public partial class MachineWorkspace
             project = StartForExercise();
         }
         StartEditing(project);
-        SetStatus((resumed
+        OpeningMessage = resumed
             ? "My program, as you left it. Select an element (click it, or Tab to the rungs and use the arrow keys), then use the tools above the rungs."
             : _current?.Challenge.StartProgram is not null
-            ? "My program starts as this exercise gives it to you. Run it, find what is wrong, and fix it with the tools above the rungs; then press Check my program."
-            : "My program starts with the machine's tags and one rung: a contact and a coil. Click the contact: its Tag box is ready. Type the tag, press Enter, and build from there."));
+            ? "My program is the one this exercise gives you, and it is already running, with something to fix or finish. Work the machine to see what it does wrong (read the task above), fix it with the tools above the rungs, then press Check my program. Start again ▾ gives you this program back."
+            : "My program starts with the machine's tags and one rung: a contact and a coil. Click the contact: its Tag box is ready. Type the tag, press Enter, and build from there.";
+        SetStatus(OpeningMessage);
     }
+
+    /// <summary>What to do first on this exercise: shown when the Exercise tab opens (the workspace loads before it is seen).</summary>
+    public string? OpeningMessage { get; private set; }
 
     private void StartEditing(PlcProject project)
     {

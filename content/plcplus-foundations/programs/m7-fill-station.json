@@ -1,0 +1,261 @@
+{
+  "schemaVersion": 1,
+  "name": "Fill times from a recipe table (works)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Recipe",
+      "type": "INT",
+      "io": "input",
+      "comment": "Recipe thumbwheel: 0 to 9"
+    },
+    {
+      "name": "StartPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Start button: TRUE while pressed"
+    },
+    {
+      "name": "FillValve",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "BadRecipe",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "FillTime",
+      "type": "ARRAY[1..4] OF TIME",
+      "comment": "the recipe table: fill time of recipes 1 to 4"
+    },
+    {
+      "name": "FillPT",
+      "type": "TIME",
+      "comment": "the fill time of the chosen recipe"
+    },
+    {
+      "name": "T1",
+      "type": "TON",
+      "comment": "times the fill"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The recipe table: recipe 1 fills for 2 s.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "T#2s",
+                  "OUT": "FillTime[1]"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Recipe 2 fills for 3 s.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "T#3s",
+                  "OUT": "FillTime[2]"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Recipe 3 fills for 5 s.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "T#5s",
+                  "OUT": "FillTime[3]"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Recipe 4 fills for 8 s.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "T#8s",
+                  "OUT": "FillTime[4]"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Only for a recipe 1 to 4: copy that recipe's fill time into FillPT.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "GE",
+                "operands": {
+                  "IN1": "Recipe",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "LE",
+                "operands": {
+                  "IN1": "Recipe",
+                  "IN2": "4"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "FillTime[Recipe]",
+                  "OUT": "FillPT"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Any other number is a bad recipe.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "box",
+                        "instruction": "LT",
+                        "operands": {
+                          "IN1": "Recipe",
+                          "IN2": "1"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "box",
+                        "instruction": "GT",
+                        "operands": {
+                          "IN1": "Recipe",
+                          "IN2": "4"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "BadRecipe",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Start opens the fill valve until the timer is done, never with a bad recipe.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "StartPB",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "FillValve",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "T1.Q",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "contact",
+                "tag": "BadRecipe",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "FillValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Time the fill.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "FillValve",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T1",
+                "operands": {
+                  "PT": "FillPT"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "name": "A doorbell with two buttons (a common mistake)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "FrontPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Front door button: TRUE while pressed"
+    },
+    {
+      "name": "BackPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "Back door button: TRUE while pressed"
+    },
+    {
+      "name": "FrontLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "BackLight",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Bell",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The Front light while the front button is pressed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "FrontPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "FrontLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The front button rings the bell...",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "FrontPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Bell",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The Back light while the back button is pressed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "BackPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "BackLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "MISTAKE: a second coil of Bell. This rung runs after rung 2 in every scan, so while the back button is not pressed it turns Bell off again.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "BackPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Bell",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "id": "u6.exhaust-fan",
+  "title": "Run the exhaust fan on after the heater",
+  "brief": "The heater is on while the Heater switch is On. The exhaust fan runs while the heater is on, and keeps running for 5 s after the heater turns off, to clear the fumes. Each press of Purge also runs the fan for exactly 3 s, however long the button is held.",
+  "scene": "m6-exhaust-fan",
+  "constraints": {
+    "requiredInstructions": [
+      "TOF",
+      "TP"
+    ],
+    "maxRungs": 6
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "The fan must keep running after the heater turns off: which timer keeps its Q on for PT after IN goes off?",
+    "Each Purge press should give a run of a fixed length, whatever the button does: which timer makes a pulse?",
+    "The fan runs if either timer's Q is on: two contacts in parallel before the Fan coil."
+  ],
+  "scenarios": [
+    {
+      "name": "The fan runs on 5 s after the heater",
+      "points": 1,
+      "durationSeconds": 8.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "heatsw",
+          "active": true
+        },
+        {
+          "t": 2.0,
+          "operate": "heatsw",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "Heater",
+          "expect": "TRUE",
+          "says": "The heater should be on while the Heater switch is On."
+        },
+        {
+          "at": 1.0,
+          "tag": "Fan",
+          "expect": "TRUE",
+          "says": "The fan should run while the heater is on."
+        },
+        {
+          "at": 2.5,
+          "tag": "Heater",
+          "expect": "FALSE",
+          "says": "The heater should turn off with its switch."
+        },
+        {
+          "at": 6.5,
+          "tag": "Fan",
+          "expect": "TRUE",
+          "says": "The fan should keep running for 5 s after the heater turns off."
+        },
+        {
+          "at": 7.5,
+          "tag": "Fan",
+          "expect": "FALSE",
+          "says": "The fan should stop 5 s after the heater turns off."
+        }
+      ],
+      "windows": [
+        {
+          "tag": "Fan",
+          "expect": "FALSE",
+          "after": 2.0,
+          "from": 6.95,
+          "to": 7.05,
+          "says": "The fan should stop 5 s after the heater turns off (at 7.0 s)."
+        }
+      ]
+    },
+    {
+      "name": "Purge runs the fan for 3 s",
+      "points": 1,
+      "durationSeconds": 4.5,
+      "events": [
+        {
+          "t": 0.5,
+          "operate": "purge",
+          "active": true
+        },
+        {
+          "t": 0.7,
+          "operate": "purge",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "Fan",
+          "expect": "TRUE",
+          "says": "Purge should start the fan."
+        },
+        {
+          "at": 2.0,
+          "tag": "Fan",
+          "expect": "TRUE",
+          "says": "After a Purge press the fan should run for 3 s, not only while the button is held."
+        },
+        {
+          "at": 1.0,
+          "tag": "Heater",
+          "expect": "FALSE",
+          "says": "Purge must not turn the heater on."
+        },
+        {
+          "at": 4.0,
+          "tag": "Fan",
+          "expect": "FALSE",
+          "says": "The purge should end 3 s after the press."
+        }
+      ],
+      "windows": [
+        {
+          "tag": "Fan",
+          "expect": "FALSE",
+          "after": 0.8,
+          "from": 3.45,
+          "to": 3.55,
+          "says": "The fan should stop 3 s after the Purge press (at 3.5 s)."
+        }
+      ]
+    },
+    {
+      "name": "Holding Purge still gives 3 s",
+      "points": 1,
+      "durationSeconds": 6.5,
+      "events": [
+        {
+          "t": 0.5,
+          "operate": "purge",
+          "active": true
+        },
+        {
+          "t": 6.0,
+          "operate": "purge",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 2.0,
+          "tag": "Fan",
+          "expect": "TRUE",
+          "says": "The fan should run during the purge."
+        },
+        {
+          "at": 4.0,
+          "tag": "Fan",
+          "expect": "FALSE",
+          "says": "The purge should end 3 s after the press, even with the button still held."
+        }
+      ]
+    },
+    {
+      "name": "Heater off and on again keeps the fan running",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 11.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "heatsw",
+          "active": true
+        },
+        {
+          "t": 2.0,
+          "operate": "heatsw",
+          "active": false
+        },
+        {
+          "t": 4.0,
+          "operate": "heatsw",
+          "active": true
+        },
+        {
+          "t": 5.0,
+          "operate": "heatsw",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 3.0,
+          "tag": "Fan",
+          "expect": "TRUE",
+          "says": "The fan should run on after the heater."
+        },
+        {
+          "at": 4.5,
+          "tag": "Fan",
+          "expect": "TRUE",
+          "says": "The fan should run while the heater is on again."
+        },
+        {
+          "at": 9.5,
+          "tag": "Fan",
+          "expect": "TRUE",
+          "says": "The 5 s run-on should start again from the last time the heater turned off."
+        },
+        {
+          "at": 10.5,
+          "tag": "Fan",
+          "expect": "FALSE",
+          "says": "The fan should stop 5 s after the heater's last turn off."
+        }
+      ]
+    }
+  ]
+}

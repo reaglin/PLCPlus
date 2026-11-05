@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "id": "m8-gate",
+  "title": "Air-powered gate",
+  "description": "A sliding gate in a fence, moved by an air cylinder with two solenoids: GateOpen pushes it open, GateClose pulls it shut, and with neither on it stays where it is. Sensors for fully open and fully closed, an air pressure switch, Open, Stop and Reset buttons, a Stopped light and a display that shows the state number.",
+  "width": 480,
+  "height": 400,
+  "components": [
+    {
+      "type": "pushButton",
+      "id": "open",
+      "label": "Open",
+      "tag": "OpenPB",
+      "color": "green",
+      "x": 20,
+      "y": 20
+    },
+    {
+      "type": "pushButton",
+      "id": "stop",
+      "label": "Stop",
+      "tag": "StopPB",
+      "normallyClosed": true,
+      "color": "red",
+      "x": 20,
+      "y": 110
+    },
+    {
+      "type": "pushButton",
+      "id": "reset",
+      "label": "Reset",
+      "tag": "ResetPB",
+      "color": "green",
+      "x": 20,
+      "y": 200
+    },
+    {
+      "type": "selectorSwitch",
+      "id": "air",
+      "label": "Air pressure",
+      "tag": "AirOK",
+      "positions": [
+        "Low",
+        "OK"
+      ],
+      "on": true,
+      "x": 20,
+      "y": 300
+    },
+    {
+      "type": "cylinder",
+      "id": "gate",
+      "label": "Gate",
+      "extendTag": "GateOpen",
+      "retractTag": "GateClose",
+      "extendedTag": "GateIsOpen",
+      "retractedTag": "GateIsClosed",
+      "strokeTimeMs": 1000,
+      "x": 200,
+      "y": 40
+    },
+    {
+      "type": "pilotLight",
+      "id": "stopped",
+      "label": "Stopped",
+      "tag": "StopLight",
+      "color": "red",
+      "x": 200,
+      "y": 150
+    },
+    {
+      "type": "numericDisplay",
+      "id": "state",
+      "label": "State",
+      "tag": "State",
+      "digits": 1,
+      "x": 200,
+      "y": 240
+    }
+  ]
+}

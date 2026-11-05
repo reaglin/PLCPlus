@@ -129,7 +129,11 @@ public partial class MainWindow : Window
         foreach (var view in new[] { LearnView, ReferenceView, ModuleView, ExerciseNone, DashboardView })
             view.WidgetFactory = w => LessonWidgets.Create(_plc, w);
         // A workspace speaks only while its tab is showing: a hidden one is loading, not answering the learner.
-        foreach (var ws in new[] { ExampleWorkspace, ExerciseWorkspace }) ws.StatusChanged += text => { if (ws.IsVisible) SetStatus(text); };
+        foreach (var ws in new[] { ExampleWorkspace, ExerciseWorkspace })
+        {
+            ws.StatusChanged += text => { if (ws.IsVisible) SetStatus(text); };
+            ws.PopOutRequested = PopOut;
+        }
         ExerciseWorkspace.Checked += Exercise_Checked;
         QuizPanel.Graded += Quiz_Graded;
         QuizPanel.FaultMachine = FaultMachine;
@@ -169,6 +173,7 @@ public partial class MainWindow : Window
     private void Lock(string banner, bool switching = false)
     {
         if (_session is null) return;
+        _popOut?.Close();   // nothing of the learner's stays on screen
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
         var id = _vm.Lock(switching, DateTimeOffset.Now);
@@ -269,7 +274,29 @@ public partial class MainWindow : Window
         else _vm.Dashboard.IsSelected = true;
         SetStatus(next is null
             ? "Every item in the path is complete."
-            : $"Welcome to PLC+, {name}. In this preview, modules 3 and 5 are written; the others are outlines. Start here with module {next.Module.Number}: press the button under its title, or choose any module on the left.");
+            : $"Welcome to PLC+, {name}. {WrittenSoFar()} Start here with module {next.Module.Number}: press the button under its title, or choose any module on the left.");
+    }
+
+    /// <summary>Which modules can be worked through now, and which come later, in words ("Modules 1 to 8 and 11 are written; 9, 10 and 12 come later.").</summary>
+    private string WrittenSoFar()
+    {
+        var written = _package.Modules.Where(LearningProgress.Learnable).Select(m => m.Number).ToList();
+        var later = _package.Modules.Where(m => !LearningProgress.Learnable(m)).Select(m => m.Number).ToList();
+        string Words(List<int> n)
+        {
+            // Runs of three or more become "1 to 8": 1, 2, 3, …, 8, 11 → "1 to 8 and 11".
+            var parts = new List<string>();
+            for (var i = 0; i < n.Count;)
+            {
+                var j = i;
+                while (j + 1 < n.Count && n[j + 1] == n[j] + 1) j++;
+                if (j - i >= 2) parts.Add($"{n[i]} to {n[j]}");
+                else for (var k = i; k <= j; k++) parts.Add($"{n[k]}");
+                i = j + 1;
+            }
+            return parts.Count == 1 ? parts[0] : $"{string.Join(", ", parts.Take(parts.Count - 1))} and {parts[^1]}";
+        }
+        return later.Count == 0 ? "Every module is written." : $"Modules {Words(written)} are written; {Words(later)} come later.";
     }
 
     private void PathTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -454,7 +481,7 @@ public partial class MainWindow : Window
         // Learn
         LearnView.Markdown = item.Learn.Trim().Length > 0
             ? item.Learn
-            : $"# {item.Title}\n\n*This page is still to be written: module {item.Module.Number} is an outline in this preview. Its learning outcomes are on the module's first page.*";
+            : $"# {item.Title}\n\n*This page is still to be written. Module {item.Module.Number}'s learning outcomes are on the module's first page.*";
         ReadButton.Visibility = item.CompletesByReading ? Visibility.Visible : Visibility.Collapsed;
         ExerciseWorkspace.SaveName = $"{item.Number} {item.Title} — My program";
 
@@ -535,7 +562,7 @@ public partial class MainWindow : Window
         ReadButton.ToolTip = state == ItemState.Complete ? "This item is already complete"
             : unwritten ? "This page is still to be written, so it cannot be marked as read yet"
             : "Marks this item complete. Items without an exercise are complete when you have read them.";
-        if (unwritten && item.Kind == ItemKind.Lesson) LearnFooterText.Text = "This page is still to be written. Modules 3 and 5 are written in this preview.";
+        if (unwritten && item.Kind == ItemKind.Lesson) LearnFooterText.Text = $"This page is still to be written. {WrittenSoFar()}";
     }
 
     private string NoExerciseMarkdown(LearningItem item)
@@ -588,6 +615,7 @@ public partial class MainWindow : Window
                 .Select(c => $"{c} ({_vm.WhereYouAre(c).ToLowerInvariant()})")) + ".");
             intro.Add("The module is complete when those items are complete and you have passed these questions.");
         }
+        QuizPanel.ShuffleSeed = _session?.Data.Profile.ProfileId ?? "";
         QuizPanel.Load(quiz, item.Kind == ItemKind.Assess ? $"Module {item.Module.Number} check: the questions" : "Questions", intro);
     }
 
@@ -597,6 +625,7 @@ public partial class MainWindow : Window
         if (_plc.Find(q.Machine) is not { } challenge || Plc.Scenes.WiringFault.Parse(q.Fault) is not { } fault) return null;
         var ws = new MachineWorkspace { Height = 640 };
         ws.StatusChanged += text => { if (ws.IsVisible) SetStatus(text); };
+        ws.PopOutRequested = PopOut;
         ws.Load(_plc, challenge, exercise: false, q.Program, fault);
         return ws;
     }
@@ -679,7 +708,7 @@ public partial class MainWindow : Window
             hid = " (The help panel is hidden to make room for the machine; F1 shows it.)";
         }
         if (ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible)
-            SetStatus("My program: click an element and type its tag in the Tag box, then use the tools above the rungs. Check my program tests it." + hid);
+            SetStatus((ExerciseWorkspace.OpeningMessage ?? "My program: click an element and type its tag in the Tag box, then use the tools above the rungs. Check my program tests it.") + hid);
         else if (ItemTabs.SelectedItem == ExerciseTab && QuizScroll.Visibility == Visibility.Visible)
             SetStatus("Answer the questions, then press Check my answers at the bottom." + hid);
         else if (ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible)
@@ -689,10 +718,98 @@ public partial class MainWindow : Window
     /// <summary>The machine screen needs about this much height to show the rungs; a shorter window scrolls the tab.</summary>
     private const double MachineMinHeight = 760;
 
-    private void MachineScroll_SizeChanged(object sender, SizeChangedEventArgs e)
+    private void MachineScroll_SizeChanged(object sender, SizeChangedEventArgs? e)
     {
         if (sender is ScrollViewer { Content: MachineWorkspace ws } scroll)
-            ws.Height = Math.Max(MachineMinHeight, scroll.ActualHeight);
+            ws.Height = Math.Max(MachineMinHeight, scroll.ActualHeight - ws.Margin.Top - ws.Margin.Bottom);
+    }
+
+    private Window? _popOut;
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool EnableWindow(IntPtr hWnd, bool enable);
+
+    /// <summary>
+    /// Pop out (Ron, plan 10.7): the same workspace (its program, its machine, its tests) moves into a window of its own, which
+    /// the learner can make as big as they like. It is modal: the main window is disabled, as ShowDialog would do, so it cannot
+    /// be used or focused until the pop-out closes. It is not ShowDialog itself, because a dialog stops the auto-lock and the
+    /// time on task (the idle timer waits while a dialog is open); the pop-out is the learner working, so both carry on.
+    /// Closing it (or Put it back, or Esc) puts the workspace back as it is.
+    /// </summary>
+    private void PopOut(MachineWorkspace ws)
+    {
+        if (_popOut is not null) return;
+        var home = ws.Parent;
+        double height = ws.Height;
+        switch (home)
+        {
+            case ScrollViewer s: s.Content = null; break;
+            case Border b: b.Child = null; break;
+            default: return;
+        }
+
+        var status = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(16, 6, 16, 6) };
+        System.Windows.Automation.AutomationProperties.SetLiveSetting(status, System.Windows.Automation.AutomationLiveSetting.Polite);
+        void Show(string text) => status.Text = text;
+        ws.StatusChanged += Show;
+        status.Text = "The program and the machine, in a window of their own. Make it as big as you like. The main window waits until you come back: " +
+                      "press Put it back (or close this window, or press Esc) to return to the lesson, the menus and Next.";
+
+        ws.Margin = new Thickness(16, 4, 16, 8);
+        var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false, Content = ws };
+        // The learner sizes this window, so the workspace fills it down to a smaller floor than in the main window.
+        void Fit(object? s, SizeChangedEventArgs? e) => ws.Height = Math.Max(520, scroll.ActualHeight - ws.Margin.Top - ws.Margin.Bottom);
+        scroll.SizeChanged += Fit;
+        var bar = new Border { Child = status, BorderBrush = (Brush)FindResource("LineBrush"), BorderThickness = new Thickness(0, 1, 0, 0), Background = (Brush)FindResource("PanelBrush") };
+        DockPanel.SetDock(bar, Dock.Bottom);
+        var dock = new DockPanel { LastChildFill = true, Background = (Brush)FindResource("PageBrush") };
+        dock.Children.Add(bar);
+        dock.Children.Add(scroll);
+        dock.LayoutTransform = new ScaleTransform(_vm.TextScale, _vm.TextScale);
+
+        var item = _item;
+        var win = new Window
+        {
+            Title = $"{(item is null ? "" : $"{item.Number} {item.Title} — ")}{ws.TitleText.Text} — PLC+",
+            Owner = this, Content = dock, ShowInTaskbar = false, ResizeMode = ResizeMode.CanResize,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Width = Math.Max(900, ActualWidth * 0.96), Height = Math.Max(640, ActualHeight * 0.96),
+            MinWidth = 640, MinHeight = 480, Icon = Icon,
+        };
+        if (WindowState == WindowState.Maximized) win.WindowState = WindowState.Maximized;
+        win.PreviewMouseMove += (_, _) => _lastInput = DateTime.Now;   // moving the mouse here is using PLC+ too (auto-lock)
+        // Esc closes it, unless a box or a menu used the key first.
+        win.KeyDown += (_, e) => { if (e.Key == Key.Escape && !e.Handled) { e.Handled = true; win.Close(); } };
+        win.Loaded += (_, _) => ws.PopOutButton.Focus();
+
+        var me = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        win.Closing += (_, _) =>
+        {
+            ws.CommitPendingEdit();      // a half-typed tag or PT is kept, as leaving the box would keep it
+            EnableWindow(me, true);      // before the pop-out goes, so Windows hands the focus back to the main window
+        };
+        win.Closed += (_, _) =>
+        {
+            _popOut = null;
+            ws.StatusChanged -= Show;
+            ws.PoppedOut = false;
+            scroll.SizeChanged -= Fit;
+            scroll.Content = null;
+            ws.Margin = new Thickness(0);
+            ws.Height = height;
+            switch (home)
+            {
+                case ScrollViewer s: s.Content = ws; MachineScroll_SizeChanged(s, null); break;
+                case Border b: b.Child = ws; break;
+            }
+            Activate();
+            ws.PopOutButton.Focus();
+        };
+
+        ws.PoppedOut = true;
+        _popOut = win;
+        EnableWindow(me, false);         // modal: the main window cannot be used or focused while the pop-out is open
+        win.Show();
     }
 
     // ---- Moving around ---------------------------------------------------------------------------------

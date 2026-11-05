@@ -121,6 +121,35 @@ public sealed record QuizResult(string QuizId, IReadOnlyList<QuestionResult> Que
         Score, MaxScore, Passed, "");
 }
 
+/// <summary>
+/// The order a learner sees a question's options in. Each learner gets their own order for each question, the same every time
+/// (so a retry does not move the options about), and the right answer is not always first. Answers are still kept and graded
+/// by the options' places in the file.
+/// </summary>
+public static class OptionOrder
+{
+    /// <summary>The options' places in the file, in the order to show them.</summary>
+    public static int[] For(string seed, string quizId, Question q)
+    {
+        var order = Enumerable.Range(0, q.Options.Count).ToArray();
+        if (order.Length < 2) return order;
+        var rng = new Random(Hash($"{seed}|{quizId}|{q.Id}"));
+        rng.Shuffle(order);
+        return order;
+    }
+
+    /// <summary>FNV-1a: the same number for the same text on every computer and every run (string.GetHashCode is not).</summary>
+    private static int Hash(string text)
+    {
+        unchecked
+        {
+            var h = 2166136261u;
+            foreach (var c in text) { h ^= c; h *= 16777619u; }
+            return (int)(h & 0x7FFFFFFF);
+        }
+    }
+}
+
 public static class QuizGrader
 {
     /// <param name="whereToLook">

@@ -30,6 +30,9 @@ internal sealed class SceneView
     private static readonly Brush Made = new SolidColorBrush(Color.FromRgb(0x1E, 0x7B, 0x34));
     private static readonly Brush NotMade = new SolidColorBrush(Color.FromRgb(0xC9, 0xD0, 0xD9));
 
+    /// <summary>Says something to the learner on the status line (a thumbwheel's typed number it cannot show).</summary>
+    public Action<string>? Say { get; set; }
+
     public SceneView(Canvas canvas, ItemsControl stateList)
     {
         _canvas = canvas;
@@ -104,7 +107,13 @@ internal sealed class SceneView
         var button = new Button
         {
             Content = b.Label, Width = 92, Height = 46, FontSize = 15, FontWeight = FontWeights.SemiBold,
-            Background = b.Color == "red" ? new SolidColorBrush(Color.FromRgb(0xB3, 0x26, 0x1E)) : new SolidColorBrush(Color.FromRgb(0x2E, 0x8B, 0x47)),
+            Background = b.Color switch
+            {
+                "red" => new SolidColorBrush(Color.FromRgb(0xB3, 0x26, 0x1E)),
+                "amber" => new SolidColorBrush(Color.FromRgb(0x9A, 0x5B, 0x00)),
+                "black" => new SolidColorBrush(Color.FromRgb(0x2B, 0x31, 0x38)),
+                _ => new SolidColorBrush(Color.FromRgb(0x2E, 0x8B, 0x47)),
+            },
             Foreground = Brushes.White, Margin = new Thickness(0),
             ToolTip = b.NormallyClosed
                 ? $"{b.Label} push button (normally closed): its input is TRUE until you press it. Hold it down with the mouse, or Tab to it and hold the Space bar."
@@ -147,16 +156,28 @@ internal sealed class SceneView
         {
             Width = 22 + 14 * Math.Clamp(tw.Digits, 1, 4), Height = 34, FontFamily = new FontFamily("Consolas"), FontSize = 20,
             TextAlignment = TextAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center, MaxLength = Math.Clamp(tw.Digits, 1, 4),
-            ToolTip = $"The number on the {tw.Label} thumbwheel, 0 to {tw.Max}. Type a number and press Enter, or use − and +.",
+            ToolTip = $"The number on the {tw.Label} thumbwheel, 0 to {tw.Max}. Type a number and press Enter to send it to the PLC, or use − and + (or the Up and Down keys).",
         };
         AutomationProperties.SetName(box, $"{tw.Label} thumbwheel");
         AutomationProperties.SetHelpText(box, $"A number from 0 to {tw.Max}. Type it and press Enter, or use the minus and plus buttons.");
         void Commit()
         {
-            if (int.TryParse(box.Text.Trim(), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var n)) tw.Set(n);
+            var typed = box.Text.Trim();
+            if (int.TryParse(typed, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var n)) tw.Set(n);
+            else if (typed.Length > 0 && typed != tw.Shown) Say?.Invoke($"\"{typed}\" is not a number the {tw.Label} thumbwheel can show: type a whole number from 0 to {tw.Max}.");
             box.Text = tw.Shown;
         }
-        box.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Commit(); };
+        box.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == System.Windows.Input.Key.Enter) Commit();
+            else if (e.Key is System.Windows.Input.Key.Up or System.Windows.Input.Key.Down)
+            {
+                tw.Set(tw.Value + (e.Key == System.Windows.Input.Key.Up ? 1 : -1));
+                box.Text = tw.Shown;
+                box.SelectAll();
+                e.Handled = true;
+            }
+        };
         box.LostKeyboardFocus += (_, _) => Commit();
         Place(box, tw.X, tw.Y + 20);
         var minus = new RepeatButton { Content = "−", Width = 30, Height = 34, FontSize = 16, ToolTip = $"One less on {tw.Label}" };

@@ -1,10 +1,10 @@
 {
   "id": "plcplus-foundations",
-  "version": "0.4.0",
-  "title": "PLC+ — foundations (preview)",
+  "version": "1.0.0",
+  "title": "PLC+ — foundations",
   "dependencies": [],
   "minimumAppVersion": "0.1.0",
-  "note": "Preview content for the instructors' review: modules 1-5 are first drafts, 6 an outline, 7-12 coming later. Challenges marked example are the machines on the Example tabs, like the exercises' machines but not the same ones (D21).",
+  "note": "The instructors' release (D24): modules 1-8 and 11 are first drafts; 9, 10 and 12 come later. Challenges marked example are the machines on the Example tabs, like the exercises' machines but not the same ones (D21).",
   "challenges": [
     {
       "file": "challenges/pilot-lights.json",
@@ -173,6 +173,461 @@
           "title": "A common mistake",
           "file": "programs/push-on-push-off-mistake.json",
           "note": "Without the edge, Pulse is TRUE for every scan the button is held (one scan is 10 ms), so the light flips on and off many times a press and ends up wherever it happens to stop."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m6-warning-horn.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m6-warning-horn.json",
+          "note": "Rung 1 remembers Start (RunRequest, a seal-in). Rung 2 times 3 s from RunRequest with a TON. The horn sounds while RunRequest is on and T1.Q is not; the motor runs on T1.Q. Stop drops RunRequest, which resets the timer, so every start gets the full warning."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m6-warning-horn-mistake.json",
+          "note": "The timer's IN is the Start button, not RunRequest. A TON resets the moment its IN goes off, so when Start is let go the time goes back to 0: the horn sounds for ever and the motor never starts (unless Start is held for 3 s)."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m6-stair-lights.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m6-stair-lights.json",
+          "note": "Rung 1: either stair button (in parallel) starts a pulse timer (TP); its Q is on for exactly 5 s. Rung 3: DoorOpen drives an off-delay timer (TOF); its Q is on while the door is open and 4 s after it shuts."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m6-stair-lights-mistake.json",
+          "note": "The stair light uses an off-delay (TOF) instead of a pulse (TP). A quick press looks right, but hold the button: the light stays on all the time it is held, and 5 s after. A pulse timer times from the press, whatever the button does."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m6-exhaust-fan.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m6-exhaust-fan.json",
+          "note": "The heater follows its switch; an off-delay timer (TOF) on the heater keeps Q on for 5 s after it turns off; a pulse timer (TP) on Purge gives 3 s per press; the fan runs while either Q is on."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m6-exhaust-fan-mistake.json",
+          "note": "The fan rung uses the Purge button's contact instead of the pulse timer's Q, so the fan runs only while Purge is held."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m6-bake-oven.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m6-bake-oven.json",
+          "note": "The heater runs with Bake On, the door shut and T1 not done. T1 is a retentive timer (TONR; RTO on Allen-Bradley) whose IN is the heater: it adds up heating time, keeps it while the door is open, and only Clear (its R input) sets it back to 0."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m6-bake-oven-mistake.json",
+          "note": "An ordinary TON loses its time whenever its IN goes off. Open the door at 3 s and shut it at 5 s: watch ET go back to 0, and the bake start again from the beginning. Even without the door, when the bake is done and the heater turns off, the TON resets at once: Done lights for a single scan and the heater starts another bake."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m6-pump-service.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m6-pump-service.json",
+          "note": "The pump's seal-in; a retentive timer (TONR) on Pump adds up the running time over every start and keeps Q on; the Reset key in its R input clears it."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m6-pump-service-mistake.json",
+          "note": "The retentive timer has nothing in its R input. It adds up the running time, but once Service due is lit nothing can clear it: the Reset key does nothing."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m6-car-park.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m6-car-park.json",
+          "note": "One up/down counter (CTUD): CarIn on the rung counts up, CarOut in CD counts down, ResetPB in R sets 0. QU (count at PV, 5, or more) lights Full; Spaces is lit while QU is off. A MOVE copies CV to the display."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m6-car-park-mistake.json",
+          "note": "The counter's CD input is empty, so cars leaving are never counted: fill the car park, let a car out, and it still says Full."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m6-batch-counter.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m6-batch-counter.json",
+          "note": "The belt's seal-in has a normally closed contact of C1.Q, so it stops when the batch is done. An up counter (CTU, PV 5) counts PartEye; Next batch in its R input clears it. A MOVE shows CV on the display."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m6-batch-counter-mistake.json",
+          "note": "Nothing resets the counter: Next batch does nothing, Batch done stays lit and the belt cannot start again."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m6-flasher.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m6-flasher.json",
+          "note": "Two TONs drive each other: T1 times the on part; T1.Q starts T2, which times the off part; T2.Q resets T1, which resets T2, and round it goes. The beacon is on while T1 is timing. A counter (CTU, PV 3) counts the beacon's flashes and its Q sounds the horn; AlarmOff resets it."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m6-flasher-mistake.json",
+          "note": "One timer resetting itself: its Q is on for a single scan (10 ms) every 0.5 s, so the beacon only blinks off for 10 ms, too short to see. A flasher needs a second timer for the off time."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m6-case-packer.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m6-case-packer.json",
+          "note": "C1 counts bottles (PV 6). When it finishes, C1.Q counts one pack on C2 (PV 4), and PackReset clears C1 in the next scan, so C1.Q is a one-scan pulse per pack. C2.Q stops the belt and lights Case full; Case removed clears both."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m6-case-packer-mistake.json",
+          "note": "C1 is never cleared when a pack is done: it goes on counting 7, 8, 9 … and its Q stays on, so C2 counts just one pack and the case never fills."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m7-batch-counter.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m7-batch-counter.json",
+          "note": "A CTU counts the parts (Reset in its R). Batch done: GE C1.CV BatchSize, so it stays lit past the size. Filling batch: GT C1.CV 0 AND LT C1.CV BatchSize."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m7-batch-counter-mistake.json",
+          "note": "EQ (EQU) instead of GE for Batch done: it is lit only while the count is exactly the batch size, so one part more turns it off."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m7-parts-bin.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m7-parts-bin.json",
+          "note": "Rung 1: a down counter keeps the parts left (Refill loads 10). Rung 2: Parts low while the count is at most WarnAt (LE) AND more than 0 (GT): two compares in series. Rung 3: Bin empty at 0 or less (LE 0), so it stays lit even if Part used is pressed once too often."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m7-parts-bin-mistake.json",
+          "note": "LT (less than, LES) instead of LE (less than or equal, LEQ): with Warn at 3, Parts low waits until only 2 are left. Choosing between < and <= is the most common compare mistake."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m7-inspection.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m7-inspection.json",
+          "note": "Rising-edge contacts and ADD 1 count each press; ADD gives the total; behind GT Total 0, MUL RejectCount 100 then DIV by Total gives the percentage."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m7-inspection-mistake.json",
+          "note": "Divides before it multiplies: RejectCount / Total is 0 in whole numbers (1 / 3 = 0), so the percentage is 0 until every part is a reject."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m7-packing.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m7-packing.json",
+          "note": "Rung 1: a compare (GT PerBox 0) in front of DIV and MOD, so they run only when there is something to divide by. DIV keeps the whole number of boxes and drops the remainder; MOD gives that remainder. Rung 2 lights the warning when PerBox is 0."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m7-packing-mistake.json",
+          "note": "No check in front of DIV: dial Parts per box to 0 and the PLC stops with a math fault, every output goes off, and only Reset starts it again. Try it, then read the fault message above the rungs."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m7-dosing.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m7-dosing.json",
+          "note": "RecipeB off: MOVE 5 to Target; on: MOVE 8. A CTU with PV Target counts the scoops; MOVE C1.CV shows the count; C1.Q lights Recipe done."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m7-dosing-mistake.json",
+          "note": "Both MOVEs have no contact, so both run on every scan and the lower one wins: Target is always 8."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m7-order-panel.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m7-order-panel.json",
+          "note": "Rung 1: AcceptPB in front of MOVE, so the thumbwheel is copied only while Accept is pressed; the display keeps the number after that. Rung 2: Clear moves 0 in."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m7-order-panel-mistake.json",
+          "note": "A MOVE with no contact in front runs on every scan, so the display follows the thumbwheel and Accept does nothing. Turn the thumbwheel and watch."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m7-fill-station.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m7-fill-station.json",
+          "note": "Behind GE Recipe 1 and LE Recipe 4, MOVE FillTime[Recipe] to FillPT; LT 1 OR GT 4 lights BadRecipe; a normally closed BadRecipe contact in the valve's rung."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m7-fill-station-mistake.json",
+          "note": "The program this exercise starts with: every recipe fills for recipe 1's time (FillTime[1]), and nothing checks the recipe number."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m7-shift-targets.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m7-shift-targets.json",
+          "note": "Rung 1 fills the table (three MOVEs in a row). Rung 2 checks that Shift is 1 to 3 (GE and LE) and only then copies Targets[Shift] to the display. Rung 3 handles every other number. Dial 4: the light comes on and the PLC keeps running."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m7-shift-targets-mistake.json",
+          "note": "No check before the index: dial 0 or 4 to 9 and the PLC stops with an index-out-of-range fault, and every output goes off. Try it, read the fault message, then press Reset."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m8-stamping.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m8-stamping.json",
+          "note": "Four steps, each a memory tag on a seal-in rung: set by the step before and the sensor that says it has finished, held by its own contact, ended by the next step or Stop. The outputs come last: the clamp is out in steps 1 to 3, the stamp down in step 2."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m8-stamping-mistake.json",
+          "note": "Step 2 does not wait for ClampIsOut. The stamp comes down while the clamp is still moving, on a part that is not held yet."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m8-transfer-arm.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m8-transfer-arm.json",
+          "note": "Four steps, each a memory tag on a seal-in rung. A step starts from the step before AND the sensor that says that step has finished, and the next step ends it. The outputs come last: the gripper is closed in steps 1 and 2, the arm goes out in step 2 and back in step 4."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m8-transfer-arm-mistake.json",
+          "note": "Nothing ends step 1, so it stays on for the whole cycle. The gripper is told to stay closed, never lets go of the part at the far end, and the cycle stops at step 3."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m8-batch-tank.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m8-batch-tank.json",
+          "note": "Step holds the step number. Each output rung is an EQ box for its step; each move on is EQ for the step it leaves, the condition, and a MOVE of the next number. Start counts only in step 0; Stop moves 0 in from any step."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m8-batch-tank-mistake.json",
+          "note": "Start's rung has no EQ box for step 0, so Start works in every step: pressed while draining, it jumps back to step 1 and fills the tank again."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m8-parts-washer.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m8-parts-washer.json",
+          "note": "Step holds the step number. Each move on is EQ for the step it leaves, its condition, and a MOVE of the next number. Each output has ONE rung: BasketDown has two EQ boxes side by side, for steps 1 and 2."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m8-parts-washer-mistake.json",
+          "note": "BasketDown has two rungs, one for step 1 and one for step 2. The PLC runs them in order, so in step 1 the second rung turns the coil off again: the basket never goes down, and the washer waits in step 1 for ever."
+        },
+        {
+          "title": "Written as an SFC",
+          "file": "programs/m8-parts-washer-sfc.json",
+          "note": "The same washer written as a Sequential Function Chart would be drawn: one BOOL per step (S0 to S4), S0 the initial step, so its tag starts TRUE. Each step's rung starts it from the step before AND the transition's condition, and the next step ends it. The actions (outputs and timers) come last. The last five rungs show the active step on the Step display."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m8-gate.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m8-gate.json",
+          "note": "State holds the state number. Each move is a rung: EQ for the state it leaves, its condition, MOVE the new number. The move to Stopped has no EQ (it comes from every state) and runs after the others. Reset goes to Closing, so the gate ends closed."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m8-gate-mistake.json",
+          "note": "Reset moves straight to Closed (0). The program now believes the gate is closed while it is still half open, and nothing will close it."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m8-rinse-tank.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m8-rinse-tank.json",
+          "note": "State holds the state number. The leak alarm (8) is a state of its own: entered from any state, left only by Alarm reset with the floor dry, and then to Draining, so the tank is emptied before it is used again. Stop goes back to Idle, but not out of the alarm."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m8-rinse-tank-mistake.json",
+          "note": "There is no leak state: the leak only holds the valves shut while the floor is wet. When it dries, the tank carries on filling by itself and the horn stops, and nobody needs to look at the leak."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m11-doorbell.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m11-doorbell.json",
+          "note": "FIXED: the bell has one coil, on rung 3, with the two buttons side by side (OR). Either button rings it."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m11-doorbell-mistake.json",
+          "note": "A double coil: rungs 2 and 4 both write Bell. Press the front button: rung 2 turns Bell on, and rung 4, later in the same scan, turns it off again. The Front light comes on, but the bell never rings from the front door."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m11-compressor.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m11-compressor.json",
+          "note": "The horn has one coil, on rung 4, with the two faults side by side (OR)."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m11-compressor-mistake.json",
+          "note": "Rungs 3 and 5 both write Horn (a double coil). Too hot: rung 3 turns the horn on and rung 5, later in the same scan, turns it off again, so the horn sounds only for low oil."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m11-fan-light.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m11-fan-light.json",
+          "note": "FIXED: each rung's seal-in contact reads its own coil's tag: Fan on rung 1, WorkLight on rung 2."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m11-fan-light-mistake.json",
+          "note": "Rung 2 was copied from rung 1 and its seal-in contact still reads Fan. So the light stays on only while Light on is held, and comes on by itself whenever the fan runs."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m11-two-pumps.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m11-two-pumps.json",
+          "note": "Each pump's seal-in contact reads its own coil: Pump1 on rung 1, Pump2 on rung 2."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m11-two-pumps-mistake.json",
+          "note": "Rung 2's seal-in contact reads Pump1, not Pump2: pump 2 runs only while its Start is held, and starts by itself whenever pump 1 runs."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m11-wash-rinse.json",
+      "example": true,
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m11-wash-rinse.json",
+          "note": "FIXED: two timing jobs, two timers. T1 times the wash (rung 2) and T2 the rinse (rung 4), and rung 3 reads T2.Q to end the rinse."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m11-wash-rinse-mistake.json",
+          "note": "Rungs 2 and 4 both use the timer T1. Rung 2 starts it, and rung 4, with no power, resets it in the same scan, every scan. T1's time never gets past 0, so the wash never ends."
+        }
+      ]
+    },
+    {
+      "file": "challenges/m11-mixer.json",
+      "programs": [
+        {
+          "title": "Works",
+          "file": "programs/m11-mixer.json",
+          "note": "Two timing jobs, two timers: T1 times the warning and T2 the mixing."
+        },
+        {
+          "title": "A common mistake",
+          "file": "programs/m11-mixer-mistake.json",
+          "note": "Rungs 2 and 5 both use T1. While the horn sounds, rung 5 has no power and resets T1 in every scan, so the warning time never runs out."
         }
       ]
     }

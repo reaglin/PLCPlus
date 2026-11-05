@@ -1,0 +1,137 @@
+{
+  "id": "plc.m11.input-faults.quiz",
+  "title": "Input faults",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.pilot-lights",
+      "program": "Works",
+      "fault": "PB2:swapped:PB1",
+      "prompt": "This pilot light station runs its working program, but one input is wired wrong. Press **Button 1** alone, then **Button 2** alone, and watch the PB1 and PB2 contacts. Which fault does it have?",
+      "options": [
+        "PB2's input is wired to Button 1: PB2 turns TRUE when Button 1 is pressed, and Button 2 does nothing",
+        "The wire to PB2 is broken: PB2 is always FALSE, so Button 2 does nothing and Amber never lights",
+        "PB2 is shorted: PB2 is always TRUE, so Amber is lit with nothing pressed and Button 2 changes nothing",
+        "The Amber light has failed: the PLC turns Amber on when Button 2 is pressed, but the lamp stays dark"
+      ],
+      "correct": [0],
+      "explanation": "Button 1 alone lights Green and Amber, because PB1 and PB2 both turn TRUE. With nothing pressed PB2 is FALSE, so it is not a short; and Button 2 changes nothing, because no input is wired to it."
+    },
+    {
+      "id": "q2",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.motor-start-stop",
+      "program": "Works",
+      "fault": "Start:shorted",
+      "prompt": "This motor station runs its working program, but one input is faulty. Watch the machine from **Reset**, then hold **Stop** and let go. Which fault does it have?",
+      "options": [
+        "The Start input is shorted: it is always TRUE, so the motor starts by itself",
+        "The Stop wire is broken: Stop is always FALSE, so the motor will not run",
+        "The Stop input is shorted: it is always TRUE, so Stop cannot stop the motor",
+        "The program has no seal-in: the motor runs only while Start is held down"
+      ],
+      "correct": [0],
+      "explanation": "Start reads TRUE with nobody pressing it, so the motor runs from power-up. Stop stops it only while held; let go and Start, still TRUE, starts it again."
+    },
+    {
+      "id": "q3",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.tank",
+      "program": "Works",
+      "fault": "HighFloat:open",
+      "prompt": "This tank runs its working program, but one input is faulty. Turn the Mode switch to **Auto** and watch the tank rise past 80 %. Which fault does it have?",
+      "options": [
+        "The high float's wire is broken: HighFloat stays FALSE when the liquid reaches it, and the tank overflows",
+        "The low float's wire is broken: LowFloat is always FALSE, so the pump never empties the tank",
+        "The fill valve has failed: it stays open after the PLC turns it off, and the tank overflows",
+        "The Auto switch's wire is broken: the PLC never sees Auto, so the tank never starts to fill"
+      ],
+      "correct": [0],
+      "explanation": "The fill valve opens and the level rises, so Auto and the valve work. At 80 % What every part is doing says the high float senses the liquid, but HighFloat stays FALSE, so nothing stops the filling."
+    },
+    {
+      "id": "q4",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.garage-door",
+      "program": "Works",
+      "fault": "EyeClear:shorted",
+      "prompt": "This garage door runs its working program, but one input is faulty. Press **Open** and let the door open fully, press **Step into the doorway**, then press **Close**. Which fault does it have?",
+      "options": [
+        "The safety eye's input is always TRUE (stuck clear, or shorted): the door comes down on what is in the doorway",
+        "The safety eye's wire is broken: EyeClear is always FALSE, so the door never closes at all",
+        "The bottom limit switch is shorted: it always reads TRUE, so the door stops as soon as it starts",
+        "The Close button is shorted: it always reads TRUE, so the door closes as soon as it is open"
+      ],
+      "correct": [0],
+      "explanation": "EyeClear stays TRUE although something is in the beam, so the Down rung lets the door close on it. From the PLC, a stuck sensor and a shorted wire look the same: both read TRUE whatever happens."
+    },
+    {
+      "id": "q5",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.conveyor-sorter",
+      "program": "Works",
+      "fault": "Prox:open",
+      "prompt": "This sorter runs its working program, but one input is faulty. Press **Start** and watch rungs 2 and 3 as the first metal part passes the metal sensor and then the photo-eye. Which fault does it have?",
+      "options": [
+        "The metal sensor's wire is broken: Prox never turns TRUE, so metal parts ride on to Bin B",
+        "The photo-eye's wire is broken: Eye never turns TRUE, so no part is ever diverted",
+        "The diverter has failed: the PLC turns Divert on for metal, but the arm does not move",
+        "The photo-eye is shorted: Eye is always TRUE, so metal parts are diverted too early"
+      ],
+      "correct": [0],
+      "explanation": "What every part is doing says the metal sensor sees the metal part, but the Prox contact never turns TRUE and MetalSeen is never set. The photo-eye's contact does turn TRUE as each part passes, so the eye is fine."
+    },
+    {
+      "id": "q6",
+      "kind": "fault",
+      "objective": "plc.m11.o2",
+      "machine": "u5.reversing-conveyor",
+      "program": "Works",
+      "fault": "StopPB:shorted",
+      "prompt": "This reversing conveyor runs its working program, but one input is faulty. Press **Forward**, then hold **Stop**. Which fault does it have?",
+      "options": [
+        "The Stop input is shorted: StopPB is always TRUE, so Stop never stops the motor",
+        "The Stop wire is broken: StopPB is always FALSE, so the motor never starts",
+        "The Forward button is shorted: it is always TRUE, so the motor starts again after Stop",
+        "The program has no interlock: Forward and Reverse can both be on at once"
+      ],
+      "correct": [0],
+      "explanation": "StopPB stays TRUE while Stop is held down. This is the dangerous way for a Stop input to fail, and why an emergency stop is also wired straight into the power circuit."
+    },
+    {
+      "id": "q7",
+      "kind": "choice",
+      "objective": "plc.m11.o2",
+      "prompt": "A photo-eye's input reads TRUE all the time, with nothing in front of it. From the PLC alone, can you tell a shorted wire from a sensor stuck ON?",
+      "options": [
+        "No: both make the input TRUE. Look at the sensor's own light, or test the wire with a meter with the power safely isolated",
+        "Yes: a shorted wire always makes the PLC stop with a fault and show it, and a stuck sensor does not",
+        "Yes: a stuck sensor reads TRUE only every other scan, and a shorted wire reads TRUE in every scan",
+        "No, and it does not matter: both are fixed the same way, by changing the program to ignore it"
+      ],
+      "correct": [0],
+      "explanation": "The PLC sees only the value at its terminal. Where the fault is, the sensor or the wire, is found at the machine."
+    },
+    {
+      "id": "q8",
+      "kind": "match",
+      "objective": "plc.m11.o2",
+      "prompt": "Match each input fault to what the PLC sees.",
+      "pairs": [
+        { "left": "A broken wire", "right": "Always FALSE" },
+        { "left": "A short to the supply", "right": "Always TRUE" },
+        { "left": "Two wires crossed", "right": "The value of another device" },
+        { "left": "A broken wire on a normally closed Stop", "right": "As if Stop were held down" }
+      ],
+      "explanation": "A normally closed Stop reads TRUE while all is well, so a broken wire to it reads like a press: the machine fails safe."
+    }
+  ]
+}

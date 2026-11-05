@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "id": "u6.case-packer",
+  "title": "Count bottles into packs, and packs into cases",
+  "brief": "Start runs the belt and it keeps running; Stop stops it. Count the bottles the eye sees: every 6 bottles make a pack, so the Packs display goes up by one and the Bottles display goes back to 0. When 4 packs have been made, the case is full: the belt stops by itself and Case full lights. Case removed sets both counts back to 0 and puts the light out; then Start runs the belt for the next case.",
+  "scene": "m6-case-packer",
+  "constraints": {
+    "requiredInstructions": [
+      "CTU"
+    ],
+    "maxRungs": 10
+  },
+  "passThreshold": 1.0,
+  "hints": [
+    "Use two up counters: C1 counts bottles (PV 6), C2 counts packs (PV 4). What does C2 count? Each time C1 finishes.",
+    "C1 must start again from 0 after every pack: something has to turn on its R input when C1.Q comes on.",
+    "R takes one tag, but C1 must be cleared both when a pack is done and when Case removed is pressed: a memory tag (PackReset, say) from a branch of the two does it. The belt's seal-in stops on C2.Q."
+  ],
+  "scenarios": [
+    {
+      "name": "Six bottles make a pack",
+      "points": 1,
+      "durationSeconds": 4.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 1.0,
+          "tag": "Belt",
+          "expect": "TRUE",
+          "says": "Start should run the belt, and it should keep running."
+        },
+        {
+          "at": 2.2,
+          "tag": "BottleCount",
+          "expect": "3",
+          "says": "Three bottles have passed the eye by 2.2 s: Bottles should show 3."
+        },
+        {
+          "at": 3.7,
+          "tag": "PackCount",
+          "expect": "1",
+          "says": "Six bottles have passed by 3.7 s: Packs should show 1."
+        },
+        {
+          "at": 3.7,
+          "tag": "BottleCount",
+          "expect": "0",
+          "says": "After six bottles, the Bottles count should start again from 0."
+        }
+      ]
+    },
+    {
+      "name": "Four packs fill a case, and the belt stops",
+      "points": 1,
+      "durationSeconds": 13.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 9.0,
+          "tag": "PackCount",
+          "expect": "2",
+          "says": "Seventeen bottles have passed by 9 s: that is 2 full packs (and 5 bottles), so Packs should show 2."
+        },
+        {
+          "at": 9.0,
+          "tag": "BottleCount",
+          "expect": "5",
+          "says": "Seventeen bottles by 9 s: 2 packs and 5 bottles."
+        },
+        {
+          "at": 12.2,
+          "tag": "CaseFull",
+          "expect": "FALSE",
+          "says": "Only 23 bottles by 12.2 s: the case is not full yet."
+        },
+        {
+          "at": 12.7,
+          "tag": "PackCount",
+          "expect": "4",
+          "says": "24 bottles make 4 packs."
+        },
+        {
+          "at": 12.7,
+          "tag": "CaseFull",
+          "expect": "TRUE",
+          "says": "After 4 packs, Case full should light."
+        },
+        {
+          "at": 12.7,
+          "tag": "Belt",
+          "expect": "FALSE",
+          "says": "When the case is full, the belt should stop by itself."
+        }
+      ]
+    },
+    {
+      "name": "Case removed starts a new case",
+      "points": 1,
+      "durationSeconds": 14.5,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 13.0,
+          "operate": "removed",
+          "active": true
+        },
+        {
+          "t": 13.2,
+          "operate": "removed",
+          "active": false
+        },
+        {
+          "t": 13.5,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 13.7,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 13.3,
+          "tag": "CaseFull",
+          "expect": "FALSE",
+          "says": "Case removed should put Case full out."
+        },
+        {
+          "at": 13.3,
+          "tag": "PackCount",
+          "expect": "0",
+          "says": "Case removed should set the packs back to 0."
+        },
+        {
+          "at": 13.3,
+          "tag": "BottleCount",
+          "expect": "0",
+          "says": "Case removed should set the bottles back to 0."
+        },
+        {
+          "at": 14.0,
+          "tag": "Belt",
+          "expect": "TRUE",
+          "says": "After Case removed, Start should run the belt again."
+        }
+      ]
+    },
+    {
+      "name": "A stop part-way through keeps both counts",
+      "points": 1,
+      "hidden": true,
+      "durationSeconds": 14.0,
+      "events": [
+        {
+          "t": 0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 0.2,
+          "operate": "start",
+          "active": false
+        },
+        {
+          "t": 5.0,
+          "operate": "stop",
+          "active": true
+        },
+        {
+          "t": 5.2,
+          "operate": "stop",
+          "active": false
+        },
+        {
+          "t": 6.0,
+          "operate": "start",
+          "active": true
+        },
+        {
+          "t": 6.2,
+          "operate": "start",
+          "active": false
+        }
+      ],
+      "assertions": [
+        {
+          "at": 5.8,
+          "tag": "PackCount",
+          "expect": "1",
+          "says": "Nine bottles before Stop: 1 pack."
+        },
+        {
+          "at": 5.8,
+          "tag": "BottleCount",
+          "expect": "3",
+          "says": "Nine bottles before Stop: 3 in the next pack."
+        },
+        {
+          "at": 13.2,
+          "tag": "CaseFull",
+          "expect": "FALSE",
+          "says": "With the belt stopped for 1 s, the case is full 1 s later."
+        },
+        {
+          "at": 13.8,
+          "tag": "CaseFull",
+          "expect": "TRUE",
+          "says": "The counts must carry on after a stop: the case is full by 13.8 s."
+        }
+      ]
+    }
+  ]
+}
