@@ -11,9 +11,10 @@ public partial class AboutWindow : Window
         InitializeComponent();
         var v = Assembly.GetExecutingAssembly().GetName().Version;
         VersionText.Text = $"Version {v?.ToString(3)}";
-        if (StoreUpdates.StorePage.Length > 0)
+        // Shown only once the Store ID is in, and only if the address is a real one (a typo must not stop About opening).
+        if (Uri.TryCreate(StoreUpdates.StorePage, UriKind.Absolute, out var store))
         {
-            StoreLink.NavigateUri = new Uri(StoreUpdates.StorePage);
+            StoreLink.NavigateUri = store;
             StoreLinkText.Text = StoreUpdates.StorePage.Replace("https://", "", StringComparison.Ordinal);
             StoreLine.Visibility = Visibility.Visible;
         }

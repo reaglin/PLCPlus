@@ -53,6 +53,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# A Store build must carry the Store link, or the Store copy's Check for a new version and About's Store line do not work
+# (docs/release/STORE-SUBMISSION.md section 3).
+if ($IdentityName) {
+    $storeUpdates = Get-Content (Join-Path (Split-Path -Parent $PSScriptRoot) 'src/Learning.Shell/StoreUpdates.cs') -Raw
+    if ($storeUpdates -notmatch 'StorePage = "https://apps\.microsoft\.com/detail/[0-9A-Za-z]{12}"') {
+        throw 'StorePage in src/Learning.Shell/StoreUpdates.cs is not set to https://apps.microsoft.com/detail/<Store ID>. Set it before a Store build.'
+    }
+}
+
 $repoRoot     = Split-Path -Parent $PSScriptRoot
 $packagingDir = $PSScriptRoot
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repoRoot 'artifacts' }

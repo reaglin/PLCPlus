@@ -34,7 +34,10 @@ After it is live (installed from the Store link):
 6. It opens; the Start menu and taskbar show the icon; the start screen's folder is `C:\ProgramData\PLCPlus\Learners`, and your
    learners from the hand-test exe are there (it is the same folder).
 7. About shows the Store line; it opens the Store page. Help ▸ Check for a new version says you have the latest version (1.0.0).
-8. **A lab computer** (12.4): the four steps at the end of `docs/release/LAB-INSTALL.md` (two Windows accounts, one folder).
+8. **Uninstall keeps the learners.** Make a test learner in the Store copy, uninstall PLC+ (Settings ▸ Apps), and look in
+   `C:\ProgramData\PLCPlus\Learners`: the file must still be there. (If Windows had redirected the folder into the package, it would be
+   gone, and the privacy page, the testing guide and `LAB-INSTALL.md` would need changing.) Install it again from the link.
+9. **A lab computer** (12.4): the four steps at the end of `docs/release/LAB-INSTALL.md` (two Windows accounts, one folder).
 
 ---
 
