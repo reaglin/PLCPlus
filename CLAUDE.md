@@ -29,7 +29,9 @@ item with Learn / Example / Exercise / Reference tabs (Ron, D20); content as Mar
 (`docs/CONTENT-FORMAT.md`), the validator `tools/ContentValidator`, and progress for one learner. **Phase 5 (assessment) built 2026-11-04:**
 timing windows and ordering in tests, Replay the failed test, attempts with hints and computer, questions of five kinds on the module
 checks (find the fault on a faulted machine), mastery per outcome. The instructors review on https://softwareplus.ai/plcplus/review/.
-Next: phase 6 (learners and progress files).
+**Phase 6 (learners and progress files) built 2026-11-05:** the start screen "Who is learning?", PIN-locked
+`.plcprogress` files in `%ProgramData%\PLCPlus\Learners` (`Learning.Core.Learners`), recovery code, wrong-PIN waits, auto-lock,
+import and merge, required backups with reminders, the event log; My program and answers per learner.
 
 ### Read these first
 
@@ -95,7 +97,8 @@ tools/capture-window.ps1 photographs the window (PrintWindow) and presses button
 - **The instructors' review site** (https://softwareplus.ai/plcplus/review/) is generated from this repo: after changing content or
   `docs/INSTRUCTOR-REVIEW.md`, run `python tools/make-review-site.py`, then in `..\SoftwarePlus` `.\deploy.ps1 -Status` and
   `.\deploy.ps1 -Only plcplus -Reason "PLC+: …"`.
-- `PLCPLUS_PROGRESS=<file>` points a run at its own progress file (for captures and tests), so it never changes a tester's.
+- `PLCPLUS_DATA=<folder>` points a run at its own learners' folder and settings (for captures and tests), so it never changes a
+  tester's learners in `%ProgramData%\PLCPlus`, and never takes the preview's progress.
 - Name: **PLC+** in front of a person (Ron, 2026-11-04); `PLCPlus` in code, folders and the exe.
 - **No AI in Phase 1** (Ron). The lab PLC is **Allen-Bradley**: the engine is compared against it, and Rockwell is the
   first vendor dialect. Ron signs content packages when they are published; the key never goes in git.

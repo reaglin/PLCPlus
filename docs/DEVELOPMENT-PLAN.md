@@ -167,20 +167,21 @@ says "look again" without the answer (practice questions, such as 2.3's, show it
 
 ---
 
-## Phase 6 — learners and progress files (FR-5, FR-9, FR-10; spec 8) — the shared engine (D5)
+## Phase 6 — learners and progress files (FR-5, FR-9, FR-10; spec 8) — the shared engine (D5) ⚠️ built 2026-11-05
 
 | # | Task | Done when |
 |---|---|---|
-| 6.1 | Start screen: every learner on this computer, by name and when they last used it | |
-| 6.2 | New learner: display name, optional student ID, a 4–6 digit PIN, and a one-time recovery code to write down or print | |
-| 6.3 | The progress file (`.plcprogress`): a small readable header (name, profile ID, last saved, app version) and **one encrypted block of JSON** (Ron, question 4); AES-GCM with a PBKDF2 key from the PIN, a second copy of the key wrapped with the recovery code | |
-| 6.4 | Wrong PIN: after 5 tries a wait that grows; auto-lock after 15 minutes idle and on Switch learner | |
-| 6.5 | Remove from this computer (needs the PIN; offers to export first) | |
-| 6.6 | Export and import ("Add learner from file"), showing which computer saved it last and when | |
-| 6.7 | Merging two copies: attempts are append-only with unique IDs, so both copies' attempts are kept and mastery recalculated | |
-| 6.8 | The shared folder `%ProgramData%\PLCPlus\Learners`, so lab PCs work with one shared login or separate ones; changeable in settings. Lab PCs are not reimaged (Ron, question 10) | |
-| 6.10 | **Backups are required** (Ron, question 10): the program asks the learner to back up (export) their file to a drive or cloud folder they choose, shows when the last backup was made, and reminds them when it is out of date (at each submission point and when they sign out) | |
-| 6.9 | The event log (xAPI-style learning events) inside the progress file | |
+| 6.1 | Start screen: every learner on this computer, by name and when they last used it | ⚠️ Built: **Who is learning?** covers the window whenever nobody is signed in: each learner's name, when they last used PLC+ (and on which computer, if another), and their backup (✓ up to date, ⚠ not yet or out of date), all read from the files' headers without a PIN. Choose, type the PIN, **Open**. Help on the right; an empty list says what to do first |
+| 6.2 | New learner: display name, optional student ID, a 4–6 digit PIN, and a one-time recovery code to write down or print | ⚠️ Built: **New learner…** (name, required and unique on the computer; student ID, optional, kept inside the locked part; PIN twice), then **Your recovery code** once: five groups of four (Crockford letters, so O/0 and I/1 are not confused), **Print…**, **Copy**, and **Start learning** only after "I have written down or printed my recovery code". The first learner can start with the preview's progress and programs (the old files are renamed, not deleted) |
+| 6.3 | The progress file (`.plcprogress`): a small readable header (name, profile ID, last saved, app version) and **one encrypted block of JSON** (Ron, question 4); AES-GCM with a PBKDF2 key from the PIN, a second copy of the key wrapped with the recovery code | ⚠️ Built: `Learning.Core.Learners.LearnerFile` (D22). One JSON file: the readable header (format, app, profile ID, name, last saved, computer, app version, last backup, last change, wrong-PIN count) and `body`, AES-256-GCM. A random key, wrapped with PBKDF2-SHA256 (600,000 rounds, about 0.07 s here) from the PIN and again from the recovery code; each block bound to the learner's ID. A file changed by hand does not open, and says so. Inside: the profile, the progress, My program per exercise, the content versions used, the last backup |
+| 6.4 | Wrong PIN: after 5 tries a wait that grows; auto-lock after 15 minutes idle and on Switch learner | ⚠️ Built: after 5 wrong PINs a wait of 30 s, doubling to at most 30 min, counted in the file so restarting PLC+ does not reset it; the start screen counts down. **Forgot my PIN…** sets a new one with the recovery code. Auto-lock after 15 minutes without a key or mouse (5–60 in Settings): work saved, the key forgotten, the start screen says why, and the same learner returns to the same item. **Learner ▸ Switch learner** (Ctrl+Shift+L) saves and locks. **Learner ▸ Change my PIN…** |
+| 6.5 | Remove from this computer (needs the PIN; offers to export first) | ⚠️ Built: **Remove from this computer…**: the PIN, then "Back up first?" (**Back up, then remove…** / **Remove without a backup** / **Cancel**); the file goes to the **Recycle Bin** |
+| 6.6 | Export and import ("Add learner from file"), showing which computer saved it last and when | ⚠️ Built: export is **Learner ▸ Back up my progress…** (6.10). **Add learner from file…** says whose progress it is and which computer last saved it, and when; a learner new here is copied in (the same PIN opens it) |
+| 6.7 | Merging two copies: attempts are append-only with unique IDs, so both copies' attempts are kept and mastery recalculated | ⚠️ Built: a learner already here is **combined**: every attempt and event kept once by its ID (old attempts without one get a key from their content), each item's earliest completion, My program the later of the two; mastery follows. Either copy's PIN works; this computer's PIN stays; the chosen file is never written to. Two sessions with one learner (two windows, or two Windows accounts) merge when they save. 4 tests |
+| 6.8 | The shared folder `%ProgramData%\PLCPlus\Learners`, so lab PCs work with one shared login or separate ones; changeable in settings. Lab PCs are not reimaged (Ron, question 10) | ⚠️ Built: `%ProgramData%\PLCPlus\Learners`, created so every Windows account on the computer can change the files in it; **Settings…** on the start screen (the folder and the lock time) for everyone on the computer. ⚠️ For phase 11: check the folder under the Store's MSIX install |
+| 6.10 | **Backups are required** (Ron, question 10): the program asks the learner to back up (export) their file to a drive or cloud folder they choose, shows when the last backup was made, and reminds them when it is out of date (at each submission point and when they sign out) | ⚠️ Built: **Learner ▸ Back up my progress…** and the button at the top right ("⚠ Not backed up: Back up…", "⚠ Backup out of date …", "✓ Backed up today at …"); saving into the learners' folder is refused (not a backup). PLC+ asks for a backup when there is work since the last one: on Switch learner and on closing (Cancel stays), and when a module check is complete (the submission point, until phase 8's reports) |
+| 6.9 | The event log (xAPI-style learning events) inside the progress file | ⚠️ Built: the event log in the file, as xAPI-style statements (the learner, a verb, the item or file, the result in words, a unique ID): created, signed in, signed out, locked, opened (once per item per session), read, attempted, completed, opened early, backed up, merged, PIN changed or reset |
+| 6.11 | Hand-test 6 | ⚠️ Ron: hand-test 6 in `docs/MANUAL-TESTING.md`. **UX: walkthrough + heuristics 2026-11-05, 0 critical, 6 major, 9 minor; fixed:** Switch learner chooses nobody (the next student could have typed their PIN against the last one's name and locked them out); no auto-lock while a dialog is open, and a file locked under a dialog is never saved; a backup onto an older copy of the same learner (the USB stick from home) combines it first instead of overwriting it; **Open the learners' folder** and a damaged file can be removed without a PIN (an instructor without a student's PIN: question 15); changing the folder warns how many learners stay behind, and the empty list says where PLC+ is looking; Add learner from file takes several files at once; the preview's progress is no longer ticked by default; wrong-PIN messages say "Press Forgot my PIN"; the countdown keeps "That PIN is not right" and is spoken politely; a new PIN or two combined copies are confirmed on the status line; cancelling the backup when leaving keeps PLC+ open; the recovery code is cleared from the clipboard; error details follow "Details for support:"; the start-screen banner is neutral blue. Not changed: no search in a long list of learners (a class fits), the title still says "(preview)" until the Store |
 
 ---
 
@@ -265,7 +266,7 @@ connection). No research analytics: the grant does not require research on outco
 
 ---
 
-## Open questions for Ron — all 14 answered (asked and answered 2026-11-04)
+## Open questions for Ron — 14 answered 2026-11-04; one asked 2026-11-05
 
 1. ~~**The name.**~~ **PLC+** in front of people; `PLCPlus` in code, folders and the exe. Changed in the program 2026-11-04;
    Ron reserved it in Partner Center the same day (11.1).
@@ -286,6 +287,11 @@ connection). No research analytics: the grant does not require research on outco
 13. ~~**Research use of learning events.**~~ **Not required by the grant.** No research analytics; the event log stays in
     the progress file only as the record behind time on task and the report.
 14. ~~**Report cover fields.**~~ **Only the name is required**; student ID, course and section, and e-mail are optional (8.4a).
+15. **An instructor removing a student who has left** (asked 2026-11-05, from the UX review). The spec has Remove need the
+    learner's PIN, which an instructor does not have. For now the start screen has **Open the learners' folder**, and Remove's
+    tooltip names the file to delete with PLC+ closed. Is that enough for lab PCs, or should PLC+ have an instructor override
+    (for example an instructor PIN set in Settings that can remove any learner, never open one)? *Recommendation: the folder is
+    enough for the pilot; add an instructor PIN only if the lab instructors ask.*
 
 ---
 

@@ -25,8 +25,14 @@ public partial class MachineWorkspace
 
     private bool Editing => _editor is not null;
 
-    private static string WorkFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PLCPlus", "work");
-    private string WorkFile => Path.Combine(WorkFolder, (_current?.Challenge.Id ?? "program") + ".plcprogram");
+    /// <summary>
+    /// Where My program is kept between sessions: in the learner's own progress file (plan 6.3), by challenge ID. The window
+    /// sets these when a learner signs in; without them the program is kept only while PLC+ is open.
+    /// </summary>
+    public Func<string, string?>? LoadWork { get; set; }
+    public Action<string, string>? SaveWork { get; set; }
+
+    private string WorkKey => _current?.Challenge.Id ?? "program";
 
     // ---- Entering and leaving the editor ------------------------------------------------------------
 
@@ -36,8 +42,9 @@ public partial class MachineWorkspace
         var resumed = false;
         try
         {
-            project = File.Exists(WorkFile) ? ProjectJson.Deserialize(File.ReadAllText(WorkFile)) : BlankForScene();
-            resumed = File.Exists(WorkFile);
+            var saved = LoadWork?.Invoke(WorkKey);
+            project = saved is not null ? ProjectJson.Deserialize(saved) : BlankForScene();
+            resumed = saved is not null;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
@@ -121,8 +128,7 @@ public partial class MachineWorkspace
     {
         try
         {
-            Directory.CreateDirectory(WorkFolder);
-            File.WriteAllText(WorkFile, _editedJson);
+            SaveWork?.Invoke(WorkKey, _editedJson);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

@@ -16,10 +16,40 @@ public sealed record ModuleProgress(ModuleState State, int Complete, int Total);
 /// learner had been shown, the computer it ran on, and for a quiz which questions were right.
 /// </summary>
 public sealed record Attempt(string ItemId, string ChallengeId, DateTimeOffset At, double Score, double MaxScore, bool Passed, string WorkHash,
-    int HintsShown = 0, string? Machine = null, Dictionary<string, bool>? Questions = null);
+    int HintsShown = 0, string? Machine = null, Dictionary<string, bool>? Questions = null, string? Id = null)
+{
+    /// <summary>The attempt's unique ID, so two copies of a progress file merge without losing or doubling one (spec 8.3).
+    /// Attempts saved before IDs existed get one made from what they hold.</summary>
+    [JsonIgnore] public string Key => Id ?? $"{ItemId}|{At.UtcTicks}|{WorkHash}";
+}
 
-/// <summary>Something an instructor may want to see in the report, such as a module opened before its prerequisites.</summary>
-public sealed record LearningEvent(DateTimeOffset At, string Kind, string Subject, string Detail);
+/// <summary>
+/// One entry in the learner's event log (spec 8.4), in the shape of an xAPI statement: the actor is the learner who owns
+/// the file, <see cref="Kind"/> is the verb (see <see cref="EventKinds"/>), <see cref="Subject"/> the object (an item,
+/// module or the file itself) and <see cref="Detail"/> the result in words. Kept for the report and for later analysis.
+/// </summary>
+public sealed record LearningEvent(DateTimeOffset At, string Kind, string Subject, string Detail, string? Id = null)
+{
+    [JsonIgnore] public string Key => Id ?? $"{Kind}|{Subject}|{At.UtcTicks}";
+}
+
+/// <summary>The verbs of the event log.</summary>
+public static class EventKinds
+{
+    public const string SignedIn = "signed-in";
+    public const string SignedOut = "signed-out";
+    public const string Locked = "locked";
+    public const string Opened = "opened";
+    public const string Read = "read";
+    public const string Attempted = "attempted";
+    public const string Completed = "completed";
+    public const string OpenedEarly = "opened-early";
+    public const string BackedUp = "backed-up";
+    public const string Merged = "merged";
+    public const string PinChanged = "pin-changed";
+    public const string PinReset = "pin-reset";
+    public const string Created = "created";
+}
 
 public sealed class ItemRecord
 {
@@ -41,11 +71,18 @@ public sealed class ItemRecord
 /// </summary>
 public sealed class LearningProgress
 {
-    public const string OpenedEarly = "opened-early";
+    public const string OpenedEarly = EventKinds.OpenedEarly;
 
     public Dictionary<string, ItemRecord> Items { get; init; } = new(StringComparer.OrdinalIgnoreCase);
     public List<Attempt> Attempts { get; init; } = [];
     public List<LearningEvent> Events { get; init; } = [];
+
+    /// <summary>When the learner last did something that counts (read, checked, answered): a backup made before this is out of date.</summary>
+    public DateTimeOffset? LastChanged { get; set; }
+
+    /// <summary>Adds an entry to the event log.</summary>
+    public void Log(string kind, string subject, string detail, DateTimeOffset now) =>
+        Events.Add(new LearningEvent(now, kind, subject, detail, Guid.NewGuid().ToString("N")));
 
     public ItemState StateOf(LearningItem item)
     {
@@ -95,8 +132,7 @@ public sealed class LearningProgress
             Items[item.Id] = record = new ItemRecord { FirstOpened = now };
             var missing = MissingPrerequisites(package, item.Module);
             if (firstInModule && missing.Count > 0)
-                Events.Add(new LearningEvent(now, OpenedEarly, item.Module.Id,
-                    $"Started {item.Module} before finishing {string.Join(", ", missing.Select(m => m.ToString()))}."));
+                Log(OpenedEarly, item.Module.Id, $"Started {item.Module} before finishing {string.Join(", ", missing.Select(m => m.ToString()))}.", now);
         }
         record.LastOpened = now;
     }
@@ -106,8 +142,13 @@ public sealed class LearningProgress
     {
         if (!item.CompletesByReading) return false;
         var record = Items.TryGetValue(item.Id, out var r) ? r : Items[item.Id] = new ItemRecord { FirstOpened = now, LastOpened = now };
-        record.Completed ??= now;
-        record.CompletedBy ??= "read";
+        if (record.Completed is null)
+        {
+            record.Completed = now;
+            record.CompletedBy = "read";
+            LastChanged = now;
+            Log(EventKinds.Read, item.Id, $"Read {item}.", now);
+        }
         return true;
     }
 
@@ -119,12 +160,15 @@ public sealed class LearningProgress
     {
         var questions = item.Quiz is null ? null : outcome.Scenarios.ToDictionary(s => s.Name, s => s.Passed, StringComparer.OrdinalIgnoreCase);
         Attempts.Add(new Attempt(item.Id, outcome.ChallengeId, now, outcome.Score, outcome.MaxScore, outcome.Passed, outcome.WorkHash,
-            hintsShown, machine, questions));
+            hintsShown, machine, questions, Guid.NewGuid().ToString("N")));
+        LastChanged = now;
         var record = Items.TryGetValue(item.Id, out var r) ? r : Items[item.Id] = new ItemRecord { FirstOpened = now, LastOpened = now };
+        Log(EventKinds.Attempted, item.Id, $"{(outcome.Passed ? "Passed" : "Did not pass")}: {outcome.Score:0.#} of {outcome.MaxScore:0.#}.", now);
         if (outcome.Passed && record.Completed is null)
         {
             record.Completed = now;
             record.CompletedBy = "passed";
+            Log(EventKinds.Completed, item.Id, $"Completed {item}.", now);
         }
     }
 
@@ -158,7 +202,33 @@ public sealed class LearningProgress
         return StateOf(last) != ItemState.Complete ? last : NextAfter(package, last);
     }
 
-    // ---- The file (phase 6 moves this inside the learner's encrypted progress file) ---------------
+    /// <summary>
+    /// Two copies of one learner's progress, combined (spec 8.3): every attempt and event from both (each kept once, by its
+    /// ID), each item's earliest opening and completion and latest visit. Mastery is worked out from these, so it follows.
+    /// Nothing is lost.
+    /// </summary>
+    public static LearningProgress Merge(LearningProgress a, LearningProgress b)
+    {
+        var merged = new LearningProgress { LastChanged = Max(a.LastChanged, b.LastChanged) };
+        foreach (var (id, r) in a.Items.Concat(b.Items))
+        {
+            if (!merged.Items.TryGetValue(id, out var m))
+            {
+                merged.Items[id] = new ItemRecord { FirstOpened = r.FirstOpened, LastOpened = r.LastOpened, Completed = r.Completed, CompletedBy = r.CompletedBy };
+                continue;
+            }
+            if (r.FirstOpened < m.FirstOpened) m.FirstOpened = r.FirstOpened;
+            if (r.LastOpened > m.LastOpened) m.LastOpened = r.LastOpened;
+            if (r.Completed is { } c && (m.Completed is null || c < m.Completed)) (m.Completed, m.CompletedBy) = (c, r.CompletedBy);
+        }
+        merged.Attempts.AddRange(a.Attempts.Concat(b.Attempts).DistinctBy(x => x.Key).OrderBy(x => x.At));
+        merged.Events.AddRange(a.Events.Concat(b.Events).DistinctBy(x => x.Key).OrderBy(x => x.At));
+        return merged;
+    }
+
+    private static DateTimeOffset? Max(DateTimeOffset? x, DateTimeOffset? y) => x is null ? y : y is null ? x : x > y ? x : y;
+
+    // ---- The preview's plain JSON file (phase 4); learners' files are Learning.Core.Learners.LearnerFile ----------------
 
     private static readonly JsonSerializerOptions Json = new()
     {

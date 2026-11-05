@@ -18,6 +18,9 @@ public sealed class QuizView : UserControl
     /// <summary>Each quiz's answers and last result in this session, so leaving the tab or the item loses nothing.</summary>
     private static readonly Dictionary<string, (Dictionary<string, QuestionAnswer> Answers, QuizResult? Result)> Session = [];
 
+    /// <summary>Forgets every answer (Switch learner): the next learner starts with blank questions.</summary>
+    public static void ForgetAll() => Session.Clear();
+
     private readonly StackPanel _panel = new() { Margin = new Thickness(4, 8, 12, 16) };
     private readonly List<Entry> _questions = [];
     private Quiz? _quiz;

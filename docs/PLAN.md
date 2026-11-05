@@ -30,7 +30,7 @@ Their only link is the challenge runner (`Learning.Core.IChallengeRunner`). An a
 
 | Project | What it holds |
 |---|---|
-| `src/Learning.Core` | The shared learning engine: grading contract (built), content, mastery, learners, progress files, reports (to come) |
+| `src/Learning.Core` | The shared learning engine: grading contract, content, mastery, learners and progress files (built); reports (to come) |
 | `src/Learning.Shell` | The WPF program (exe `PLCPlus.exe`). Phase 0: the first-look window |
 | `src/Plc.Engine` | The neutral program model (JSON), the scan cycle on a simulated clock, forcing, faults, validation |
 | `src/Plc.Dialects.Iec` | Generic IEC 61131-3: TON/TOF/TP, CTU/CTD/CTUD, compare, math, MOVE, bit logic |
@@ -65,6 +65,7 @@ Projects still to come, from spec 11: `Plc.Editors`, `Reports.Pdf`, `Tools.Conte
 | D18 | **Lab PCs are not reimaged, but learners must back up their files** | Ron, 2026-11-04 | The program asks for a backup and reminds them (plan 6.10) |
 | D19 | **The grant's outcomes are written as we go**; no research analytics; **only the learner's name is required** on a report (ID, course, e-mail optional) | Ron, 2026-11-04 | The grant asks for faculty training on PLCs and student educational resources, and does not require research on outcomes |
 | D21 | **An item's Example is a similar machine, not the exercise's own answer** | Ron, 2026-11-04 | Ron: *"the examples will be similar, but not the same."* Plan 9.7 |
+| D22 | **How the learners' files work** (phase 6): one key per learner, made at random and kept wrapped twice (PIN, recovery code); every copy of a learner's file shares it, so copies merge, a backup opens with the PIN it was made with, and two sessions saving one file merge instead of overwriting. My program and the questions' answers are per learner. Removing a learner sends the file to the Recycle Bin. The settings (folder, lock time) are for the whole computer, in `%ProgramData%\PLCPlus\settings.json` | Claude, 2026-11-05, from spec 8 and D4, D13, D18 | Built in `Learning.Core.Learners` (subject-neutral). Five wrong PINs, then 30 s doubling to 30 min (the spec says only "a wait that grows"). For Ron to change if the instructors want otherwise |
 | D20 | **Modules → items, each item with Learn, Example, Exercise and Reference tabs**, in the family's tree-and-tabs window; the items of a module build on each other, and each module shows the learner's status | Ron, 2026-11-04 | Ron: *"The overall interface will be similar to the Statistle/BMPFast and other interfaces and divided into modules."* Two levels, not the spec's three; all 12 modules in the tree; the machines become exercises (D7's Assess is the Exercise tab plus the module check) |
 
 ## How the engine works (built 2026-11-04)

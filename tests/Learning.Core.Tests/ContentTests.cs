@@ -273,7 +273,8 @@ public class ProgressTests
             var back = LearningProgress.Load(path);
             Assert.Equal(ItemState.Complete, back.StateOf(p.FindItem("plc.m5.seal-in")!));
             Assert.Single(back.Attempts);
-            Assert.Single(back.Events);
+            Assert.Single(back.Events, e => e.Kind == LearningProgress.OpenedEarly);
+            Assert.Contains(back.Events, e => e.Kind == EventKinds.Completed);
 
             File.WriteAllText(path, "{ not json");
             Assert.Empty(LearningProgress.Load(path, out var problem).Items); // a damaged file starts afresh…

@@ -51,6 +51,19 @@ public static class Win {
         }, IntPtr.Zero);
         title = bestTitle; return best;
     }
+
+    /// A visible top-level window of the process whose title starts with the text (a dialog).
+    public static IntPtr ByTitle(uint pid, string start) {
+        IntPtr found = IntPtr.Zero;
+        EnumWindows((h, l) => {
+            uint p; GetWindowThreadProcessId(h, out p);
+            if (p != pid || !IsWindowVisible(h)) return true;
+            var sb = new StringBuilder(500); GetWindowText(h, sb, 500);
+            if (sb.ToString().StartsWith(start)) { found = h; return false; }
+            return true;
+        }, IntPtr.Zero);
+        return found;
+    }
 }
 "@
 
@@ -144,6 +157,14 @@ foreach ($step in $Steps) {
         while ($el -and -not ($el.GetSupportedPatterns() -contains [System.Windows.Automation.ScrollPattern]::Pattern)) { $el = $walker.GetParent($el) }
         if ($el) { $el.GetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern).SetScrollPercent(-1, [double]$pct); Write-Output "scrolled to $pct %" }
         else { Write-Output "NOT FOUND scroll '$name'" }
+    } elseif ($kind -eq 'window') {
+        # window:Title switches the steps and the picture to the process's window whose title starts with Title (a dialog).
+        Start-Sleep -Milliseconds 500
+        $d = [Win]::ByTitle([uint]$proc.Id, $rest)
+        if ($d -eq [IntPtr]::Zero) { Write-Output "NOT FOUND window '$rest'"; continue }
+        $h = $d; $title = $rest
+        $root = [System.Windows.Automation.AutomationElement]::FromHandle($h)
+        Write-Output "window '$rest'"
     } elseif ($kind -eq 'press') {
         $el = Find-Named $rest
         if ($el) { $el.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke(); Write-Output "pressed '$rest'" }

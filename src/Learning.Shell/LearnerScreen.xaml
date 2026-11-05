@@ -1,0 +1,100 @@
+<UserControl x:Class="Learning.Shell.LearnerScreen"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource PageBrush}" Foreground="{DynamicResource InkBrush}">
+    <!-- The start screen (plan 6.1): every learner on this computer; choose your name, type your PIN, press Open. -->
+    <DockPanel>
+        <Border DockPanel.Dock="Right" Width="320" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}"
+                BorderThickness="1,0,0,0" Padding="18,18">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
+                <StackPanel>
+                    <TextBlock Text="This screen: who is learning?" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
+                    <TextBlock Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}"
+                               Text="Each learner's progress is kept in a file of their own, locked with their PIN. Choose your name, type your PIN and press Open. New here? Press New learner." />
+                    <TextBlock Text="Your PIN" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Style="{StaticResource Lead}"
+                               Text="4 to 6 digits that you chose. After 5 wrong tries PLC+ makes you wait a little before the next, and the wait grows. Forgot it? Choose your name and press Forgot my PIN: your recovery code sets a new one." />
+                    <TextBlock Text="Back up your progress" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Style="{StaticResource Lead}"
+                               Text="Lab computers can be changed or replaced, so keep a copy of your file on a USB drive or in a cloud folder (Learner ▸ Back up my progress, once you are in). The list shows when each learner last did. On another computer, Add learner from file brings your progress in; if you are already there, the two copies are combined and nothing is lost." />
+                    <TextBlock Text="What the PIN protects" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Style="{StaticResource Lead}"
+                               Text="The PIN stops classmates opening each other's progress on a shared computer. It is a short number, so it is a lock for the classroom, not a safe: someone with a copy of your file and time to spare could get in. Keep your backups somewhere only you use." />
+                    <TextBlock Text="Leaving" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Style="{StaticResource Lead}"
+                               Text="Learner ▸ Switch learner, or closing PLC+, saves your work and locks your file. PLC+ also locks itself after a while without use (15 minutes unless Settings says otherwise)." />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
+            <StackPanel MaxWidth="760" Margin="40,28,40,24" HorizontalAlignment="Left">
+                <TextBlock Text="PLC+" FontSize="30" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                <TextBlock Text="Who is learning?" Style="{StaticResource SectionTitle}" AutomationProperties.HeadingLevel="Level1" />
+
+                <!-- Shown when PLC+ locked itself, or after Switch learner. -->
+                <Border x:Name="LockedBanner" Visibility="Collapsed" Background="#EEF3F8" BorderBrush="#9DB4CC" BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="0,6,0,10">
+                    <TextBlock x:Name="LockedText" TextWrapping="Wrap" Foreground="#1B2430" AutomationProperties.LiveSetting="Polite" />
+                </Border>
+
+                <TextBlock x:Name="LeadText" Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}"
+                           Text="Choose your name, type your PIN and press Open." />
+
+                <TextBlock x:Name="EmptyText" Visibility="Collapsed" Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}" Margin="0,8,0,12"
+                           Text="No learners on this computer yet. Press New learner to start. If you have a progress file from another computer or a backup, press Add learner from file." />
+
+                <ListBox x:Name="LearnersList" MinHeight="60" MaxHeight="360" Margin="0,4,0,10" HorizontalContentAlignment="Stretch"
+                         AutomationProperties.Name="Learners on this computer" SelectionChanged="LearnersList_SelectionChanged"
+                         MouseDoubleClick="LearnersList_MouseDoubleClick" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="4,5" AutomationProperties.Name="{Binding Spoken}">
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" />
+                                <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" />
+                                <TextBlock Text="{Binding Backup}" TextWrapping="Wrap" Foreground="{Binding BackupBrush}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="AutomationProperties.Name" Value="{Binding Spoken}" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+
+                <StackPanel x:Name="PinRow" Orientation="Horizontal" Margin="0,0,0,4">
+                    <Label x:Name="PinLabel" Content="_PIN:" Target="{Binding ElementName=PinBox}" Padding="0,0,8,0" VerticalAlignment="Center" FontWeight="SemiBold" />
+                    <PasswordBox x:Name="PinBox" Width="140" MaxLength="6" Padding="4,3" VerticalAlignment="Center"
+                                 AutomationProperties.Name="PIN" ToolTip="The 4 to 6 digit PIN for the learner chosen above. Press Enter or Open."
+                                 PasswordChanged="PinBox_PasswordChanged" />
+                    <Button x:Name="OpenButton" Content="_Open" IsDefault="True" Margin="8,0,0,0" Click="Open_Click"
+                            ToolTip="Opens the chosen learner's progress with the PIN you typed" />
+                </StackPanel>
+                <TextBlock x:Name="MessageText" TextWrapping="Wrap" Margin="0,4,0,10" Foreground="#A41E1E" Visibility="Collapsed"
+                           AutomationProperties.LiveSetting="Polite" />
+
+                <WrapPanel Margin="0,10,0,0">
+                    <Button Content="_New learner…" Click="New_Click" Margin="0,0,8,8"
+                            ToolTip="Start your own progress file: your name, an optional student ID, and a PIN" />
+                    <Button Content="_Add learner from file…" Click="Import_Click" Margin="0,0,8,8"
+                            ToolTip="Bring in a progress file from another computer or a backup. If that learner is already here, the two copies are combined and nothing is lost" />
+                    <Button x:Name="ForgotButton" Content="_Forgot my PIN…" Click="Forgot_Click" Margin="0,0,8,8"
+                            ToolTip="Set a new PIN for the learner chosen above, with the recovery code you were given when you started" />
+                    <Button x:Name="RemoveButton" Content="_Remove from this computer…" Click="Remove_Click" Margin="0,0,8,8"
+                            ToolTip="Takes the chosen learner off this computer (needs their PIN; offers a backup first). The file goes to the Recycle Bin" />
+                </WrapPanel>
+
+                <Separator Margin="0,14,0,10" />
+                <TextBlock x:Name="FolderText" TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" Margin="0,0,0,8" />
+                <WrapPanel>
+                    <Button Content="Open the learners' _folder" Click="OpenFolder_Click" Margin="0,0,8,8"
+                            ToolTip="Opens the folder in File Explorer. An instructor can remove the file of a student who has left (the file name is in Remove's tooltip), with PLC+ closed" />
+                    <Button Content="_Settings…" Click="Settings_Click" Margin="0,0,8,8"
+                            ToolTip="Where learners' files are kept, and when PLC+ locks itself. For everyone on this computer" />
+                    <Button Content="A_bout PLC+…" Click="About_Click" Margin="0,0,8,8" ToolTip="Who made PLC+, its version, and where to find more" />
+                    <Button Content="E_xit" Click="Exit_Click" Margin="0,0,8,8" ToolTip="Closes PLC+" />
+                </WrapPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

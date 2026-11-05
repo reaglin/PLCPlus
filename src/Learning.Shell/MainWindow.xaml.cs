@@ -10,7 +10,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Learning.Core;
 using Learning.Core.Content;
+using Learning.Core.Learners;
 using Learning.Core.Progress;
+using System.Windows.Automation;
+using System.Windows.Threading;
 
 namespace Learning.Shell;
 
@@ -25,17 +28,23 @@ public partial class MainWindow : Window
     public static readonly RoutedUICommand ShowTab = new("Show tab", nameof(ShowTab), typeof(MainWindow));
     public static readonly RoutedUICommand NextItem = new("Next item", nameof(NextItem), typeof(MainWindow));
     public static readonly RoutedUICommand PreviousItem = new("Previous item", nameof(PreviousItem), typeof(MainWindow));
-
-    // PLCPLUS_PROGRESS points a test run at a file of its own, so it does not change the tester's progress.
-    private static readonly string DefaultProgressFile = Environment.GetEnvironmentVariable("PLCPLUS_PROGRESS") is { Length: > 0 } test ? test : Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PLCPlus", "progress", "preview.json");
-
-    /// <summary>Where progress is saved: the usual file, or a separate one if the usual file could not be read (so it is never overwritten).</summary>
-    private readonly string _progressFile = DefaultProgressFile;
+    public static readonly RoutedUICommand SwitchLearner = new("Switch learner", nameof(SwitchLearner), typeof(MainWindow));
 
     private readonly ContentPackage _package = null!;
     private readonly PlcContent _plc = null!;
-    private readonly LearningProgress _progress = new();
+
+    /// <summary>The learner signed in (plan 6.1): their unlocked progress file. Null while the start screen shows.</summary>
+    private LearnerFile? _session;
+    /// <summary>Who was signed in before a lock, so the same learner carries on where they were.</summary>
+    private string? _lockedProfileId;
+    private DateTimeOffset _signedInAt;
+    private DateTime _lastInput = DateTime.Now;
+    private readonly HashSet<string> _openedThisSession = new(StringComparer.OrdinalIgnoreCase);
+    private readonly DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(20) };
+    private static readonly LearningProgress NoOne = new();
+
+    /// <summary>The signed-in learner's progress (nobody's while the start screen shows).</summary>
+    private LearningProgress _progress => _session?.Data.Progress ?? NoOne;
     private readonly ObservableCollection<PathNode> _roots = [];
     private readonly List<LearningItem> _order = [];
     private LearningItem? _item;
@@ -64,18 +73,31 @@ public partial class MainWindow : Window
             return;
         }
 
-        string? progressProblem = null;
-        try
+        // My program on the Exercise tab is kept in the learner's own file, not in a folder classmates share.
+        foreach (var ws in new[] { ExampleWorkspace, ExerciseWorkspace })
         {
-            _progress = LearningProgress.Load(DefaultProgressFile, out progressProblem);
+            ws.LoadWork = key => _session?.Data.Work.TryGetValue(key, out var w) == true ? w.Content : null;
+            ws.SaveWork = (key, json) =>
+            {
+                if (_session is null) return;
+                _session.Data.Work[key] = new SavedWork { Content = json, Saved = DateTimeOffset.Now };
+                SaveProgress();
+            };
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        SignInScreen.SignedIn += SignIn;
+        SignInScreen.Done += text => Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, () => SetStatus(text));
+        // Auto-lock (plan 6.4): any key or mouse use counts as activity.
+        InputManager.Current.PreProcessInput += (_, e) => { if (e.StagingItem.Input is KeyboardEventArgs or MouseButtonEventArgs or MouseWheelEventArgs) _lastInput = DateTime.Now; };
+        PreviewMouseMove += (_, _) => _lastInput = DateTime.Now;
+        _idleTimer.Tick += (_, _) =>
         {
-            // Leave the file alone: this session's progress goes to a file of its own.
-            _progressFile = Path.ChangeExtension(DefaultProgressFile, ".after-error.json");
-            progressProblem = $"PLC+ could not read your progress ({ex.Message}). It may be open in another copy of PLC+. " +
-                              $"Your progress file is left as it is; this session's progress is kept in {_progressFile}. Close other copies of PLC+ and start it again to carry on with your own.";
-        }
+            // Not while a dialog is open (a save window, a question): it may be using the learner's file.
+            if (System.Windows.Interop.ComponentDispatcher.IsThreadModal) return;
+            if (_session is not null && DateTime.Now - _lastInput > TimeSpan.FromMinutes(Math.Max(1, SignInScreen.Settings.LockMinutes)))
+                Lock($"PLC+ locked itself after {SignInScreen.Settings.LockMinutes} minutes without use, and saved your work. " +
+                     $"{_session.Data.Profile.DisplayName}: type your PIN to carry on where you were. Someone else? Choose your own name.");
+        };
+        _idleTimer.Start();
 
         foreach (var view in new[] { LearnView, ReferenceView, ModuleView, ExerciseNone })
             view.WidgetFactory = w => LessonWidgets.Create(_plc, w);
@@ -92,27 +114,175 @@ public partial class MainWindow : Window
         BuildTree();
         PathTree.ItemsSource = _roots;
 
-        Loaded += (_, _) =>
-        {
-            if (progressProblem is not null)
-                MessageBox.Show(this, progressProblem, "PLC+ — your progress", MessageBoxButton.OK, MessageBoxImage.Warning);
+        Loaded += (_, _) => SignInScreen.Show();
+    }
 
-            var next = _progress.Continue(_package);
-            if (next is not null && _progress.Items.Count > 0)
+    // ---- Learners (plan 6.1–6.10) ---------------------------------------------------------------------
+
+    /// <summary>A learner's file is open: show their progress, where they left off.</summary>
+    private void SignIn(LearnerFile file)
+    {
+        var same = _lockedProfileId == file.Header.ProfileId;
+        _session = file;
+        _lockedProfileId = null;
+        _signedInAt = DateTimeOffset.Now;
+        _lastInput = DateTime.Now;
+        file.Data.UsedContent(_package.Id, _package.Version, _signedInAt);
+        file.Data.Progress.Log(EventKinds.SignedIn, file.Header.ProfileId, $"Signed in on {Environment.MachineName}.", _signedInAt);
+        SaveProgress();
+        Title = $"PLC+ (preview) — {file.Data.Profile.DisplayName}";
+        SignInScreen.Visibility = Visibility.Collapsed;
+        AppContent.Visibility = Visibility.Visible;
+        ShowLearner();
+        if (same && (_item is not null || _module is not null))
+        {
+            // Back after a lock: everything is as it was.
+            RefreshTree();
+            SetStatus($"Welcome back, {file.Data.Profile.DisplayName}. Everything is as you left it.");
+            return;
+        }
+        // Someone new: nothing of the last learner's work may show.
+        QuizView.ForgetAll();
+        _openedThisSession.Clear();
+        _item = null;
+        _module = null;
+        foreach (var r in _roots) { r.IsSelected = false; r.IsExpanded = false; foreach (var c in r.Children) c.IsSelected = false; }
+        RefreshTree();
+        Welcome();
+    }
+
+    /// <summary>Saves, forgets the key, and shows the start screen: Switch learner, the idle lock, and closing.</summary>
+    private void Lock(string banner, bool switching = false)
+    {
+        if (_session is not { } file) return;
+        ExerciseWorkspace.CommitPendingEdit();
+        QuizPanel.Remember();
+        var now = DateTimeOffset.Now;
+        var minutes = (int)Math.Round((now - _signedInAt).TotalMinutes);
+        file.Data.Progress.Log(switching ? EventKinds.SignedOut : EventKinds.Locked, file.Header.ProfileId,
+            $"{(switching ? "Signed out" : "Locked after no use")} after {minutes} minute{(minutes == 1 ? "" : "s")}.", now);
+        SaveProgress();
+        _lockedProfileId = switching ? null : file.Header.ProfileId;
+        // After Switch learner nobody is chosen, so the next student cannot type their PIN against the last one's name.
+        var id = switching ? null : file.Header.ProfileId;
+        file.Dispose();
+        _session = null;
+        Title = "PLC+ (preview)";
+        AppContent.Visibility = Visibility.Hidden;
+        SignInScreen.Show(banner, id);
+    }
+
+    /// <summary>The learner's name and backup state, top right (plan 6.10).</summary>
+    private void ShowLearner()
+    {
+        if (_session is not { } s) return;
+        LearnerText.Text = s.Data.Profile.DisplayName;
+        AutomationProperties.SetName(LearnerText, "Signed in as " + s.Data.Profile.DisplayName);
+        var (text, tip) = s.Data.LastBackup is null
+            ? (s.Data.NeedsBackup ? "⚠ Not backed up: Back up…" : "Back up…", "You have not backed up your progress yet. Saves a copy on a USB drive or in a cloud folder.")
+            : s.Data.NeedsBackup
+                ? ("⚠ Backup out of date: Back up…", $"Last backed up {Words.When(s.Data.LastBackup.Value)}, and you have done more since. Saves a new copy.")
+                : ($"✓ Backed up {Words.When(s.Data.LastBackup.Value)}", "Your backup has everything so far. Press to save another copy.");
+        BackupButton.Content = text;
+        BackupButton.ToolTip = tip;
+        AutomationProperties.SetName(BackupButton, text.TrimStart('⚠', '✓', ' '));
+    }
+
+    private void Backup_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session is null) return;
+        ExerciseWorkspace.CommitPendingEdit();
+        SaveProgress();
+        var where = Backups.Run(this, _session, out var combined);
+        _backupMade = where is not null;
+        if (_backupMade) SetStatus($"Backed up: a copy of your progress is now at {where}. {combined}{(combined is null ? "" : " ")}On another computer, Add learner from file brings it in.");
+        else if (_session is not null) SetStatus("No backup was made.");
+        if (combined is not null) RefreshTree();
+        ShowLearner();
+    }
+
+    /// <summary>
+    /// Asks for a backup when there is work since the last one (plan 6.10, Ron: backups are required): when the learner
+    /// leaves, and at a submission point (a module check complete). True to carry on; false if they cancelled leaving.
+    /// </summary>
+    private bool OfferBackup(string when, bool leaving)
+    {
+        if (_session is not { Data.NeedsBackup: true } s) return true;
+        var last = s.Data.LastBackup is { } b ? $"Your last backup was {Words.When(b)}, and you have done more since." : "You have not backed up your progress yet.";
+        var text = $"{last} A backup is a copy of your progress file on a USB drive or in a cloud folder (OneDrive, Google Drive …). " +
+                   "If this computer's copy is lost, Add learner from file brings you back to where you were.";
+        if (!leaving)
+        {
+            if (ChoiceWindow.Ask(this, "PLC+ — Back up your progress", $"{when}: back up your progress?", text,
+                    "Back up now…", "Choose where to save a copy of your progress file.", "Not now", "Carries on; the backup button (top right) is there when you want it."))
+                Backup_Click(this, new RoutedEventArgs());
+            return true;
+        }
+        var choice = ChoiceWindow.Choose(this, "PLC+ — Back up your progress", $"{when}: back up your progress first?", text,
+            "Back up now…", "Choose where to save a copy, then carry on leaving.", "Not now", "Leaves without a backup; your work is saved on this computer.");
+        if (choice is null) return false;
+        if (choice == true)
+        {
+            Backup_Click(this, new RoutedEventArgs());
+            if (!_backupMade)
             {
-                Select(next); // a returning learner goes straight back to work
-                // After the item has opened (it sets its own status line first).
-                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
-                    () => SetStatus($"Welcome back. Here is where you left off: {next}. {LearnFooterText.Text}"));
-                return;
+                SetStatus("No backup was made, so PLC+ is still open. Back up (top right), or leave again and choose Not now.");
+                return false;
             }
-            var start = _roots.FirstOrDefault(r => r.Module == next?.Module) ?? _roots[0];
-            start.IsExpanded = true;
-            start.IsSelected = true;
-            SetStatus(next is null
-                ? "Every item in the path is complete."
-                : $"Welcome to PLC+. In this preview, modules 3 and 5 are written; the others are outlines. Start here with module {next.Module.Number}: press the button under its title, or choose any module on the left.");
-        };
+        }
+        return true;
+    }
+
+    private bool _backupMade;
+
+    private void SwitchLearner_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session is null || !OfferBackup("Before you go", leaving: true)) return;
+        Lock($"{_session.Data.Profile.DisplayName}'s progress is saved and locked. Next learner: choose your name in the list (not in the list? press New learner).", switching: true);
+    }
+
+    private void SignedIn_CanExecute(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _session is not null;
+
+    private void ChangePin_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session is not { } s) return;
+        var w = new NewPinWindow(this, recovering: false, s.Data.Profile.DisplayName, (now, pin) =>
+        {
+            if (!s.IsOpen) return "PLC+ locked your progress while this was open. Close this, sign in again, and change the PIN then.";
+            if (!s.IsPin(now)) return "That is not the PIN you use now. Type the PIN you opened PLC+ with today.";
+            try
+            {
+                s.ChangePin(pin, DateTimeOffset.Now);
+                return null;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                return "PLC+ could not save the new PIN: " + ex.Message;
+            }
+        });
+        if (w.ShowDialog() == true)
+            SetStatus("Your PIN is changed: use the new one from now on. Backups made before now still open with the old PIN.");
+    }
+
+    /// <summary>Where a learner starts after signing in: where they left off, or the first module.</summary>
+    private void Welcome()
+    {
+        var name = _session?.Data.Profile.DisplayName ?? "";
+        var next = _progress.Continue(_package);
+        if (next is not null && _progress.Items.Count > 0)
+        {
+            Select(next); // a returning learner goes straight back to work
+            // After the item has opened (it sets its own status line first).
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
+                () => SetStatus($"Welcome back, {name}. Here is where you left off: {next}. {LearnFooterText.Text}"));
+            return;
+        }
+        var start = _roots.FirstOrDefault(r => r.Module == next?.Module) ?? _roots[0];
+        start.IsExpanded = true;
+        start.IsSelected = true;
+        SetStatus(next is null
+            ? "Every item in the path is complete."
+            : $"Welcome to PLC+, {name}. In this preview, modules 3 and 5 are written; the others are outlines. Start here with module {next.Module.Number}: press the button under its title, or choose any module on the left.");
     }
 
     // ---- The tree -------------------------------------------------------------------------------------
@@ -323,6 +493,7 @@ public partial class MainWindow : Window
         ItemPage.Visibility = Visibility.Visible;
 
         _progress.Opened(_package, item, DateTimeOffset.Now);
+        if (_session is not null && _openedThisSession.Add(item.Id)) _progress.Log(EventKinds.Opened, item.Id, $"Opened {item}.", DateTimeOffset.Now);
         SaveProgress();
 
         ItemModuleText.Text = $"Module {item.Module.Number} · {item.Module.Title}";
@@ -521,6 +692,10 @@ public partial class MainWindow : Window
             (p.State == ModuleState.Complete ? $" That completes module {module.Number}." : $" Module {module.Number}: {p.Complete} of {p.Total} complete.") +
             (next is null ? " Every item in the path is complete." : $" Next: {next}{(next == NextInOrder(_item) ? " (Next ▸, top right)" : " (Go ▸ Continue where I left off)")}.") +
             (_item.Exercise is not null ? " To keep your program or hand it in: File ▸ Save My program as…" : ""));
+        // A module check complete is a submission point: the time to make sure there is a backup (plan 6.10).
+        var check = module.Items.FirstOrDefault(i => i.Kind == ItemKind.Assess);
+        if (check is not null && _progress.StateOf(check) == ItemState.Complete && (_item == check || check.Covers.Contains(_item.Id, StringComparer.OrdinalIgnoreCase)))
+            Dispatcher.BeginInvoke(DispatcherPriority.Background, () => OfferBackup($"Module {module.Number} is complete", leaving: false));
     }
 
     private LearningItem? NextInOrder(LearningItem item)
@@ -531,14 +706,16 @@ public partial class MainWindow : Window
 
     private void SaveProgress()
     {
+        if (_session is null) return;
         try
         {
-            _progress.Save(_progressFile);
+            _session.Save(DateTimeOffset.Now);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            SetStatus("Your progress could not be saved on this computer: " + ex.Message);
+            SetStatus("Your progress could not be saved on this computer: " + ex.Message + " Keep PLC+ open and try Learner ▸ Back up my progress, so your work is not lost.");
         }
+        ShowLearner();
     }
 
     private void ItemTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -670,6 +847,15 @@ public partial class MainWindow : Window
     protected override void OnClosing(CancelEventArgs e)
     {
         ExerciseWorkspace.CommitPendingEdit();
+        if (_session is not null)
+        {
+            if (!OfferBackup("Before you close PLC+", leaving: true))
+            {
+                e.Cancel = true;
+                return;
+            }
+            Lock("", switching: true);
+        }
         base.OnClosing(e);
     }
 }

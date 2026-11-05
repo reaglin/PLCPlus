@@ -13,6 +13,35 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 6 — learners and progress files (plan 6.1–6.10), 2026-11-05
+
+PLC+ now opens on **Who is learning?** Each learner has a progress file in `C:\ProgramData\PLCPlus\Learners`, locked with
+their PIN. The preview's progress (from hand-tests 4 and 5) is offered to the first learner you make. Have a USB stick or
+your OneDrive folder ready for the backup steps.
+
+| # | Do this | You should see |
+|---|---|---|
+| 6.1 | Open `manual-test\PLCPlus.exe` | **Who is learning?**, no learners yet, **New learner…** and **Add learner from file…**; at the bottom, where the files are kept (`C:\ProgramData\PLCPlus\Learners`, shared by everyone on this computer). The help on the right explains the PIN, backups and what the PIN protects |
+| 6.2 | **New learner…**: your name, two different PINs, **Create** | "The two PINs are not the same …" in red. Type the same 4–6 digits twice. A box **Start with the progress from the PLC+ preview** says how many items; it is not ticked, so tick it (it is yours) |
+| 6.3 | **Create** | **Your recovery code**: five groups of four. **Start learning** is greyed until you tick "I have written down or printed …". Try **Print…** and **Copy**. Close the window with ✕ before ticking: it asks whether you have kept the code |
+| 6.4 | **Start learning** | The path with your preview progress (ticks as before; My program on 5.2 as you left it). Your name at the top right, with **⚠ Not backed up: Back up…**; the window title has your name |
+| 6.5 | **Learner ▸ Switch learner** | "Before you go: back up your progress first?" Press **Not now**: the start screen, with "… saved and locked. Next learner: choose your name …", **nobody chosen** in the list, and your row saying "⚠ Not backed up yet" |
+| 6.6 | **New learner…** "Test Student", PIN 1111 | No preview box this time. An empty path: nothing ticked, the module checks' questions blank, My program on 5.2 a fresh start (none of your work shows) |
+| 6.7 | Switch learner; choose yourself; type a wrong PIN five times | "That PIN is not right. Try again (4 tries before a wait) …", then a wait of 30 seconds counting down, with **Open** greyed. After it, your right PIN opens your path |
+| 6.8 | **Learner ▸ Back up my progress…** and save into `C:\ProgramData\PLCPlus\Learners` | Refused: "That is the folder PLC+ keeps everyone's progress in, so it is not a backup". Save to the USB stick or OneDrive instead: the top right says **✓ Backed up today at …** |
+| 6.9 | Mark a reading read, then **Learner ▸ Switch learner** | The backup question again (there is work since); the row says "⚠ Backup out of date …" if you choose **Not now** |
+| 6.10 | Choose **Test Student**, **Forgot my PIN…**: a wrong code, then the code from 6.6 (any case, with or without dashes) and a new PIN | The wrong code is refused with what to check; the right one opens Test Student's path. The new PIN works next time; 1111 does not |
+| 6.11 | Signed in as yourself, **Learner ▸ Change my PIN…** | Needs the PIN you use now; the new one works from then on |
+| 6.12 | Start screen: **Add learner from file…** and choose your backup from 6.8 | "Combine your two copies?" with when each was saved; your PIN; your path opens with everything from both copies (nothing doubled), and the status line says they were combined. Then **Back up** onto that same file: the status says the copy already there was combined in first |
+| 6.13 | If you can: another computer, or a second Windows account on this one. **Add learner from file…** with your backup | "Add {you}?", saying which computer saved it and when; your PIN opens it there. (A second Windows account shares the same learners' folder, so you may find yourself listed already) |
+| 6.14 | **Settings…** on the start screen: lock after **5 minutes**. Sign in, open an item, and leave PLC+ alone for 5 minutes | The start screen: "PLC+ locked itself after 5 minutes without use …", you chosen. Your PIN brings you back to the same item and tab |
+| 6.15 | Finish a module check (3.5 or 5.6) | After "That completes module …", "Module N is complete: back up your progress?" |
+| 6.16 | Close PLC+ with work since your last backup; press **Cancel** | PLC+ stays open. Close again and press **Not now**: it closes |
+| 6.17 | Start screen: choose **Test Student**, **Remove from this computer…** | Needs Test Student's PIN; then "Back up … first?" with **Back up, then remove…**, **Remove without a backup** and **Cancel**. Remove: Test Student is gone from the list and the file is in the Recycle Bin |
+| 6.18 | **Open the learners' folder**; then **Settings…**, choose another folder, **Save** | File Explorer opens on the folder. Settings warns how many learners stay in the old folder; after saving, the empty list says where PLC+ is looking and how to go back (**Use the usual folder**) |
+
+---
+
 ## Hand-test 2 — the preview for review (plan 2.1–2.11), 2026-11-04
 
 This replaces hand-test 0: the one-machine window grew into the preview the instructors will review. It has six machines,
