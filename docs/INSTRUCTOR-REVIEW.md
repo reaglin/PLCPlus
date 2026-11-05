@@ -32,9 +32,12 @@ Those come next, and your notes decide their shape.
 
 ## Running it
 
-Unzip the folder you were sent and open **PLCPlus.exe**. Keep the `content` folder beside it. Windows may say it does not
-recognise the program, because this preview is not yet signed; choose **More info**, then **Run anyway**. PLC+ makes no
-internet connection.
+**You can review the modules without the program:** the review site (https://softwareplus.ai/plcplus/review/) shows every
+module, every item's lesson, the machines' programs and the Reference pages, with a comment box under each item.
+
+To try the program itself on Windows, download the preview from the review site (or use the zip you were sent), unzip it and
+open **PLCPlus.exe**. Keep the `content` folder beside it. Windows may say it does not recognise the program, because this
+preview is not yet signed; choose **More info**, then **Run anyway**. PLC+ makes no internet connection.
 
 Press **F1** at any time for help on the screen.
 
@@ -85,6 +88,9 @@ Right-click a contact or coil to force its tag on or off.
 
 ## Simplifications we know about
 
+- **Examples and exercises.** In this preview, an item's Example tab runs the answer to its own Exercise. In the finished
+  modules the example will be **a similar machine, not the same one** (Ron, 2026-11-04), so the learner sees the idea worked
+  out and then applies it.
 - **The garage door only stops** when something is in the doorway. A real opener must also reverse (UL 325); that is planned
   as a later challenge. Say if you would rather have it from the start.
 - **Analog signals** (levels, temperatures, a numeric display) are not wired to the PLC yet; they come with the analog unit.
@@ -109,13 +115,11 @@ Please answer whichever you can. Short notes are fine.
 9. **The editor.** Is it quick enough to build a rung? What do your students reach for that is missing?
 10. **The drafts.** Read the Learn pages of modules 3 and 5. Is the wording right for your students? Is anything wrong, or
     taught in a way you would not teach it?
-11. **Example and exercise.** In module 5 the Example tab runs the working program for the same task the learner then writes
-    on the Exercise tab: a worked example, then "now you do it". Is that right, or should the example be a similar machine, so
-    the exercise is not a copy?
 
 ## Sending your notes
 
-Send your notes to Ron Eaglin, in any form: an email, a marked-up copy of this page, or screenshots. If something went
+The easiest way is the comment box under each item on the review site. Or send your notes to Ron Eaglin
+(ron.eaglin@gmail.com) in any form: an email, a marked-up copy of this page, or screenshots. If something went
 wrong, say which challenge and program it was, and what you did just before.
 
 | Your name | Date | Challenge or screen | What you noticed or suggest |

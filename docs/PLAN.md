@@ -64,6 +64,7 @@ Projects still to come, from spec 11: `Plc.Editors`, `Reports.Pdf`, `Tools.Conte
 | D17 | **No AI in Phase 1.** It comes back as a question only if the instructors' review shows it is needed | Ron, 2026-11-04 | NFR-2: no learner data leaves the computer |
 | D18 | **Lab PCs are not reimaged, but learners must back up their files** | Ron, 2026-11-04 | The program asks for a backup and reminds them (plan 6.10) |
 | D19 | **The grant's outcomes are written as we go**; no research analytics; **only the learner's name is required** on a report (ID, course, e-mail optional) | Ron, 2026-11-04 | The grant asks for faculty training on PLCs and student educational resources, and does not require research on outcomes |
+| D21 | **An item's Example is a similar machine, not the exercise's own answer** | Ron, 2026-11-04 | Ron: *"the examples will be similar, but not the same."* Plan 9.7 |
 | D20 | **Modules → items, each item with Learn, Example, Exercise and Reference tabs**, in the family's tree-and-tabs window; the items of a module build on each other, and each module shows the learner's status | Ron, 2026-11-04 | Ron: *"The overall interface will be similar to the Statistle/BMPFast and other interfaces and divided into modules."* Two levels, not the spec's three; all 12 modules in the tree; the machines become exercises (D7's Assess is the Exercise tab plus the module check) |
 
 ## How the engine works (built 2026-11-04)

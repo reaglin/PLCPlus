@@ -90,6 +90,9 @@ tools/capture-window.ps1 photographs the window (PrintWindow) and presses button
 - **Modules → items** (Ron, 2026-11-04, D20): every item has the tabs Learn, Example, Exercise and Reference; a module's first
   page shows prerequisites (recommended, not enforced), outcomes, topics and items; its last item is the module check. PLC
   instructors will review the flow, so expect it to change. Run the content validator after editing content.
+- **The instructors' review site** (https://softwareplus.ai/plcplus/review/) is generated from this repo: after changing content or
+  `docs/INSTRUCTOR-REVIEW.md`, run `python tools/make-review-site.py`, then in `..\SoftwarePlus` `.\deploy.ps1 -Status` and
+  `.\deploy.ps1 -Only plcplus -Reason "PLC+: …"`.
 - `PLCPLUS_PROGRESS=<file>` points a run at its own progress file (for captures and tests), so it never changes a tester's.
 - Name: **PLC+** in front of a person (Ron, 2026-11-04); `PLCPlus` in code, folders and the exe.
 - **No AI in Phase 1** (Ron). The lab PLC is **Allen-Bradley**: the engine is compared against it, and Rockwell is the

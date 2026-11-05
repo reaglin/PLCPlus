@@ -1,7 +1,7 @@
 <Application x:Class="Learning.Shell.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="MainWindow.xaml">
+             >
     <Application.Resources>
         <!-- Colours as resources, so a high-contrast theme can replace them later (checklist). -->
         <SolidColorBrush x:Key="PageBrush" Color="#F7F8FA" />
