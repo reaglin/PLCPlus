@@ -1,0 +1,95 @@
+{
+  "id": "plc.m3.check.quiz",
+  "title": "Module 3 check: relay control",
+  "passThreshold": 0.8,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "choice",
+      "objective": "plc.m3.o1",
+      "prompt": "A relay's coil is energized. What does a **normally closed** contact of that relay do?",
+      "options": [
+        "It closes",
+        "It opens",
+        "Nothing: only normally open contacts change",
+        "It closes for one scan, then opens"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "\"Normally\" means with the coil off. Energize the coil and every contact changes over: a normally closed contact opens."
+    },
+    {
+      "id": "q2",
+      "kind": "match",
+      "objective": "plc.m3.o2",
+      "prompt": "Match each ladder symbol to what it is.",
+      "pairs": [
+        {
+          "left": "-| |-",
+          "right": "Normally open contact"
+        },
+        {
+          "left": "-|/|-",
+          "right": "Normally closed contact"
+        },
+        {
+          "left": "-( )-",
+          "right": "Coil"
+        }
+      ],
+      "explanation": "Contacts read a tag (or a relay's state); the coil at the right-hand end of the rung sets one."
+    },
+    {
+      "id": "q3",
+      "kind": "truthTable",
+      "objective": "plc.m3.o3",
+      "prompt": "Fill in the seal-in rung's result. Remember that Stop is TRUE while nobody presses it.",
+      "expression": "(Start OR Motor) AND Stop",
+      "explanation": "The motor runs when Start is pressed or it is already running (the seal-in), and Stop is not pressed (TRUE)."
+    },
+    {
+      "id": "q4",
+      "kind": "choice",
+      "objective": "plc.m3.o3",
+      "prompt": "Why is a Stop button wired **normally closed**?",
+      "options": [
+        "So a broken wire stops the machine, as if Stop were pressed",
+        "So it uses less power",
+        "Because a PLC can only read closed contacts",
+        "So the program can check it with a normally closed contact"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A broken wire makes the input FALSE, the same as pressing Stop: the machine fails safe."
+    },
+    {
+      "id": "q5",
+      "kind": "multiple",
+      "objective": "plc.m3.o4",
+      "prompt": "A door motor has an Up contactor and a Down contactor. Which of these are **interlocks**? Choose every one that is.",
+      "options": [
+        "A normally closed contact of Down in the Up rung",
+        "A normally closed contact of Up in the Down rung",
+        "Up's own contact in parallel with the Open button",
+        "A limit switch at the top of the travel"
+      ],
+      "correct": [
+        0,
+        1
+      ],
+      "explanation": "An interlock locks one output out while the other is on. Up's own contact is the seal-in, and the limit switch stops the travel."
+    },
+    {
+      "id": "q6",
+      "kind": "numeric",
+      "objective": "plc.m3.o1",
+      "prompt": "A contactor coil rated 24 V DC has a resistance of 240 Ω. How much current does it draw, in milliamps?",
+      "answer": 100,
+      "tolerance": 1,
+      "unit": "mA",
+      "explanation": "Ohm's law: I = V / R = 24 V / 240 Ω = 0.1 A, which is 100 mA."
+    }
+  ]
+}

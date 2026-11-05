@@ -162,6 +162,37 @@ def page(title, body):
 """
 
 
+KIND_WORDS = {'choice': 'Choose one', 'multiple': 'Choose every one that is right', 'numeric': 'A number', 'truthTable': 'Fill in a truth table',
+              'match': 'Match each one', 'fault': 'Find the fault: a machine with a faulty wire, running the working program'}
+
+
+def questions_html(quiz, challenges):
+    """The item's questions as the instructor sees them: each with its answer marked, and why."""
+    out = [f'<h3>The questions (on the Exercise tab)</h3><p>{len(quiz["questions"])} questions; the learner needs '
+           f'{round(quiz.get("passThreshold", 0.8) * 100)} % to pass and can try again. '
+           + ('Practice: a wrong answer shows the right one.' if quiz.get('practice') else
+              'A wrong answer says “not quite, look again”; the reason is shown once the answer is right.')
+           + ' <strong>The right answers are marked ✓ here only.</strong></p><ol>']
+    for q in quiz['questions']:
+        kind = q.get('kind', 'choice')
+        bits = [f'<li><p><em>{KIND_WORDS.get(kind, kind)}.</em> {md(q["prompt"])[3:-4]}</p>']
+        if kind == 'fault' and q.get('machine') in challenges:
+            bits.append(f'<p>Machine: {html.escape(challenges[q["machine"]][0]["title"])}; the fault: <code>{html.escape(q.get("fault", ""))}</code></p>')
+        if q.get('options'):
+            bits.append('<ul>' + ''.join(f'<li>{"✓ <strong>" if i in q.get("correct", []) else ""}{html.escape(o)}{"</strong>" if i in q.get("correct", []) else ""}</li>'
+                                         for i, o in enumerate(q['options'])) + '</ul>')
+        if kind == 'numeric':
+            bits.append(f'<p>✓ <strong>{q.get("answer")} {html.escape(q.get("unit") or "")}</strong> (within {q.get("tolerance", 0)})</p>')
+        if kind == 'truthTable':
+            bits.append(truth_table(q['expression']))
+        if kind == 'match':
+            bits.append('<ul>' + ''.join(f'<li><code>{html.escape(p["left"])}</code> → {html.escape(p["right"])}</li>' for p in q['pairs']) + '</ul>')
+        if q.get('explanation'):
+            bits.append(f'<p><small>Why: {html.escape(q["explanation"])}</small></p>')
+        out.append(''.join(bits) + '</li>')
+    return ''.join(out) + '</ol>'
+
+
 STATUS_WORDS = {'draft': 'First draft, for your review', 'outline': 'Outline: titles and outcomes only',
                 'coming-later': 'Coming later: outcomes and topics only', 'ready': 'Ready'}
 
@@ -231,7 +262,9 @@ def main():
             if im.get('kind') == 'assess':
                 tabs.append(('Module check', 'Complete when every item it covers is: '
                              + ', '.join(html.escape(by_id[c][0]) for c in im.get('covers', []) if c in by_id)
-                             + '. In a later version it has questions, and finishing it makes the progress report to hand in.'))
+                             + ('. Its questions, on the Exercise tab, are below; it is complete when those items are and the questions are passed.'
+                                if im.get('quiz') else '.')
+                             + ' In a later version, finishing it makes the progress report to hand in.'))
             else:
                 if ex in challenges:
                     ch, programs = challenges[ex]
@@ -268,6 +301,8 @@ def main():
                 name = os.path.splitext(os.path.basename(prog))[0]
                 b.append(f'<figure id="{html.escape(im["id"])}-pic"><img src="images/ladders/{name}.png" alt="The working program" loading="lazy">'
                          f'<figcaption>The Example\'s working program. (In the finished modules the example will be a similar machine, not the exercise\'s own answer.)</figcaption></figure>')
+            if im.get('quiz'):
+                b.append(questions_html(json.load(open(os.path.join(CONTENT, im['quiz']), encoding='utf-8')), challenges))
             b.append('<h3>Your comments on this item</h3>' + thread(f'/plcplus/review/module-{num:02d}.html?q={im["id"]}', f'PLC+ {n} {im["title"]}') + '</section>')
         b.append('<section class="item"><h2>Your comments on the module as a whole</h2>'
                  + thread(f'/plcplus/review/module-{num:02d}.html?q=module', f'PLC+ module {num}: {meta["title"]}') + '</section>')

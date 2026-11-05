@@ -35,6 +35,22 @@ instructors read.
 | 2.11a | Keyboard only: from the Challenge list, press Tab | The order is Program, the machine's Pause/Reset, the machine's buttons and switches, then the two lists under it, then Check this program; the help panel comes last |
 | 2.12 | Anything about the look, the words, the order of the challenges | Notes go back into the plan before the preview goes to the instructors |
 
+## Hand-test 5 — assessment (plan 5.2–5.6), 2026-11-04
+
+| # | Do this | You should see |
+|---|---|---|
+| 5.1 | **3.5 Module check**, tab **Exercise** | What it covers, then six questions: a choice, a match (a list beside each symbol), the seal-in truth table (TRUE/FALSE per row), a choice, a "choose every one", and a number in mA |
+| 5.2 | Press **Check my answers** with nothing answered | Every question "✗ Not answered yet." and "Not passed yet: 0 of 6 right". The tree shows 3.5 with "best 0 of 6" |
+| 5.3 | Answer all six, one of them wrong; check | The wrong one says "Not quite. Look again…" and does **not** give the answer; the right ones say why. Fix it and check: "Passed" |
+| 5.4 | Mark 3.1–3.4 read (if not yet) | When the four are read and the questions passed: module 3 ✓ in the tree, "That completes module 3" |
+| 5.5 | Open **module 3's first page** | "What you will be able to do": each outcome marked ✓ mastered (or ↺ review suggested, with the reason, if a question on it was answered wrong last time) |
+| 5.6 | **5.6 Module check**, Exercise; scroll to question 3 | A motor station with a fault. Press Start: nothing happens, and the Stop contact shows FALSE though nobody presses Stop. Choose "The wire to Stop is broken". Question 4: the garage door will not open |
+| 5.7 | **5.2**, Example, Program **A common mistake**, **Check this program**, then **Replay the failed test** | The clock line says "REPLAYING the test …"; the test presses Start itself; the motor runs only while Start is held; it stops at about 1.5 s and pauses, and the status line gives the reason. **Reset** goes back to working it yourself |
+| 5.8 | **6.1** (traffic light), Example, **Check this program** | 3 of 3. The first test now also checks yellow at 5 s and red at 7 s, each within 0.05 s, and yellow before red |
+| 5.9 | **2.3 AND, OR and NOT**, Exercise: get a row wrong and check | Practice questions show the right answer when yours is wrong |
+
+---
+
 ## Hand-test 4 — modules and items (plan 4.1–4.12), 2026-11-04
 
 The window has changed: the learning path is on the left, and the machines are now items in modules 5 and 6. Hand-tests 2 and 3

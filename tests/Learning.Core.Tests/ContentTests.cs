@@ -203,6 +203,8 @@ public class ProgressTests
         Assert.Equal(new ModuleProgress(ModuleState.InProgress, 3, 5), progress.Of(m3));
 
         progress.MarkRead(m3.Items[3], T0);
+        Assert.Equal(ItemState.InProgress, progress.StateOf(check)); // its own questions are still to pass
+        progress.Record(check, QuizGrader.Grade(check.Quiz!, QuizTests.AllRight(check.Quiz!)).ToOutcome(), T0);
         Assert.Equal(ItemState.Complete, progress.StateOf(check));
         Assert.Equal(new ModuleProgress(ModuleState.Complete, 5, 5), progress.Of(m3));
         Assert.Equal(ModuleState.ComingLater, progress.Of(p.FindModule("plc.m9")!).State);
@@ -238,7 +240,7 @@ public class ProgressTests
         var progress = new LearningProgress();
         Assert.Equal("3.1", progress.Next(p)!.Number); // modules 1 and 2 are outlines
         foreach (var item in p.FindModule("plc.m3")!.Items) progress.MarkRead(item, T0);
-        Assert.Equal("5.1", progress.Next(p)!.Number);
+        Assert.Equal("3.5", progress.Next(p)!.Number); // the module check's questions come next
     }
 
     [Fact]

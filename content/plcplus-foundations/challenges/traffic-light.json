@@ -77,7 +77,28 @@
           "says": "Green and yellow must never be on together."
         }
       ],
-      "hint": "Each light is on while its own timer is running and the next one has not finished. Yellow: a normally open contact of T1.Q and a normally closed contact of T2.Q."
+      "hint": "Each light is on while its own timer is running and the next one has not finished. Yellow: a normally open contact of T1.Q and a normally closed contact of T2.Q.",
+      "windows": [
+        {
+          "tag": "Yellow",
+          "from": 4.95,
+          "to": 5.05,
+          "says": "Yellow should come on 5 s after green, between 4.95 and 5.05 s."
+        },
+        {
+          "tag": "Red",
+          "from": 6.95,
+          "to": 7.05,
+          "says": "Red should come on 2 s after yellow, between 6.95 and 7.05 s."
+        }
+      ],
+      "order": [
+        {
+          "first": "Yellow",
+          "then": "Red",
+          "says": "Yellow should come on before red."
+        }
+      ]
     },
     {
       "name": "Off turns every light off",

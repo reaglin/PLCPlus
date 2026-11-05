@@ -33,6 +33,7 @@ public static class PackageChecks
         {
             ChallengeExists = challenges.ContainsKey,
             CheckWidget = w => CheckWidget(folder, w),
+            CheckFault = q => CheckFault(folder, q),
         };
         problems.AddRange(validator.Validate(package));
 
@@ -72,6 +73,28 @@ public static class PackageChecks
             default:
                 return $"PLC+ has no widget called {w.Name}. It has: {string.Join(", ", WidgetNames)}.";
         }
+    }
+
+    /// <summary>A "find the fault" question: its fault can be read, names an input of the machine, and its program exists.</summary>
+    public static string? CheckFault(string folder, Learning.Core.Content.Question q)
+    {
+        var fault = Plc.Scenes.WiringFault.Parse(q.Fault);
+        if (fault is null) return $"the fault \"{q.Fault}\" cannot be read. Write it as Tag:open, Tag:shorted or Tag:swapped:OtherTag.";
+        using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, "manifest.json")));
+        foreach (var c in doc.RootElement.GetProperty("challenges").EnumerateArray())
+        {
+            var challenge = PlcChallengeRunner.LoadChallenge(File.ReadAllText(Path.Combine(folder, c.GetProperty("file").GetString()!)));
+            if (!challenge.Id.Equals(q.Machine, StringComparison.OrdinalIgnoreCase)) continue;
+            var scene = Plc.Scenes.Scene.Load(File.ReadAllText(Path.Combine(folder, "scenes", challenge.Scene + ".json")));
+            var inputs = scene.IoList.Where(p => p.Kind == Plc.Scenes.IoKind.Input).Select(p => p.Tag).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var tag in new[] { fault.Tag, fault.Other }.OfType<string>())
+                if (!inputs.Contains(tag)) return $"the fault names {tag}, which is not an input of the {scene.Title} ({string.Join(", ", inputs)}).";
+            var titles = c.GetProperty("programs").EnumerateArray().Select(p => p.GetProperty("title").GetString()).ToList();
+            if (q.Program is { } program && !titles.Contains(program, StringComparer.OrdinalIgnoreCase))
+                return $"the program \"{program}\" is not one of {challenge.Id}'s ({string.Join(", ", titles)}).";
+            return null;
+        }
+        return $"the machine {q.Machine} is not in the manifest's challenges.";
     }
 
     /// <summary>The manifest's challenges: ID → the titles of its programs.</summary>

@@ -71,13 +71,16 @@ public sealed class LearningItem
     /// <summary>For the module check: the items it covers. It is complete when they all are.</summary>
     public IReadOnlyList<string> Covers { get; init; } = [];
     public IReadOnlyList<string> References { get; init; } = [];
+    /// <summary>The item's questions (a module check's Assess, or a reading's quiz), from the file its <c>quiz:</c> names.</summary>
+    public Quiz? Quiz { get; init; }
+    public string? QuizFile { get; init; }
     /// <summary>The Learn tab's Markdown.</summary>
     public string Learn { get; init; } = "";
     public string File { get; init; } = "";
     public required LearningModule Module { get; init; }
 
-    /// <summary>A lesson with no exercise is complete when the learner says they have read it.</summary>
-    public bool CompletesByReading => Kind == ItemKind.Lesson && Exercise is null;
+    /// <summary>A lesson with no exercise and no questions is complete when the learner says they have read it.</summary>
+    public bool CompletesByReading => Kind == ItemKind.Lesson && Exercise is null && Quiz is null;
 
     public override string ToString() => $"{Number} {Title}";
 }
@@ -164,6 +167,13 @@ public sealed class ContentPackage
             var itemName = Relative(package, itemFile);
             var (i, learn) = FrontMatter.Parse(System.IO.File.ReadAllText(itemFile), itemName);
             n++;
+            Quiz? quiz = null;
+            if (i.Get("quiz") is { } quizFile)
+            {
+                var quizPath = Path.Combine(package, quizFile);
+                if (!System.IO.File.Exists(quizPath)) throw new ContentException($"{itemName}: its quiz {quizFile} is missing.");
+                quiz = Quiz.Parse(System.IO.File.ReadAllText(quizPath), quizFile);
+            }
             module.Items.Add(new LearningItem
             {
                 Id = i.Get("id") ?? throw new ContentException($"{itemName} has no id."),
@@ -183,6 +193,8 @@ public sealed class ContentPackage
                 Exercise = i.Get("exercise"),
                 Covers = i.List("covers"),
                 References = i.List("reference"),
+                Quiz = quiz,
+                QuizFile = i.Get("quiz"),
                 Learn = learn,
                 File = itemName,
                 Module = module,

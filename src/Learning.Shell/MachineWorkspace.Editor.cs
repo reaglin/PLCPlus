@@ -95,6 +95,10 @@ public partial class MachineWorkspace
             // The program changed: keep it, and run the new one from power-up.
             _editedJson = json;
             _programJson = json;
+            _replay = null;                      // a replay was of the old program
+            ResumeAfterReplay();
+            _failedIndex = -1;
+            ReplayButton.Visibility = Visibility.Collapsed;
             Save();
             _forcesRemoved = _runtime?.Forces.Count > 0;
             PowerUp();

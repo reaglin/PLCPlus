@@ -1,0 +1,140 @@
+{
+  "id": "plc.m5.check.quiz",
+  "title": "Module 5 check: basic ladder programming",
+  "passThreshold": 0.8,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "choice",
+      "objective": "plc.m5.o1",
+      "prompt": "Mode is TRUE in Auto and FALSE in Manual. Which contact passes power to Red **only in Manual**?",
+      "options": [
+        "-| |-  Mode (normally open)",
+        "-|/|-  Mode (normally closed)",
+        "-|P|-  Mode (rising edge)",
+        "-|N|-  Mode (falling edge)"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A normally closed contact passes power while its tag is FALSE, which is Manual. An edge contact passes power for one scan only."
+    },
+    {
+      "id": "q2",
+      "kind": "truthTable",
+      "objective": "plc.m5.o1",
+      "prompt": "Amber is lit by two contacts in series: PB1 then PB2. Fill in when Amber is on.",
+      "expression": "PB1 AND PB2",
+      "explanation": "Contacts in series make AND: power passes only through both."
+    },
+    {
+      "id": "q3",
+      "kind": "fault",
+      "objective": "plc.m5.o2",
+      "machine": "u5.motor-start-stop",
+      "program": "Works",
+      "fault": "Stop:open",
+      "prompt": "This motor station runs the working program, but something is wrong with its **wiring**. Try the buttons and watch the rungs. Which fault does it have?",
+      "options": [
+        "The wire to Stop is broken: Stop always reads FALSE",
+        "The wire to Start is broken: Start always reads FALSE",
+        "Start is shorted: it always reads TRUE",
+        "There is no seal-in in the program"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Start passes power when pressed, but the Stop contact never does: its input is FALSE all the time, as if Stop were held down. The motor cannot start, which is the safe way to fail."
+    },
+    {
+      "id": "q4",
+      "kind": "fault",
+      "objective": "plc.m5.o3",
+      "machine": "u5.garage-door",
+      "program": "Works",
+      "fault": "OpenLimit:shorted",
+      "prompt": "This garage door runs the working program, but one input is faulty. Try Open, Close and Stop. Which fault does it have?",
+      "options": [
+        "The top limit switch is shorted: the PLC always thinks the door is at the top",
+        "The bottom limit switch is broken",
+        "The safety eye is blocked",
+        "The Close button is shorted: it always reads pressed"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Open does nothing: on the rungs, OpenLimit reads TRUE although the door is at the bottom, so the Up rung never gets power."
+    },
+    {
+      "id": "q5",
+      "kind": "match",
+      "objective": "plc.m5.o4",
+      "prompt": "Match each instruction to what it does.",
+      "pairs": [
+        {
+          "left": "-(S)-",
+          "right": "Turns its tag on, and leaves it on"
+        },
+        {
+          "left": "-(R)-",
+          "right": "Turns its tag off"
+        },
+        {
+          "left": "-|P|-",
+          "right": "Passes power for one scan when its tag turns on"
+        },
+        {
+          "left": "-|N|-",
+          "right": "Passes power for one scan when its tag turns off"
+        }
+      ],
+      "explanation": "Set and reset coils latch and unlatch a tag; edge contacts act once, at the moment a tag changes."
+    },
+    {
+      "id": "q6",
+      "kind": "choice",
+      "objective": "plc.m5.o4",
+      "prompt": "Halfway up the tank, why can the valves not simply follow the floats?",
+      "options": [
+        "The floats read the same while filling and while draining, so the program must remember which it is doing",
+        "The floats are too slow for the PLC",
+        "A valve cannot be driven by a contact",
+        "The PLC scans too fast"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Between the floats the inputs are the same either way. A memory tag (Filling, Draining) set and reset at the floats remembers."
+    },
+    {
+      "id": "q7",
+      "kind": "numeric",
+      "objective": "plc.m5.o5",
+      "prompt": "PLC+ scans every 10 ms. For how many milliseconds does a rising-edge contact pass power when its tag turns on?",
+      "answer": 10,
+      "tolerance": 0,
+      "unit": "ms",
+      "explanation": "An edge contact passes power for exactly one scan."
+    },
+    {
+      "id": "q8",
+      "kind": "multiple",
+      "objective": "plc.m5.o3",
+      "prompt": "Which of these must the garage door's **Down** rung check? Choose every one.",
+      "options": [
+        "StopPB (not pressed)",
+        "EyeClear (the doorway is clear)",
+        "NOT ClosedLimit (not already at the bottom)",
+        "NOT MotorUp (not going up: the interlock)",
+        "OpenLimit (at the top)"
+      ],
+      "correct": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "explanation": "The door must be able to come down from part-way open, so the top limit is not needed."
+    }
+  ]
+}

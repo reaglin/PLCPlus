@@ -32,6 +32,9 @@ public sealed class ContentValidator
     /// <summary>Checks one widget for the subject module: null if it is fine, or what is wrong.</summary>
     public Func<WidgetTag, string?>? CheckWidget { get; init; }
 
+    /// <summary>Checks a "find the fault" question's machine for the subject module: null if it is fine.</summary>
+    public Func<Question, string?>? CheckFault { get; init; }
+
     public IReadOnlyList<string> Validate(ContentPackage package)
     {
         var problems = new List<string>();
@@ -93,6 +96,9 @@ public sealed class ContentValidator
                 problems.Add($"{item.File}: the Learn page is empty, but the module is marked {item.Module.Status.ToString().ToLowerInvariant()}.");
 
             foreach (var w in Widgets.In(item.Learn)) CheckOne(w, item.File);
+            if (item.Quiz is { } quiz) CheckQuiz(item, quiz, outcomes, problems);
+            if (item.Quiz is not null && item.Exercise is not null)
+                problems.Add($"{item.File}: an item has an exercise or questions, not both (the Exercise tab shows one).");
         }
 
         foreach (var page in package.References.Values)
@@ -104,5 +110,49 @@ public sealed class ContentValidator
         }
 
         return problems;
+    }
+
+    private void CheckQuiz(LearningItem item, Quiz quiz, HashSet<string> outcomes, List<string> problems)
+    {
+        var file = item.QuizFile ?? item.File;
+        if (quiz.Questions.Count == 0) problems.Add($"{file}: the quiz has no questions.");
+        if (quiz.PassThreshold is <= 0 or > 1) problems.Add($"{file}: passThreshold must be between 0 and 1 (0.8 is 80 %).");
+        var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var q in quiz.Questions)
+        {
+            var at = $"{file}, question {(q.Id.Length > 0 ? q.Id : "(no id)")}";
+            if (q.Id.Length == 0 || !ids.Add(q.Id)) problems.Add($"{at}: every question needs its own id.");
+            if (q.Prompt.Trim().Length == 0) problems.Add($"{at}: the question has no prompt.");
+            if (q.Objective is { } o && !outcomes.Contains(o)) problems.Add($"{at}: the objective {o} is not an outcome of any module.");
+            switch (q.Kind)
+            {
+                case QuestionKind.Choice or QuestionKind.Fault:
+                    if (q.Options.Count < 2) problems.Add($"{at}: a choice needs at least two options.");
+                    if (q.Correct.Count != 1 || q.Correct[0] < 0 || q.Correct[0] >= q.Options.Count)
+                        problems.Add($"{at}: give exactly one right option in correct (counting from 0).");
+                    if (q.Kind == QuestionKind.Fault)
+                    {
+                        if (q.Machine is null || q.Fault is null) problems.Add($"{at}: a fault question needs a machine (a challenge ID) and a fault (such as Stop:open).");
+                        else if (ChallengeExists is { } exists && !exists(q.Machine)) problems.Add($"{at}: the machine {q.Machine} is not in the manifest's challenges.");
+                        else if (CheckFault?.Invoke(q) is { } fault) problems.Add($"{at}: {fault}");
+                    }
+                    break;
+                case QuestionKind.Multiple:
+                    if (q.Options.Count < 2 || q.Correct.Count == 0 || q.Correct.Any(c => c < 0 || c >= q.Options.Count))
+                        problems.Add($"{at}: a multiple-answer question needs options and at least one right one in correct.");
+                    break;
+                case QuestionKind.Numeric:
+                    if (q.Answer is null) problems.Add($"{at}: a numeric question needs its answer.");
+                    if (q.Tolerance < 0) problems.Add($"{at}: the tolerance cannot be negative.");
+                    break;
+                case QuestionKind.TruthTable:
+                    try { BooleanExpression.Parse(q.Expression ?? ""); }
+                    catch (ContentException ex) { problems.Add($"{at}: {ex.Message}"); }
+                    break;
+                case QuestionKind.Match:
+                    if (q.Pairs.Count < 2) problems.Add($"{at}: a match question needs at least two pairs.");
+                    break;
+            }
+        }
     }
 }

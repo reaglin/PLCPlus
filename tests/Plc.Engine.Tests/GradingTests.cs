@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Plc.Engine;
 using Plc.Grading;
 using Plc.Scenes;
@@ -137,5 +138,62 @@ public class GradingTests
         Assert.False(s.Passed);
         Assert.Equal("Never both.", s.Failure);
         Assert.Equal(0.2, s.FailedAtSeconds);
+    }
+}
+
+/// <summary>Phase 5.2: timing windows ("on between 5.0 and 5.1 s") and ordering ("Yellow before Red").</summary>
+public class TimingAndOrderTests
+{
+    private static readonly PlcChallengeRunner Runner = new(id => K.Content("scenes", id + ".json"));
+    private static readonly string Working = K.Content("programs", "traffic-light.json");
+
+    /// <summary>The traffic light's first scenario (Run on at 0 s) with only the given windows and orderings.</summary>
+    private static string With(List<TimingWindow> windows, List<Ordering> order, double seconds = 13)
+    {
+        var c = PlcChallengeRunner.LoadChallenge(K.Content("challenges", "traffic-light.json"));
+        var s = c.Scenarios[0];
+        s.Assertions.Clear();
+        s.Invariants.Clear();
+        s.Windows = windows;
+        s.Order = order;
+        s.DurationSeconds = seconds;
+        c.Scenarios = [s];
+        return JsonSerializer.Serialize(c, PlcChallengeRunner.JsonOptions);
+    }
+
+    private static Learning.Core.ScenarioOutcome One(string challenge, string program) => Assert.Single(Runner.Run(challenge, program).Scenarios);
+
+    [Fact]
+    public void YellowComesOnInItsWindow() =>
+        Assert.True(One(With([new TimingWindow { Tag = "Yellow", From = 4.9, To = 5.1 }], []), Working).Passed);
+
+    [Fact]
+    public void TooEarlyAndTooLateAreBothReported()
+    {
+        var early = One(With([new TimingWindow { Tag = "Yellow", From = 5.5, To = 6 }], []), Working);
+        Assert.False(early.Passed);
+        Assert.Contains("too early", early.Failure, StringComparison.Ordinal);
+
+        var late = One(With([new TimingWindow { Tag = "Yellow", From = 3, To = 4 }], []), Working);
+        Assert.False(late.Passed);
+        Assert.Contains("By 4 s it had not", late.Failure, StringComparison.Ordinal);
+        Assert.Equal(4.01, late.FailedAtSeconds!.Value, 2);
+    }
+
+    [Fact]
+    public void YellowBeforeRedPasses_RedBeforeYellowFails()
+    {
+        Assert.True(One(With([], [new Ordering { First = "Yellow", Then = "Red" }]), Working).Passed);
+        var wrong = One(With([], [new Ordering { First = "Red", Then = "Yellow" }]), Working);
+        Assert.False(wrong.Passed);
+        Assert.Contains("Yellow came on first", wrong.Failure, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AnOrderThatNeverHappensFailsAtTheEnd()
+    {
+        var never = One(With([], [new Ordering { First = "Green", Then = "Red" }], seconds: 3), Working);
+        Assert.False(never.Passed);
+        Assert.Contains("had not come on", never.Failure, StringComparison.Ordinal);
     }
 }

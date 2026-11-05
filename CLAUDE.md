@@ -26,8 +26,10 @@ instructor. **Phase 3 (the ladder editor) built 2026-11-04:** `src/Plc.Editors` 
 without a window); "My program (edit it)" in the preview is editable, runs live, and is kept per challenge. **Phase 4 (the
 learning path) built 2026-11-04:** the window is now the family's tree-and-tabs layout: 12 modules, each a list of items, each
 item with Learn / Example / Exercise / Reference tabs (Ron, D20); content as Markdown with front-matter
-(`docs/CONTENT-FORMAT.md`), the validator `tools/ContentValidator`, and progress for one learner. Next: the instructors' notes,
-then phase 5 (more assessment types) or 6 (learners and progress files).
+(`docs/CONTENT-FORMAT.md`), the validator `tools/ContentValidator`, and progress for one learner. **Phase 5 (assessment) built 2026-11-04:**
+timing windows and ordering in tests, Replay the failed test, attempts with hints and computer, questions of five kinds on the module
+checks (find the fault on a faulted machine), mastery per outcome. The instructors review on https://softwareplus.ai/plcplus/review/.
+Next: phase 6 (learners and progress files).
 
 ### Read these first
 

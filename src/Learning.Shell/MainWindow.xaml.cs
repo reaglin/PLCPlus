@@ -82,6 +82,11 @@ public partial class MainWindow : Window
         // A workspace speaks only while its tab is showing: a hidden one is loading, not answering the learner.
         foreach (var ws in new[] { ExampleWorkspace, ExerciseWorkspace }) ws.StatusChanged += text => { if (ws.IsVisible) SetStatus(text); };
         ExerciseWorkspace.Checked += Exercise_Checked;
+        QuizPanel.Graded += Quiz_Graded;
+        QuizPanel.FaultMachine = FaultMachine;
+        // A wrong answer to a check names the item to read again: the first lesson that teaches the question's outcome.
+        QuizPanel.WhereToLook = q => _package.AllItems.FirstOrDefault(i => i.Kind == ItemKind.Lesson && q.Objective is not null
+            && i.Objectives.Contains(q.Objective, StringComparer.OrdinalIgnoreCase))?.ToString();
 
         _order.AddRange(_package.AllItems);
         BuildTree();
@@ -159,7 +164,7 @@ public partial class MainWindow : Window
                 child.Detail = ItemDetail(item, state);
                 child.SpokenName = $"{item.Number} {item.Title}: {child.Detail}";
                 child.Tip = item.Kind == ItemKind.Assess
-                    ? "The module check: complete when every item it covers is"
+                    ? item.Quiz is null ? "The module check: complete when every item it covers is" : "The module check: complete when every item it covers is complete and you pass its questions"
                     : item.Exercise is null ? "A reading: complete when you press I have read this" : "An exercise: complete when your program passes every test";
             }
         }
@@ -179,11 +184,15 @@ public partial class MainWindow : Window
         if (item.Kind == ItemKind.Assess)
         {
             var done = item.Covers.Count(c => _package.FindItem(c) is { } i && _progress.StateOf(i) == ItemState.Complete);
-            return $"Module check · {done} of {item.Covers.Count} done";
+            var questions = item.Quiz is null ? ""
+                : _progress.Items.TryGetValue(item.Id, out var own) && own.Completed is not null ? " · questions passed"
+                : _progress.Best(item) is { } quizBest ? $" · questions: best {quizBest.Score:0} of {quizBest.MaxScore:0}"
+                : " · questions not passed yet";
+            return $"Module check · {done} of {item.Covers.Count} items done{questions}";
         }
-        var kind = item.Exercise is null ? "Reading" : "Exercise";
+        var kind = item.Exercise is not null ? "Exercise" : item.Quiz is not null ? "Questions" : "Reading";
         if (state == ItemState.Complete) return $"{kind} · complete";
-        if (item.Exercise is not null && _progress.Best(item) is { } best) return $"{kind} · best {best.Score:0} of {best.MaxScore:0}";
+        if (!item.CompletesByReading && _progress.Best(item) is { } best) return $"{kind} · best {best.Score:0} of {best.MaxScore:0}";
         return state == ItemState.InProgress ? $"{kind} · started" : kind;
     }
 
@@ -250,7 +259,21 @@ public partial class MainWindow : Window
                 md.AppendLine($"- **Module {pre.Number}, {pre.Title}**: {(pp.State == ModuleState.Complete ? "complete ✓" : $"{pp.Complete} of {pp.Total} items complete")}");
             }
         md.AppendLine().AppendLine("## What you will be able to do").AppendLine();
-        foreach (var o in m.Outcomes) md.AppendLine("- " + o.Text);
+        if (m.Status == ModuleStatus.ComingLater)
+            foreach (var o in m.Outcomes) md.AppendLine("- " + o.Text);
+        else
+        {
+            // Mastery per outcome (plan 5.6): a mark and words, never colour alone.
+            foreach (var op in Mastery.Of(_package, _progress, m))
+                md.AppendLine(op.State switch
+                {
+                    MasteryState.Mastered => $"- ✓ {op.Outcome.Text} **(mastered)**",
+                    MasteryState.NeedsReview => $"- ↺ {op.Outcome.Text} **(review suggested)**: " + string.Join("; ", op.Evidence.Where(e => e.Contains("wrong", StringComparison.Ordinal) || e.Contains("did not pass", StringComparison.Ordinal))) + ".",
+                    MasteryState.InProgress => $"- ◐ {op.Outcome.Text} (in progress: " + string.Join("; ", op.Evidence.Where(e => !e.EndsWith(": complete", StringComparison.Ordinal) && !e.EndsWith(" answered", StringComparison.Ordinal))) + ")",
+                    _ => $"- ○ {op.Outcome.Text}",
+                });
+            md.AppendLine().AppendLine("*✓ mastered: its items are complete and its questions were right. ↺ review suggested: the work is done, but an answer in the module check was wrong, or a passed exercise later failed; it says what to do. ◐ in progress. ○ not started.*");
+        }
         md.AppendLine().AppendLine("## Topics").AppendLine();
         md.AppendLine(string.Join(" · ", m.Topics)).AppendLine();
         if (m.Items.Count > 0)
@@ -260,7 +283,10 @@ public partial class MainWindow : Window
             md.AppendLine("| Item | What it is | Where you are |").AppendLine("|---|---|---|");
             foreach (var i in m.Items)
             {
-                var kind = i.Kind == ItemKind.Assess ? "Module check" : i.Exercise is null ? (i.Example is null ? "Reading" : "Reading, with an example to run") : "Lesson, example and exercise";
+                var kind = i.Kind == ItemKind.Assess ? (i.Quiz is null ? "Module check" : $"Module check, with {i.Quiz.Questions.Count} questions")
+                    : i.Exercise is not null ? "Lesson, example and exercise"
+                    : i.Quiz is not null ? "Lesson and questions"
+                    : i.Example is null ? "Reading" : "Reading, with an example to run";
                 md.AppendLine($"| {i.Number} {i.Title} | {kind} | {WhereYouAre(i)} |");
             }
             md.AppendLine();
@@ -274,7 +300,7 @@ public partial class MainWindow : Window
         var state = _progress.StateOf(i);
         if (i.Kind == ItemKind.Assess) return ItemDetail(i, state).Replace("Module check · ", "", StringComparison.Ordinal);
         if (state == ItemState.Complete) return "Complete ✓";
-        if (i.Exercise is not null && _progress.Best(i) is { } best) return $"Started: best {best.Score:0} of {best.MaxScore:0}";
+        if (!i.CompletesByReading && _progress.Best(i) is { } best) return $"Started: best {best.Score:0} of {best.MaxScore:0}";
         return state == ItemState.InProgress ? "Started" : "Not started";
     }
 
@@ -290,6 +316,7 @@ public partial class MainWindow : Window
     private void ShowItem(LearningItem item)
     {
         ExerciseWorkspace.CommitPendingEdit();
+        QuizPanel.Remember();
         _item = item;
         _module = item.Module;
         ModulePage.Visibility = Visibility.Collapsed;
@@ -330,11 +357,14 @@ public partial class MainWindow : Window
         var exercise = _plc.Find(item.Exercise);
         ExerciseScroll.Visibility = exercise is null ? Visibility.Collapsed : Visibility.Visible;
         ExerciseWorkspace.Visibility = ExerciseScroll.Visibility;
-        ExerciseNone.Visibility = exercise is null ? Visibility.Visible : Visibility.Collapsed;
+        QuizScroll.Visibility = exercise is null && item.Quiz is not null ? Visibility.Visible : Visibility.Collapsed;
+        ExerciseNone.Visibility = exercise is null && item.Quiz is null ? Visibility.Visible : Visibility.Collapsed;
         if (exercise is not null) ExerciseWorkspace.Load(_plc, exercise, exercise: true);
+        else if (item.Quiz is { } quiz) LoadQuiz(item, quiz);
         else ExerciseNone.Markdown = NoExerciseMarkdown(item);
-        ExerciseTab.Header = exercise is not null || item.Kind == ItemKind.Assess ? "Exerc_ise" : "Exerc_ise (none)";
+        ExerciseTab.Header = exercise is not null || item.Quiz is not null || item.Kind == ItemKind.Assess ? "Exerc_ise" : "Exerc_ise (none)";
         ExerciseTab.ToolTip = exercise is not null ? "Write your own program and check it (Ctrl+3)"
+            : item.Quiz is not null ? $"{item.Quiz.Questions.Count} questions to answer (Ctrl+3)"
             : item.Kind == ItemKind.Assess ? "What this module check covers, and where you are (Ctrl+3)"
             : "This item has no exercise: it is complete when you have read it (Ctrl+3)";
 
@@ -357,14 +387,17 @@ public partial class MainWindow : Window
         if (item.Minutes > 0) parts.Add($"About {item.Minutes} minutes");
         if (item.BuildsOn is { } b && _package.FindItem(b) is { } before) parts.Add($"Builds on {before}");
         parts.Add(item.Kind == ItemKind.Assess
-            ? state == ItemState.Complete ? "Complete ✓: every item it covers is complete" : ItemDetail(item, state)
+            ? state == ItemState.Complete ? (item.Quiz is null ? "Complete ✓: every item it covers is complete" : "Complete ✓: every item it covers is complete, and you passed the questions") : ItemDetail(item, state)
             : state == ItemState.Complete ? "Complete ✓"
             : item.Exercise is not null ? (_progress.Best(item) is { } best ? $"Not complete yet: best so far {best.Score:0} of {best.MaxScore:0}" : "Not complete yet: complete when your program passes on the Exercise tab")
+            : item.Quiz is not null ? (_progress.Best(item) is { } qbest ? $"Not complete yet: best so far {qbest.Score:0} of {qbest.MaxScore:0}" : "Not complete yet: complete when you pass the questions on the Exercise tab")
             : "Not complete yet: complete when you have read it");
         ItemStatusText.Text = string.Join(" · ", parts);
 
         LearnFooterText.Text = item.Kind == ItemKind.Assess
-            ? "The Exercise tab lists what this check covers and where you are."
+            ? item.Quiz is null ? "The Exercise tab lists what this check covers and where you are." : "The questions are on the Exercise tab (Ctrl+3), under what this check covers."
+            : item.Quiz is not null && item.Exercise is null
+                ? state == ItemState.Complete ? "Complete. Next ▸ (top right) goes on to the next item." : "When you have read the page, answer the questions on the Exercise tab (Ctrl+3)."
             : item.Exercise is not null
                 ? "Next: run the working program on the Example tab (Ctrl+2), then write your own on the Exercise tab (Ctrl+3)."
                 : state == ItemState.Complete
@@ -417,11 +450,56 @@ public partial class MainWindow : Window
         Completed($"{_item.Number} is complete.");
     }
 
-    private void Exercise_Checked(ChallengeOutcome outcome)
+    // ---- Questions (plan 5.5) ------------------------------------------------------------------------
+
+    private void LoadQuiz(LearningItem item, Quiz quiz)
+    {
+        var intro = new List<string>();
+        if (item.Kind == ItemKind.Assess)
+        {
+            intro.Add("This check covers: " + string.Join("; ", item.Covers.Select(_package.FindItem).OfType<LearningItem>()
+                .Select(c => $"{c} ({WhereYouAre(c).ToLowerInvariant()})")) + ".");
+            intro.Add("The module is complete when those items are complete and you have passed these questions.");
+        }
+        QuizPanel.Load(quiz, item.Kind == ItemKind.Assess ? $"Module {item.Module.Number} check: the questions" : "Questions", intro);
+    }
+
+    /// <summary>A "find the fault" question's machine: the working program, with the question's wiring fault.</summary>
+    private UIElement? FaultMachine(Question q)
+    {
+        if (_plc.Find(q.Machine) is not { } challenge || Plc.Scenes.WiringFault.Parse(q.Fault) is not { } fault) return null;
+        var ws = new MachineWorkspace { Height = 640 };
+        ws.StatusChanged += text => { if (ws.IsVisible) SetStatus(text); };
+        ws.Load(_plc, challenge, exercise: false, q.Program, fault);
+        return ws;
+    }
+
+    private void Quiz_Graded(QuizResult result)
+    {
+        if (_item is null) return;
+        var wasComplete = _progress.StateOf(_item) == ItemState.Complete;
+        _progress.Record(_item, result.ToOutcome(), DateTimeOffset.Now, machine: Environment.MachineName);
+        var right = result.Questions.Count(q => q.Correct);
+        if (_progress.StateOf(_item) == ItemState.Complete && !wasComplete)
+            Completed($"Passed: {right} of {result.Questions.Count} right. {_item.Number} is complete.");
+        else
+        {
+            SaveProgress();
+            RefreshTree();
+            ShowItemStatus();
+            SetStatus(result.Passed
+                ? _item.Kind == ItemKind.Assess && _progress.StateOf(_item) != ItemState.Complete
+                    ? $"Passed: {right} of {result.Questions.Count} right. The check is complete when the items it covers are complete too (listed at the top)."
+                    : $"Passed: {right} of {result.Questions.Count} right."
+                : $"Not passed yet: {right} of {result.Questions.Count} right. Each ✗ says where to look again; change those answers and press Check my answers again. Your answers stay while PLC+ is open.");
+        }
+    }
+
+    private void Exercise_Checked(ChallengeOutcome outcome, int hintsShown)
     {
         if (_item is null || !string.Equals(_item.Exercise, outcome.ChallengeId, StringComparison.OrdinalIgnoreCase)) return;
         var wasComplete = _progress.StateOf(_item) == ItemState.Complete;
-        _progress.Record(_item, outcome, DateTimeOffset.Now);
+        _progress.Record(_item, outcome, DateTimeOffset.Now, hintsShown, Environment.MachineName);
         if (outcome.Passed && !wasComplete) Completed($"Every test passed: {_item.Number} is complete.");
         else
         {
@@ -468,7 +546,9 @@ public partial class MainWindow : Window
         if (!ReferenceEquals(e.OriginalSource, ItemTabs)) return; // a ComboBox inside a tab
         ExerciseWorkspace.CommitPendingEdit();
         var machine = (ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible)
-                      || (ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible);
+                      || (ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible)
+                      || (ItemTabs.SelectedItem == ExerciseTab && QuizScroll.Visibility == Visibility.Visible
+                          && _item?.Quiz?.Questions.Any(q => q.Kind == QuestionKind.Fault) == true);
         ShowScreenHelp();
         var hid = "";
         if (machine && HelpPanel.Visibility == Visibility.Visible && !_helpHiddenForMachine)
@@ -479,6 +559,8 @@ public partial class MainWindow : Window
         }
         if (ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible)
             SetStatus("My program: click an element and type its tag in the Tag box, then use the tools above the rungs. Check my program tests it." + hid);
+        else if (ItemTabs.SelectedItem == ExerciseTab && QuizScroll.Visibility == Visibility.Visible)
+            SetStatus("Answer the questions, then press Check my answers at the bottom." + hid);
         else if (ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible)
             SetStatus("The working program, running: work the machine and watch the rungs. Program switches to the common mistake. Examples do not count toward your progress." + hid);
     }
@@ -568,7 +650,9 @@ public partial class MainWindow : Window
             : ItemTabs.SelectedItem == ReferenceTab
                 ? ("This screen: Reference", "The symbols and rules this item uses, with the Allen-Bradley names, to look up while you work.")
             : ItemTabs.SelectedItem == ExerciseTab
-                ? ("This screen: Exercise", "What this item asks you to do. A reading has no exercise; a module check lists the items it covers.")
+                ? QuizScroll.Visibility == Visibility.Visible
+                    ? ("This screen: Questions", "Answer every question, then press Check my answers at the bottom. Each answer is marked ✓ or ✗: a right one says why, a wrong one says where to look again. Change the wrong ones and check again; your answers stay while PLC+ is open. For a machine with a fault, work its buttons and watch which contact never changes.")
+                    : ("This screen: Exercise", "What this item asks you to do. A reading has no exercise; a module check lists the items it covers.")
                 : ("This screen: Learn", "The lesson. Read it, then try the Example and Exercise tabs if the item has them. A reading is complete when you press I have read this.");
     }
 

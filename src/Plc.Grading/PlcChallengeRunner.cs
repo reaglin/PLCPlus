@@ -47,6 +47,10 @@ public sealed class Scenario
     public List<ScenarioEvent> Events { get; set; } = [];
     public List<Assertion> Assertions { get; set; } = [];
     public List<Invariant> Invariants { get; set; } = [];
+    /// <summary>Timing windows: a tag must change within a span of time ("on between 2.0 and 2.2 s").</summary>
+    public List<TimingWindow> Windows { get; set; } = [];
+    /// <summary>Ordering: one tag must come on before another ("Yellow before Red").</summary>
+    public List<Ordering> Order { get; set; } = [];
 }
 
 /// <summary>At time T (seconds), operate a button or switch: active = pressed, released = not.</summary>
@@ -70,6 +74,29 @@ public sealed class Assertion
     public string? Says { get; set; }
     /// <summary>For a REAL value (a tank level, a door position): how far from Expect still counts as right.</summary>
     public double Tolerance { get; set; }
+}
+
+/// <summary>
+/// A timing window (spec 7.1): watching from <see cref="After"/>, the tag must first reach <see cref="Expect"/>
+/// no earlier than <see cref="From"/> and no later than <see cref="To"/> (seconds from the start of the scenario).
+/// </summary>
+public sealed class TimingWindow
+{
+    public string Tag { get; set; } = "";
+    public string Expect { get; set; } = "TRUE";
+    public double After { get; set; }
+    public double From { get; set; }
+    public double To { get; set; }
+    public string? Says { get; set; }
+}
+
+/// <summary>Ordering (spec 7.1): watching from <see cref="After"/>, <see cref="First"/> must come on before <see cref="Then"/> does.</summary>
+public sealed class Ordering
+{
+    public string First { get; set; } = "";
+    public string Then { get; set; } = "";
+    public double After { get; set; }
+    public string? Says { get; set; }
 }
 
 /// <summary>Something that must never happen, checked after every scan.</summary>
@@ -266,6 +293,9 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
         var asserts = scenario.Assertions.OrderBy(a => a.At).ToList();
         var endMs = Ms(scenario.DurationSeconds);
         int nextEvent = 0, nextAssert = 0;
+        var windowDone = new bool[scenario.Windows.Count];
+        var orderDone = new bool[scenario.Order.Count];
+        var firstSeen = new bool[scenario.Order.Count];
         string? failure = null;
         double? failedAt = null;
 
@@ -296,6 +326,47 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
                 }
             }
 
+            // Timing windows: the first moment (from After) the tag reaches the value must fall in [From, To].
+            for (var w = 0; failure is null && w < scenario.Windows.Count; w++)
+            {
+                var win = scenario.Windows[w];
+                if (windowDone[w] || t < Ms(win.After)) continue;
+                PlcValue.TryParseLiteral(win.Expect, out var want);
+                var actual = ReadAny(runtime, scene, win.Tag);
+                var reached = Same(actual, want);
+                if (reached || t > Ms(win.To))
+                {
+                    windowDone[w] = true;
+                    var ok = reached && t >= Ms(win.From);
+                    checks?.Add(new CheckResult(t, win.Tag, want, actual, ok, win.Says));
+                    if (!ok)
+                    {
+                        var what = win.Says ?? $"{Name(scene, win.Tag)} should become {Words(want)} between {Seconds(win.From)} s and {Seconds(win.To)} s.";
+                        failure = what + (reached ? $" It did at {Seconds(t / 1000.0)} s, too early." : $" By {Seconds(win.To)} s it had not.");
+                        failedAt = t / 1000.0;
+                    }
+                }
+            }
+
+            // Ordering: the first must come on before the second does.
+            for (var o = 0; failure is null && o < scenario.Order.Count; o++)
+            {
+                var ord = scenario.Order[o];
+                if (orderDone[o] || t < Ms(ord.After)) continue;
+                var first = ReadAny(runtime, scene, ord.First).AsBool;
+                var then = ReadAny(runtime, scene, ord.Then).AsBool;
+                if (first) firstSeen[o] = true;
+                if (!then) continue;
+                orderDone[o] = true;
+                checks?.Add(new CheckResult(t, ord.Then, PlcValue.True, PlcValue.True, firstSeen[o], ord.Says));
+                if (!firstSeen[o])
+                {
+                    failure = (ord.Says ?? $"{Name(scene, ord.First)} should come on before {Name(scene, ord.Then)}.")
+                              + $" At {Seconds(t / 1000.0)} s {Name(scene, ord.Then)} came on first.";
+                    failedAt = t / 1000.0;
+                }
+            }
+
             while (failure is null && nextAssert < asserts.Count && Ms(asserts[nextAssert].At) <= t)
             {
                 var a = asserts[nextAssert++];
@@ -314,6 +385,14 @@ public sealed class PlcChallengeRunner(Func<string, string> loadSceneJson) : ICh
         {
             failure = $"The scenario ended before the check at {Seconds(asserts[nextAssert].At)} s.";
             failedAt = asserts[nextAssert].At;
+        }
+        for (var o = 0; failure is null && o < scenario.Order.Count; o++)
+        {
+            if (orderDone[o]) continue;
+            var ord = scenario.Order[o];
+            failure = (ord.Says ?? $"{Name(scene, ord.First)} should come on, and then {Name(scene, ord.Then)}.")
+                      + $" By the end of the test ({Seconds(scenario.DurationSeconds)} s) {Name(scene, ord.Then)} had not come on.";
+            failedAt = scenario.DurationSeconds;
         }
 
         var passed = failure is null;

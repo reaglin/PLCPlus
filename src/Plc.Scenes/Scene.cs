@@ -130,6 +130,23 @@ public sealed class WiringFault
     public string Tag { get; set; } = "";
     public WiringFaultKind Kind { get; set; }
     public string? Other { get; set; }
+
+    /// <summary>
+    /// A fault written the short way, as a "find the fault" question does: <c>Stop:open</c> (a broken wire),
+    /// <c>HighFloat:shorted</c>, or <c>PB1:swapped:PB2</c>. Null if it cannot be read.
+    /// </summary>
+    public static WiringFault? Parse(string? text)
+    {
+        var parts = (text ?? "").Split(':', StringSplitOptions.TrimEntries);
+        if (parts.Length < 2 || parts[0].Length == 0) return null;
+        return parts[1].ToLowerInvariant() switch
+        {
+            "open" when parts.Length == 2 => new WiringFault { Tag = parts[0], Kind = WiringFaultKind.Open },
+            "shorted" when parts.Length == 2 => new WiringFault { Tag = parts[0], Kind = WiringFaultKind.Shorted },
+            "swapped" when parts.Length == 3 && parts[2].Length > 0 => new WiringFault { Tag = parts[0], Kind = WiringFaultKind.SwappedWith, Other = parts[2] },
+            _ => null,
+        };
+    }
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]

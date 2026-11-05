@@ -109,7 +109,7 @@
                                 ToolTip="Stops the simulated clock. The program and the machine stay as they are." />
                         <Button x:Name="StepButton" Content="Step one _scan" Click="Step_Click" Margin="0,0,6,0" IsEnabled="False"
                                 ToolTip="Runs exactly one scan (10 ms). Available while paused: press Pause first." />
-                        <Button Content="_Reset" Click="Reset_Click" Margin="0"
+                        <Button x:Name="ResetButton" Content="_Reset" Click="Reset_Click" Margin="0"
                                 ToolTip="Starts again from power-up: every tag off, the machine as it began, the clock at 0. Your test results stay." />
                     </WrapPanel>
                     <TextBlock x:Name="ClockText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" />
@@ -137,12 +137,14 @@
         </Border>
 
         <!-- The grader -->
-        <Border Grid.Row="2" Grid.ColumnSpan="2" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="12" Margin="0,12,0,0">
+        <Border x:Name="GraderPanel" Grid.Row="2" Grid.ColumnSpan="2" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="12" Margin="0,12,0,0">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Left" Width="230" Margin="0,0,12,0">
                     <Button x:Name="CheckButton" Content="_Check this program" Click="Check_Click" HorizontalAlignment="Left"
                             ToolTip="Runs the challenge's tests on this program, from a clean start each time, and shows which pass" />
                     <TextBlock x:Name="ScoreText" TextWrapping="Wrap" Margin="0,8,0,0" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" />
+                    <Button x:Name="ReplayButton" Content="Replay the _failed test" Click="Replay_Click" HorizontalAlignment="Left" Margin="0,8,0,0" Visibility="Collapsed"
+                            ToolTip="Runs the first failed test again on the machine, at its own speed (four times as fast for tests over 15 s), so you can watch the rungs and the machine up to the moment it failed" />
                 </StackPanel>
                 <ScrollViewer VerticalScrollBarVisibility="Auto" IsTabStop="True" MaxHeight="120" MinHeight="60" AutomationProperties.Name="Test results; use the arrow keys to scroll"
                               ToolTip="The test results. Scroll to read them all (arrow keys or the mouse wheel)">

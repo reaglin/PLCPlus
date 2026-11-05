@@ -85,6 +85,41 @@ The Learn page, in Markdown …
 covers is complete; its Exercise tab lists them, and its Reference tab lists the module's outcomes. In phase 8 it is the
 submission point that makes the progress report.
 
+## Questions (`quiz:`)
+
+An item names a quiz file, usually the module check: `quiz: quizzes/m5-check.json`. Its questions show on the Exercise tab
+(an item has an exercise or questions, not both). A module check with questions is complete when its covered items are complete
+**and** its questions are passed.
+
+```json
+{ "id": "plc.m5.check.quiz", "title": "Module 5 check", "passThreshold": 0.8, "practice": false,
+  "questions": [
+    { "id": "q1", "kind": "choice", "objective": "plc.m5.o1", "prompt": "Which contact …? **Bold** works.",
+      "options": ["…", "…"], "correct": [1], "explanation": "Why the right answer is right." },
+    { "id": "q2", "kind": "multiple", "options": [ … ], "correct": [0, 2] },
+    { "id": "q3", "kind": "numeric", "answer": 100, "tolerance": 1, "unit": "mA" },
+    { "id": "q4", "kind": "truthTable", "expression": "(Start OR Motor) AND Stop" },
+    { "id": "q5", "kind": "match", "pairs": [ { "left": "-(S)-", "right": "Turns its tag on, and leaves it on" }, … ] },
+    { "id": "q6", "kind": "fault", "machine": "u5.motor-start-stop", "program": "Works", "fault": "Stop:open",
+      "options": [ … ], "correct": [0] } ] }
+```
+
+- `correct` counts options from 0. A match question offers the right-hand items in alphabetical order.
+- `fault` is `Tag:open` (a broken wire: always FALSE), `Tag:shorted` (always TRUE) or `Tag:swapped:OtherTag`; the tag must be an
+  input of the machine. The learner works the faulted machine running `program` and chooses what is wrong.
+- `practice: true` shows the right answer when one is wrong. Otherwise (a check, which can be retried freely) a wrong answer
+  says "look again" and the `explanation` is shown only once the answer is right.
+- `objective` links a question to a module outcome: mastery (on the module's first page) uses it.
+
+## Tests: timing windows and order
+
+Besides `assertions` (a value at a time) and `invariants` (never all on), a challenge's scenario can have:
+
+```json
+"windows": [ { "tag": "Yellow", "after": 0, "from": 4.95, "to": 5.05, "says": "Yellow should come on 5 s after green …" } ],
+"order":   [ { "first": "Yellow", "then": "Red", "says": "Yellow should come on before red." } ]
+```
+
 ## The Markdown PLC+ shows
 
 Headings (`#`, `##`, `###`), paragraphs, `- ` bullets, `1. ` numbered steps, tables, `**bold**`, `*italic*` and `` `code` ``.

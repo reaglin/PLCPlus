@@ -123,6 +123,27 @@ foreach ($step in $Steps) {
         if ($kind -eq 'pick') { $el.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select() }
         else { $el.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand() }
         Write-Output "$kind '$($el.Current.Name)'"
+    } elseif ($kind -eq 'choose') {
+        # choose:Combo=Item picks an item in a drop-down, in step order (unlike -Select, which runs first).
+        $comboName, $itemText = $rest -split '=', 2
+        $combo = Find-Named $comboName
+        if (-not $combo) { Write-Output "NOT FOUND combo '$comboName'"; continue }
+        $combo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()
+        Start-Sleep -Milliseconds 300
+        $itemCond = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $itemText)
+        $item = $combo.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $itemCond)
+        if ($item) { $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select(); Write-Output "chose '$itemText'" } else { Write-Output "NOT FOUND item '$itemText'" }
+        $combo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Collapse()
+    } elseif ($kind -eq 'scroll') {
+        # scroll:Name=Percent scrolls the nearest scrolling area around the element named Name (0 top, 100 bottom).
+        $name, $pct = $rest -split '=', 2
+        $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+        $el = $null
+        foreach ($e in $all) { if ($e.Current.Name -and $e.Current.Name.StartsWith($name)) { $el = $e; break } }
+        $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+        while ($el -and -not ($el.GetSupportedPatterns() -contains [System.Windows.Automation.ScrollPattern]::Pattern)) { $el = $walker.GetParent($el) }
+        if ($el) { $el.GetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern).SetScrollPercent(-1, [double]$pct); Write-Output "scrolled to $pct %" }
+        else { Write-Output "NOT FOUND scroll '$name'" }
     } elseif ($kind -eq 'press') {
         $el = Find-Named $rest
         if ($el) { $el.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke(); Write-Output "pressed '$rest'" }

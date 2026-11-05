@@ -147,16 +147,23 @@ Reference**, **all 12 modules** in the tree, and **first drafts for modules 3 an
 
 ---
 
-## Phase 5 — assessment (FR-4; spec 7)
+## Phase 5 — assessment (FR-4; spec 7) ⚠️ built 2026-11-04
+
+Ron, 2026-11-04: *"Start phase 5, the format is good and easy to follow."* The module checks now have questions, so every
+module ends with a real Assess (D7). Choices made here for the instructors to judge (review guide, question 11): questions sit
+on the **module checks** (readings stay "I have read this"); **80 %** passes; a check can be retried freely, so a wrong answer
+says "look again" without the answer (practice questions, such as 2.3's, show it).
 
 | # | Task | Done when |
 |---|---|---|
 | 5.1 | The challenge format and grader: scenarios, assertions at times, invariants, hidden scenarios, constraints, points, pass threshold, tiered hints | ⚠️ Built 2026-11-04; 7 tests |
-| 5.2 | Assertions still to add: timing windows ("on between 2.0 and 2.2 s") and ordering ("A before B") | |
-| 5.3 | Replay a failed test visually from its trace | Needs 1.9 |
-| 5.4 | Each attempt recorded: score, time, hints used, program hash, machine | Needs phase 6 |
-| 5.5 | Other assessments: multiple choice, numeric with tolerance, truth-table fill-in, match the symbol, find the fault in a faulted scene | |
-| 5.6 | Mastery rules per objective (e.g. "pass two linked challenges at 80% or more"); states: not started, in progress, mastered, needs review | |
+| 5.2 | Assertions still to add: timing windows ("on between 2.0 and 2.2 s") and ordering ("A before B") | ⚠️ Built: `windows` (the first moment a tag reaches a value, watched from `after`, must fall in [from, to]: "too early" or "had not by") and `order` (`first` must come on before `then`; a `then` that never comes fails at the end). The traffic light's first test now checks yellow at 5 s ± 0.05, red at 7 s ± 0.05 and yellow before red. 4 tests |
+| 5.3 | Replay a failed test visually from its trace | ⚠️ Built: **Replay the failed test** under Check: the first failed test runs again on the machine, the test pressing the buttons itself, at its own speed (×4 over 15 s), with "REPLAYING …" on the clock line; it stops just after the failure and pauses there, with the reason on the status line. Reset ends it; a change to the program cancels it |
+| 5.4 | Each attempt recorded: score, time, hints used, program hash, machine | ⚠️ Built: every check of an exercise or questions is an attempt with its time, score, program fingerprint, **hints shown**, the **computer's name**, and for questions which were right. In the one-learner file now; phase 6 moves it into each learner's file |
+| 5.5 | Other assessments: multiple choice, numeric with tolerance, truth-table fill-in, match the symbol, find the fault in a faulted scene | ⚠️ Built: `Learning.Core.Content.Quiz` (graded in the core; a quiz is a JSON file an item names with `quiz:`) and the questions on the Exercise tab (`QuizView`). **Find the fault** shows the machine running the working program with a wiring fault (`Stop:open`, `OpenLimit:shorted`, `PB1:swapped:PB2`). Content: the module 3 check (6 questions), the module 5 check (8, two of them faults), 2.3 (three truth tables, practice). The validator checks every question; a test passes every shipped quiz with its right answers |
+| 5.6 | Mastery rules per objective (e.g. "pass two linked challenges at 80% or more"); states: not started, in progress, mastered, needs review | ⚠️ Built (`Learning.Core.Progress.Mastery`), one rule for every outcome until the instructors ask for others: **mastered** when every item that teaches it is complete and the latest answer to every question on it was right; **needs review** when the work is done but a later answer or check went wrong; shown on each module's first page with ✓ ↺ ◐ ○ and the evidence |
+| 5.7 | The review site shows each module check's questions with the answers marked, for the instructors | ⚠️ Deployed with this phase |
+| 5.8 | Hand-test 5 | ⚠️ Ron: hand-test 5 in `docs/MANUAL-TESTING.md`. **UX: walkthrough + heuristics 2026-11-04, 6 major, 9 minor; fixed:** answers stay for the session (going to read again no longer wipes them), a wrong answer names the item to read again (a fault question: "work the machine again"), half-done answers say what is missing ("Rows 2 and 4 are still ?", "not a number"), the check's status and tooltip include its questions, mastery's "review suggested" says which question and what to read, Reset after a replay starts the clock again, the page of questions scrolls over the fault machines, which have no access keys; Check jumps to the first ✗ and lists the ✗ numbers; screen readers hear each question with its options. Not changed: "Check my answers" next to "module check" (Ron's call if the words should differ) |
 
 ---
 

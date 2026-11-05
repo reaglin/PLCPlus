@@ -11,8 +11,12 @@ public enum ModuleState { NotStarted, InProgress, Complete, ComingLater }
 /// <summary>A module's progress: how many of its items are complete.</summary>
 public sealed record ModuleProgress(ModuleState State, int Complete, int Total);
 
-/// <summary>One grading run of an exercise (spec 7.2 step 4).</summary>
-public sealed record Attempt(string ItemId, string ChallengeId, DateTimeOffset At, double Score, double MaxScore, bool Passed, string WorkHash);
+/// <summary>
+/// One grading run of an exercise or a quiz (spec 7.2 step 4): the score, the program's fingerprint, how many hints the
+/// learner had been shown, the computer it ran on, and for a quiz which questions were right.
+/// </summary>
+public sealed record Attempt(string ItemId, string ChallengeId, DateTimeOffset At, double Score, double MaxScore, bool Passed, string WorkHash,
+    int HintsShown = 0, string? Machine = null, Dictionary<string, bool>? Questions = null);
 
 /// <summary>Something an instructor may want to see in the report, such as a module opened before its prerequisites.</summary>
 public sealed record LearningEvent(DateTimeOffset At, string Kind, string Subject, string Detail);
@@ -47,8 +51,10 @@ public sealed class LearningProgress
     {
         if (item.Kind == ItemKind.Assess)
         {
+            // Complete when every item it covers is, and its own questions (if it has any) have been passed.
             var covered = item.Covers.Select(id => Items.TryGetValue(id, out var r) ? r : null).ToList();
-            if (covered.Count > 0 && covered.All(r => r?.Completed is not null)) return ItemState.Complete;
+            var ownPassed = item.Quiz is null || (Items.TryGetValue(item.Id, out var own) && own.Completed is not null);
+            if (covered.Count > 0 && covered.All(r => r?.Completed is not null) && ownPassed) return ItemState.Complete;
             return Items.ContainsKey(item.Id) || covered.Any(r => r is not null) ? ItemState.InProgress : ItemState.NotStarted;
         }
         if (!Items.TryGetValue(item.Id, out var record)) return ItemState.NotStarted;
@@ -105,10 +111,15 @@ public sealed class LearningProgress
         return true;
     }
 
-    /// <summary>Records a grading run of the item's exercise; a pass completes the item.</summary>
-    public void Record(LearningItem item, ChallengeOutcome outcome, DateTimeOffset now)
+    /// <summary>
+    /// Records a grading run of the item's exercise or quiz; a pass completes the item (a module check's pass is
+    /// kept, and the check is complete once everything it covers is too).
+    /// </summary>
+    public void Record(LearningItem item, ChallengeOutcome outcome, DateTimeOffset now, int hintsShown = 0, string? machine = null)
     {
-        Attempts.Add(new Attempt(item.Id, outcome.ChallengeId, now, outcome.Score, outcome.MaxScore, outcome.Passed, outcome.WorkHash));
+        var questions = item.Quiz is null ? null : outcome.Scenarios.ToDictionary(s => s.Name, s => s.Passed, StringComparer.OrdinalIgnoreCase);
+        Attempts.Add(new Attempt(item.Id, outcome.ChallengeId, now, outcome.Score, outcome.MaxScore, outcome.Passed, outcome.WorkHash,
+            hintsShown, machine, questions));
         var record = Items.TryGetValue(item.Id, out var r) ? r : Items[item.Id] = new ItemRecord { FirstOpened = now, LastOpened = now };
         if (outcome.Passed && record.Completed is null)
         {

@@ -134,7 +134,7 @@
                                 <TextBlock x:Name="MarkText" Text="{Binding Mark}" Foreground="{Binding MarkBrush}" FontWeight="Bold" />
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="{Binding Header}" FontWeight="{Binding Weight}" TextWrapping="Wrap" MaxWidth="215" />
-                                    <TextBlock x:Name="DetailText" Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource MutedTextBrush}" />
+                                    <TextBlock x:Name="DetailText" Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" MaxWidth="215" />
                                 </StackPanel>
                             </Grid>
                             <!-- On the selected row (white on blue), the mark and the detail take the row's colour, so they stay readable. -->
@@ -211,6 +211,9 @@
                                 <local:MachineWorkspace x:Name="ExerciseWorkspace" />
                             </ScrollViewer>
                             <local:MarkdownView x:Name="ExerciseNone" Visibility="Collapsed" AutomationProperties.Name="About this item's exercise" />
+                            <ScrollViewer x:Name="QuizScroll" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                                <local:QuizView x:Name="QuizPanel" AutomationProperties.Name="Questions" />
+                            </ScrollViewer>
                         </Grid>
                     </TabItem>
                     <TabItem x:Name="ReferenceTab" Header="Refere_nce" ToolTip="The symbols and rules this item uses (Ctrl+4)">

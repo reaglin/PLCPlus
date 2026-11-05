@@ -2,6 +2,7 @@
 id: plc.m2.and-or-not
 title: AND, OR and NOT
 minutes: 30
+quiz: quizzes/m2-and-or-not.json
 objectives: [plc.m2.o3]
 ---
 
@@ -23,5 +24,7 @@ A **truth table** lists every combination of the inputs and the result for each.
 [[truth-table: A OR B]]
 
 [[truth-table: NOT A]]
+
+**Try it:** the **Exercise** tab has three truth tables to fill in.
 
 In module 5 you will build each of these out of contacts: two contacts one after the other make AND, two side by side make OR, and a normally closed contact makes NOT.

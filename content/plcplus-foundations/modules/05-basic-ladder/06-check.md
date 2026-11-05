@@ -4,6 +4,7 @@ title: Module check
 kind: assess
 covers: [plc.m5.contacts-coils, plc.m5.seal-in, plc.m5.interlocks, plc.m5.set-reset, plc.m5.edges]
 minutes: 15
+quiz: quizzes/m5-check.json
 ---
 
 
@@ -11,4 +12,6 @@ minutes: 15
 
 This check covers the five exercises of module 5. Each is complete when its program passes every test on the Exercise tab.
 
-When all five pass, the module is complete. In a later version of PLC+, finishing the check makes a **progress report** to hand in: your name, your score on each exercise, and a picture of each program (spec 9).
+The check itself is eight questions, on the **Exercise** tab. Two of them are **find the fault**: a machine runs the working program, but one of its wires is faulty. Work the machine, watch the rungs, and say what is wrong. You need 80 % to pass, and you can try again.
+
+When all five exercises pass and you have passed the questions, the module is complete. In a later version of PLC+, finishing the check makes a **progress report** to hand in: your name, your score on each exercise, and a picture of each program (spec 9).

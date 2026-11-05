@@ -23,11 +23,13 @@ students can share one computer, each with a PIN-protected progress file they ca
 - **each item in four tabs:** **Learn** (the lesson), **Example** (a simulated machine running a working program, and a
   common mistake), **Exercise** (the learner writes the program and the software checks it) and **Reference** (the symbols
   and rules, to look up);
-- the learner's progress: ✓ complete, ◐ started, ○ not started, on every module and item;
+- the learner's progress: ✓ complete, ◐ started, ○ not started, on every module and item, and on each module's outcomes;
+- **the module checks** of modules 3 and 5: questions of five kinds, including machines with a faulty wire to diagnose
+  (the review site lists every question with its answer);
 - the PLC engine running ladder programs with power flow drawn live, six simulated machines, the ladder editor, and automatic
   checking with hints and a plain-words replay of what went wrong.
 
-**It does not have yet:** several learners with PIN-protected files, questions in the module checks, and the PDF reports.
+**It does not have yet:** several learners with PIN-protected files, and the PDF reports.
 Those come next, and your notes decide their shape.
 
 ## Running it
@@ -115,6 +117,9 @@ Please answer whichever you can. Short notes are fine.
 9. **The editor.** Is it quick enough to build a rung? What do your students reach for that is missing?
 10. **The drafts.** Read the Learn pages of modules 3 and 5. Is the wording right for your students? Is anything wrong, or
     taught in a way you would not teach it?
+11. **The module checks.** Modules 3 and 5 now end with questions (choices, a truth table, matching symbols, a number, and in
+    module 5 two machines with a faulty wire to diagnose). Are they the right questions? Is 80 % the right pass mark? A learner can
+    retry freely and a wrong answer does not show the right one; is that how you would want it?
 
 ## Sending your notes
 
