@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Learning.Core\Learning.Core.csproj" />
+    <ProjectReference Include="..\..\src\Learning.Reports.Pdf\Learning.Reports.Pdf.csproj" />
   </ItemGroup>
 
 </Project>

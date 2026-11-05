@@ -35,6 +35,11 @@ import and merge, required backups with reminders, the event log; My program and
 **Phase 7 (the dashboard) built 2026-11-05:** My progress at the top of the tree (path map ★ ✓ ↺ ◐ ○, module checks as submission
 points, review suggested, outcomes), totals and time on task above the tree, View ▸ text size per learner, Help on the web and Check
 for a new version; MVVM step 1 (CommunityToolkit.Mvvm; `src/Learning.Shell/ViewModels/ShellViewModel.cs` holds the window's state).
+**Phase 8 (reports) built 2026-11-05:** Hand in a report (the second row of the path): a signed, tagged PDF/A progress report per module
+check or of everything (`Learning.Core.Reports` makes the snapshot, the seal, the result line `PLC1|…` and the check;
+`src/Learning.Reports.Pdf` draws it with PDFsharp and QRCoder), My details for reports, Send to my instructor, the reports made, and
+File ▸ Check a report (for instructors) with class codes (D23). `PLCPLUS_SAVE_TO=<folder>` saves reports there without the Save
+dialog (captures only).
 
 ### Read these first
 
@@ -53,7 +58,8 @@ for a new version; MVVM step 1 (CommunityToolkit.Mvvm; `src/Learning.Shell/ViewM
 ```
 PLCPlus.slnx
 src/Learning.Core/       the shared learning engine; subject-neutral, NEVER references Plc.* (architecture test)
-src/Learning.Shell/      the WPF program, PLCPlus.exe (ViewModels/: the window's state, MVVM)
+src/Learning.Shell/      the WPF program, PLCPlus.exe (ViewModels/: the window's state, MVVM; ReportScreens.cs: hand in and check reports)
+src/Learning.Reports.Pdf/ the progress report as a tagged PDF/A (PDFsharp, QRCoder); subject-neutral like Learning.Core
 src/Plc.Engine/          program model (JSON), PlcRuntime (scan cycle), validator, instruction contract
 src/Plc.Dialects.Iec/    Generic IEC 61131-3 instructions
 src/Plc.Scenes/          simulated machines (JSON scenes, components)

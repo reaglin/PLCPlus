@@ -52,14 +52,27 @@ public static class Win {
         title = bestTitle; return best;
     }
 
-    /// A visible top-level window of the process whose title starts with the text (a dialog).
+    /// Every visible top-level window title of the process (to say what is there when a window step finds nothing).
+    public static string Titles(uint pid) {
+        var all = new List<string>();
+        EnumWindows((h, l) => {
+            uint p; GetWindowThreadProcessId(h, out p);
+            if (p != pid || !IsWindowVisible(h)) return true;
+            var sb = new StringBuilder(500); GetWindowText(h, sb, 500);
+            all.Add("'" + sb.ToString() + "'");
+            return true;
+        }, IntPtr.Zero);
+        return string.Join(", ", all);
+    }
+
+    /// A visible top-level window of the process whose title starts with the text, or contains it (a dialog).
     public static IntPtr ByTitle(uint pid, string start) {
         IntPtr found = IntPtr.Zero;
         EnumWindows((h, l) => {
             uint p; GetWindowThreadProcessId(h, out p);
             if (p != pid || !IsWindowVisible(h)) return true;
             var sb = new StringBuilder(500); GetWindowText(h, sb, 500);
-            if (sb.ToString().StartsWith(start)) { found = h; return false; }
+            if (sb.ToString().StartsWith(start) || sb.ToString().Contains(start)) { found = h; return false; }
             return true;
         }, IntPtr.Zero);
         return found;
@@ -110,16 +123,32 @@ if ($Invoke.Count -gt 0) {
         Start-Sleep -Milliseconds 700
     }
 }
-function Find-Named($name) {
+function Find-Named($name, $pattern = $null) {
     $c = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
-    return $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $c)
+    if (-not $pattern) { return $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $c) }
+    # Several elements can share a name (a label and its box in a Windows file dialog): the first that does the job.
+    foreach ($e in $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $c)) {
+        if (-not ($e.GetSupportedPatterns() -contains $pattern)) { continue }
+        if ($pattern -eq [System.Windows.Automation.ValuePattern]::Pattern -and $e.GetCurrentPattern($pattern).Current.IsReadOnly) { continue }
+        return $e
+    }
+    return $null
 }
 foreach ($step in $Steps) {
     $kind, $rest = $step -split ':', 2
     if ($kind -eq 'value') {
         $name, $text = $rest -split '=', 2
-        $el = Find-Named $name
-        if (-not $el) { Write-Output "NOT FOUND box '$name'"; continue }
+        $el = Find-Named $name ([System.Windows.Automation.ValuePattern]::Pattern)
+        if (-not $el) {
+            # Or by AutomationId: a Windows file dialog's file name box is 1001 ("value:1001=C:\pathile.pdf").
+            $idc = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty, $name)
+            foreach ($e in $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $idc)) { if ($e.GetSupportedPatterns() -contains [System.Windows.Automation.ValuePattern]::Pattern) { $el = $e; break } }
+        }
+        if (-not $el) {
+            $c = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
+            $seen = foreach ($e in $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, $c)) { "$($e.Current.ControlType.ProgrammaticName) [$(($e.GetSupportedPatterns() | ForEach-Object { $_.ProgrammaticName }) -join ' ')]" }
+            Write-Output "NOT FOUND box '$name' (named so: $($seen -join '; '))"; continue
+        }
         $el.SetFocus()
         $el.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($text)
         Start-Sleep -Milliseconds 200
@@ -161,7 +190,7 @@ foreach ($step in $Steps) {
         # window:Title switches the steps and the picture to the process's window whose title starts with Title (a dialog).
         Start-Sleep -Milliseconds 500
         $d = [Win]::ByTitle([uint]$proc.Id, $rest)
-        if ($d -eq [IntPtr]::Zero) { Write-Output "NOT FOUND window '$rest'"; continue }
+        if ($d -eq [IntPtr]::Zero) { Write-Output "NOT FOUND window '$rest' (windows: $([Win]::Titles([uint]$proc.Id)))"; continue }
         $h = $d; $title = $rest
         $root = [System.Windows.Automation.AutomationElement]::FromHandle($h)
         Write-Output "window '$rest'"
@@ -170,7 +199,7 @@ foreach ($step in $Steps) {
         $el = Find-Named $rest
         if ($el) { $el.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern).Toggle(); Write-Output "toggled '$rest'" } else { Write-Output "NOT FOUND toggle '$rest'" }
     } elseif ($kind -eq 'press') {
-        $el = Find-Named $rest
+        $el = Find-Named $rest ([System.Windows.Automation.InvokePattern]::Pattern)
         if ($el) { $el.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke(); Write-Output "pressed '$rest'" }
         else { Write-Output "NOT FOUND '$rest'" }
     }

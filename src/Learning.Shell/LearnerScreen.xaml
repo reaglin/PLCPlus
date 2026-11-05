@@ -91,6 +91,8 @@
                             ToolTip="Opens the folder in File Explorer. An instructor can remove the file of a student who has left (the file name is in Remove's tooltip), with PLC+ closed" />
                     <Button Content="_Settings…" Click="Settings_Click" Margin="0,0,8,8"
                             ToolTip="Where learners' files are kept, and when PLC+ locks itself. For everyone on this computer" />
+                    <Button Content="_Check a report (for instructors)…" Click="CheckReport_Click" Margin="0,0,8,8"
+                            ToolTip="For instructors: checks that a learner's PLC+ progress report (PDF) or result line is genuine and was not changed, and makes a class code. No learner needs to sign in" />
                     <Button Content="A_bout PLC+…" Click="About_Click" Margin="0,0,8,8" ToolTip="Who made PLC+, its version, and where to find more" />
                     <Button Content="E_xit" Click="Exit_Click" Margin="0,0,8,8" ToolTip="Closes PLC+" />
                 </WrapPanel>

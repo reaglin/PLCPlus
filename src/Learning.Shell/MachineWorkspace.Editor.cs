@@ -34,6 +34,9 @@ public partial class MachineWorkspace
 
     private string WorkKey => _current?.Challenge.Id ?? "program";
 
+    /// <summary>The program on screen as it was last run or checked (its fingerprint is the attempt's), for a report's program evidence.</summary>
+    public string ProgramJson => _programJson;
+
     // ---- Entering and leaving the editor ------------------------------------------------------------
 
     private void EnterEditor()
@@ -662,6 +665,26 @@ internal static class LadderPrinter
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
         using var stream = File.Create(path);
         encoder.Save(stream);
+    }
+
+    /// <summary>The same picture as PNG bytes, on white with no transparency (PDF/A), for a report's program evidence (plan 8.3).</summary>
+    public static byte[] Png(PlcProject project)
+    {
+        var canvas = new Canvas { Background = Brushes.White };
+        new LadderView(canvas).Show(project);
+        var panel = new Border { Background = Brushes.White, Padding = new Thickness(8), Child = canvas };
+        panel.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        panel.Arrange(new Rect(panel.DesiredSize));
+        panel.UpdateLayout();
+        const double dpi = 192;
+        var bitmap = new RenderTargetBitmap(
+            (int)Math.Ceiling(panel.ActualWidth * dpi / 96), (int)Math.Ceiling(panel.ActualHeight * dpi / 96), dpi, dpi, PixelFormats.Pbgra32);
+        bitmap.Render(panel);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(new FormatConvertedBitmap(bitmap, PixelFormats.Bgr24, null, 0)));
+        using var stream = new MemoryStream();
+        encoder.Save(stream);
+        return stream.ToArray();
     }
 }
 

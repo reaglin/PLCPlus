@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Learning.Core\Learning.Core.csproj" />
+    <ProjectReference Include="..\Learning.Reports.Pdf\Learning.Reports.Pdf.csproj" />
     <ProjectReference Include="..\Plc.Engine\Plc.Engine.csproj" />
     <ProjectReference Include="..\Plc.Dialects.Iec\Plc.Dialects.Iec.csproj" />
     <ProjectReference Include="..\Plc.Scenes\Plc.Scenes.csproj" />

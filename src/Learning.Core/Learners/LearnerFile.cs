@@ -32,6 +32,8 @@ public sealed class LearnerData
     public string? BackupFolder { get; set; }
     /// <summary>The learner's own settings, such as the text size, so they follow the learner to any computer.</summary>
     public Dictionary<string, string> Preferences { get; init; } = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>What the learner typed for their report's cover (plan 8.4a): only the name is required, and it is the profile's.</summary>
+    public Reports.ReportDetails? ReportDetails { get; set; }
 
     /// <summary>The learner has done something since the last backup (plan 6.10).</summary>
     [JsonIgnore]
@@ -52,6 +54,7 @@ public sealed class LearnerData
             LastBackup = mine.LastBackup is null ? theirs.LastBackup : theirs.LastBackup is null ? mine.LastBackup
                 : mine.LastBackup > theirs.LastBackup ? mine.LastBackup : theirs.LastBackup,
             BackupFolder = mine.BackupFolder ?? theirs.BackupFolder,
+            ReportDetails = mine.ReportDetails ?? theirs.ReportDetails,
         };
         foreach (var (key, value) in theirs.Preferences.Concat(mine.Preferences)) merged.Preferences[key] = value; // mine win
         foreach (var (key, work) in mine.Work.Concat(theirs.Work))

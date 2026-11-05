@@ -14,6 +14,7 @@
         <KeyBinding Key="PageDown" Modifiers="Ctrl+Shift" Command="{Binding NextCommand}" />
         <KeyBinding Key="PageUp" Modifiers="Ctrl+Shift" Command="{Binding PreviousCommand}" />
         <KeyBinding Key="Home" Modifiers="Ctrl+Shift" Command="{Binding ShowDashboardCommand}" />
+        <KeyBinding Key="R" Modifiers="Ctrl+Shift" Command="{Binding ShowReportsCommand}" />
         <KeyBinding Key="OemPlus" Modifiers="Ctrl" Command="{x:Static local:MainWindow.TextLarger}" />
         <KeyBinding Key="OemPlus" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.TextLarger}" />
         <KeyBinding Key="Add" Modifiers="Ctrl" Command="{x:Static local:MainWindow.TextLarger}" />
@@ -55,6 +56,9 @@
                 <MenuItem x:Name="SavePictureItem" Header="Save the program as a _picture…" Click="SavePicture_Click"
                           ToolTip="Saves the rungs on the Example or Exercise tab as a picture (PNG), for a report or a handout" />
                 <Separator />
+                <MenuItem Header="_Check a report (for instructors)…" Click="CheckReport_Click"
+                          ToolTip="For instructors: checks that a PLC+ progress report (PDF) or result line is genuine and was not changed, and makes a class code" />
+                <Separator />
                 <MenuItem Header="E_xit" Click="Exit_Click" ToolTip="Closes PLC+. Your progress and My program are saved in your progress file first." />
             </MenuItem>
             <MenuItem Header="_Learner">
@@ -68,6 +72,8 @@
             <MenuItem Header="_Go">
                 <MenuItem Header="_My progress" InputGestureText="Ctrl+Shift+Home" Command="{Binding ShowDashboardCommand}"
                           ToolTip="Your progress through the whole path: each module, the module checks, outcomes to review, and your time in PLC+" />
+                <MenuItem Header="_Hand in a report" InputGestureText="Ctrl+Shift+R" Command="{Binding ShowReportsCommand}"
+                          ToolTip="Make a progress report (a PDF) for a module check, or of everything so far, and hand it in to your instructor" />
                 <MenuItem Header="_Continue where I left off" Command="{Binding ContinueWhereILeftOffCommand}"
                           ToolTip="Opens the first item in the path you have not completed yet" />
                 <MenuItem Header="_Next item" InputGestureText="Ctrl+Shift+PgDn" Command="{Binding NextCommand}" ToolTipService.ShowOnDisabled="True"
@@ -138,7 +144,11 @@
                     </TextBlock>
                     <TextBlock Text="Your progress" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Kept in your own file, locked with your PIN. Go ▸ My progress (Ctrl+Shift+Home, or the top of the path) shows each module, the module checks, outcomes to review and your time. Back it up (top right) to a USB drive or a cloud folder. Later versions make a progress report to hand in.
+                        Kept in your own file, locked with your PIN. Go ▸ My progress (Ctrl+Shift+Home, or the top of the path) shows each module, the module checks, outcomes to review and your time. Back it up (top right) to a USB drive or a cloud folder.
+                    </TextBlock>
+                    <TextBlock Text="Handing in a report" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Style="{StaticResource Lead}">
+                        At each module check, make a progress report: Hand in a report (the second row of the path, or Ctrl+Shift+R). PLC+ saves it as a signed PDF; you hand it in the way your instructor asks, usually by uploading it to the assignment. PLC+ never sends anything itself.
                     </TextBlock>
                     <Button Content="Hide help" HorizontalAlignment="Left" Click="Help_Executed" Margin="0,8,0,0"
                             ToolTip="Hides this panel. Press F1 or use Help ▸ Help for this screen to show it again." />
@@ -215,6 +225,15 @@
                 <local:MarkdownView x:Name="DashboardView" AutomationProperties.Name="My progress: your totals, what to review, the module checks, the path and your outcomes" />
             </DockPanel>
 
+            <!-- Hand in a report (plan 8.2–8.7) -->
+            <DockPanel x:Name="ReportsPage" Grid.Column="2" Margin="18,12,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
+                <StackPanel DockPanel.Dock="Top">
+                    <TextBlock x:Name="ReportsTitle" Text="Hand in a progress report" Style="{StaticResource SectionTitle}" AutomationProperties.HeadingLevel="Level1" TextWrapping="Wrap" />
+                    <TextBlock Style="{StaticResource Lead}" Text="PLC+ makes your report as a PDF: your name, your scores, the tests, your outcomes and your programs. It is signed (a hidden seal shows it was not changed afterwards). You save it, and hand in that file the way your instructor asks (usually by uploading it to an assignment). PLC+ never sends anything itself." />
+                </StackPanel>
+                <local:ReportsView x:Name="ReportsPanel" />
+            </DockPanel>
+
             <!-- A module's first page -->
             <DockPanel x:Name="ModulePage" Grid.Column="2" Margin="18,12,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
                 <StackPanel DockPanel.Dock="Top">
@@ -232,6 +251,8 @@
             <DockPanel x:Name="ItemPage" Grid.Column="2" Margin="18,10,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
                 <DockPanel DockPanel.Dock="Top">
                     <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Top">
+                        <Button x:Name="HandInButton" Content="Hand in a _report…" Click="HandIn_Click" Visibility="Collapsed"
+                                ToolTip="Make a progress report for this module check, to hand in to your instructor (you can make one before the check is complete: it is marked Incomplete)" />
                         <Button x:Name="PreviousButton" Content="◂ Previous" Command="{Binding PreviousCommand}" ToolTipService.ShowOnDisabled="True" ToolTip="The item before this one (Ctrl+Shift+PgUp)" />
                         <Button x:Name="NextButton" Content="Next ▸" Command="{Binding NextCommand}" ToolTipService.ShowOnDisabled="True" Margin="0" ToolTip="The next item in the path (Ctrl+Shift+PgDn)" />
                     </WrapPanel>

@@ -81,7 +81,22 @@ public partial class MainWindow : Window
                     ?.RaiseAutomationEvent(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged);
             else if (e.PropertyName == nameof(ShellViewModel.TextScale)) FitToTextSize();
         };
-        _vm.PageFocusRequested += () => Dispatcher.BeginInvoke(DispatcherPriority.Input, () => DashboardView.Focus());
+        _vm.PageFocusRequested += () => Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+        {
+            if (ReportsPage.IsVisible) ReportsPanel.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+            else DashboardView.Focus();
+        });
+
+        // Hand in a report (phase 8): the page draws PLC+ programs as ladder pictures for the report's program evidence.
+        ReportsPanel.Package = _package;
+        ReportsPanel.Session = () => _session;
+        ReportsPanel.Save = () => { SaveProgress(); _vm.Refresh(); };
+        ReportsPanel.Status = SetStatus;
+        ReportsPanel.Picture = evidence =>
+        {
+            try { return LadderPrinter.Png(Plc.Engine.ProjectJson.Deserialize(evidence.Program)); }
+            catch (Exception ex) when (ex is JsonException or InvalidOperationException or ArgumentException) { return null; }
+        };
 
         // My program on the Exercise tab is kept in the learner's own file, not in a folder classmates share.
         foreach (var ws in new[] { ExampleWorkspace, ExerciseWorkspace })
@@ -261,6 +276,7 @@ public partial class MainWindow : Window
     {
         if (e.NewValue is not PathNode node) return;
         if (node.IsDashboard) ShowDashboard();
+        else if (node.IsReports) ShowReports();
         else if (node.Item is { } item) ShowItem(item);
         else ShowModule(node.Module!);
     }
@@ -275,7 +291,7 @@ public partial class MainWindow : Window
         _module = null;
         _vm.CurrentItem = null;
         _vm.CurrentModule = null;
-        ItemPage.Visibility = ModulePage.Visibility = Visibility.Collapsed;
+        ItemPage.Visibility = ModulePage.Visibility = ReportsPage.Visibility = Visibility.Collapsed;
         DashboardPage.Visibility = Visibility.Visible;
         _vm.Refresh();
         DashboardTitle.Text = $"My progress · {_session?.Data.Profile.DisplayName}";
@@ -286,6 +302,37 @@ public partial class MainWindow : Window
         ShowScreenHelp();
         SetStatus("My progress: each module, the module checks, outcomes to review, and your time. Choose a module or an item on the left to work on it.");
     }
+
+    // ---- Hand in a report (plan 8.2–8.7) ------------------------------------------------------------------
+
+    /// <summary>The submission point to choose when the page opens from a module check's button.</summary>
+    private string? _reportPoint;
+
+    private void ShowReports()
+    {
+        ExerciseWorkspace.CommitPendingEdit();
+        QuizPanel.Remember();
+        _item = null;
+        _module = null;
+        _vm.CurrentItem = null;
+        _vm.CurrentModule = null;
+        ItemPage.Visibility = ModulePage.Visibility = DashboardPage.Visibility = Visibility.Collapsed;
+        ReportsPage.Visibility = Visibility.Visible;
+        _vm.Refresh();
+        ReportsPanel.Show(_reportPoint);
+        _reportPoint = null;
+        ShowScreenHelp();
+        SetStatus("Hand in a report: choose a module check (or everything so far), check what the report will say, then press Save the PDF report. Hand the PDF in the way your instructor asks.");
+    }
+
+    private void HandIn_Click(object sender, RoutedEventArgs e)
+    {
+        if (_item is not { Kind: ItemKind.Assess } check) return;
+        _reportPoint = check.Id;
+        _vm.ShowReportsCommand.Execute(null);
+    }
+
+    private void CheckReport_Click(object sender, RoutedEventArgs e) => new VerifyWindow(this).ShowDialog();
 
     // ---- A module's first page -------------------------------------------------------------------------
 
@@ -298,7 +345,7 @@ public partial class MainWindow : Window
         _vm.CurrentItem = null;
         _vm.CurrentModule = m;
         ShowScreenHelp();
-        ItemPage.Visibility = DashboardPage.Visibility = Visibility.Collapsed;
+        ItemPage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = Visibility.Collapsed;
         ModulePage.Visibility = Visibility.Visible;
 
         var p = _progress.Of(m);
@@ -390,8 +437,9 @@ public partial class MainWindow : Window
         _module = item.Module;
         _vm.CurrentItem = item;
         _vm.CurrentModule = item.Module;
-        ModulePage.Visibility = DashboardPage.Visibility = Visibility.Collapsed;
+        ModulePage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = Visibility.Collapsed;
         ItemPage.Visibility = Visibility.Visible;
+        HandInButton.Visibility = item.Kind == ItemKind.Assess ? Visibility.Visible : Visibility.Collapsed;
 
         _progress.Opened(_package, item, DateTimeOffset.Now);
         if (_session is not null && _openedThisSession.Add(item.Id)) _progress.Log(EventKinds.Opened, item.Id, $"Opened {item}.", DateTimeOffset.Now);
@@ -496,7 +544,7 @@ public partial class MainWindow : Window
         md.AppendLine().AppendLine(_progress.StateOf(item) == ItemState.Complete
             ? "Every item is complete: so is this module check. ✓"
             : "When every item above is complete, so is this module check.");
-        md.AppendLine().AppendLine("*In a later version of PLC+, finishing the check makes a progress report to hand in to your instructor: your name, your scores and your programs.*");
+        md.AppendLine().AppendLine("**To hand in your work:** press **Hand in a report…** (top right) to make this check's progress report: your name, your scores, the tests and your programs, as a PDF to hand in to your instructor.");
         return md.ToString();
     }
 
@@ -569,6 +617,9 @@ public partial class MainWindow : Window
         if (_item is null || !string.Equals(_item.Exercise, outcome.ChallengeId, StringComparison.OrdinalIgnoreCase)) return;
         var wasComplete = _progress.StateOf(_item) == ItemState.Complete;
         _progress.Record(_item, outcome, DateTimeOffset.Now, hintsShown, Environment.MachineName);
+        // The program that passed is kept, so a report can show it even after My program changes (plan 8.3, program evidence).
+        if (outcome.Passed && _session is not null && WorkHash.Of(ExerciseWorkspace.ProgramJson) == outcome.WorkHash)
+            _session.Data.Work[Learning.Core.Reports.ReportBuilder.PassedWorkKey(outcome.ChallengeId)] = new SavedWork { Content = ExerciseWorkspace.ProgramJson, Saved = DateTimeOffset.Now };
         if (outcome.Passed && !wasComplete) Completed($"Every test passed: {_item.Number} is complete.");
         else
         {
@@ -593,7 +644,10 @@ public partial class MainWindow : Window
         // A module check complete is a submission point: the time to make sure there is a backup (plan 6.10).
         var check = module.Items.FirstOrDefault(i => i.Kind == ItemKind.Assess);
         if (check is not null && _progress.StateOf(check) == ItemState.Complete && (_item == check || check.Covers.Contains(_item.Id, StringComparer.OrdinalIgnoreCase)))
+        {
+            SetStatus(_vm.Status + $" The module {module.Number} check is complete: your report is ready to hand in (Go ▸ Hand in a report, Ctrl+Shift+R).");
             Dispatcher.BeginInvoke(DispatcherPriority.Background, () => OfferBackup($"Module {module.Number} is complete", leaving: false));
+        }
     }
 
     private void SaveProgress() => _vm.Save();
@@ -679,8 +733,10 @@ public partial class MainWindow : Window
     /// <summary>The help panel's first part says what the screen showing now is for (checklist: local help).</summary>
     private void ShowScreenHelp()
     {
-        (HelpScreenTitle.Text, HelpScreenText.Text) = DashboardPage.Visibility == Visibility.Visible
-            ? ("This screen: My progress", "Your progress through the whole path. ★ mastered, ✓ complete, ↺ review suggested, ◐ in progress, ○ not started. Review suggested lists what to read again. The module checks are where progress reports will be made. Time counts while you use PLC+.")
+        (HelpScreenTitle.Text, HelpScreenText.Text) = ReportsPage.Visibility == Visibility.Visible
+            ? ("This screen: Hand in a report", "1. Choose a module check, or everything so far. 2. Check what the report will say; My details for reports adds your student ID, course and class code to the cover. 3. Save the PDF report, and hand in that file as it is, the way your instructor asks; do not save it again in another program. The result line is a one-line summary of the report your instructor can check: copy it if they ask for it. A report made before the check is complete is marked Incomplete. Every report you make is listed at the bottom.")
+            : DashboardPage.Visibility == Visibility.Visible
+            ? ("This screen: My progress", "Your progress through the whole path. ★ mastered, ✓ complete, ↺ review suggested, ◐ in progress, ○ not started. Review suggested lists what to read again. At a module check, make a report to hand in: Hand in a report, the next row on the left. Time counts while you use PLC+.")
             : _item is null
             ? ("This screen: a module", "A module's first page: what to finish first, what you will be able to do, its topics and its items. Press the button under the title to start, or choose an item on the left.")
             : ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible

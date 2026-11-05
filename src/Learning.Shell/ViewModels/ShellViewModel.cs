@@ -31,6 +31,8 @@ public sealed partial class ShellViewModel : ObservableObject
         _order = [.. package.AllItems];
         Dashboard = new PathNode { IsDashboard = true, Weight = FontWeights.SemiBold };
         Roots.Add(Dashboard);
+        Reports = new PathNode { IsReports = true, Weight = FontWeights.SemiBold };
+        Roots.Add(Reports);
         foreach (var m in package.Modules)
         {
             var node = new PathNode { Module = m };
@@ -49,6 +51,7 @@ public sealed partial class ShellViewModel : ObservableObject
 
     public ObservableCollection<PathNode> Roots { get; } = [];
     public PathNode Dashboard { get; }
+    public PathNode Reports { get; }
 
     /// <summary>The item on screen (the window sets it), so time on task goes to the right item.</summary>
     [ObservableProperty]
@@ -121,6 +124,7 @@ public sealed partial class ShellViewModel : ObservableObject
         PreviousCommand.NotifyCanExecuteChanged();
         ContinueWhereILeftOffCommand.NotifyCanExecuteChanged();
         ShowDashboardCommand.NotifyCanExecuteChanged();
+        ShowReportsCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>Saves the learner's file. A problem goes on the status line, in words.</summary>
@@ -188,6 +192,17 @@ public sealed partial class ShellViewModel : ObservableObject
                            (review > 0 ? $" · {review} to review" : "");
         Dashboard.SpokenName = "My progress: " + Dashboard.Detail;
         Dashboard.Tip = "Your progress through the whole path: each module, the module checks, outcomes to review, and your time in PLC+";
+
+        var ready = summary.Submissions.Count(s => s.State == SubmissionState.Ready);
+        var made = Progress.Submissions.Count;
+        Reports.Header = "Hand in a report";
+        Reports.Mark = "✉";
+        Reports.MarkBrush = ready > 0 ? started : muted;
+        Reports.Detail = ready > 0 ? $"{ready} module check{(ready == 1 ? "" : "s")} ready to hand in"
+            : made > 0 ? $"{made} report{(made == 1 ? "" : "s")} made"
+            : "A PDF report for your instructor";
+        Reports.SpokenName = "Hand in a report: " + Reports.Detail;
+        Reports.Tip = "Make a progress report (a PDF) for a module check, or of everything so far, and hand it in to your instructor";
 
         foreach (var node in Roots.Where(r => r.Module is not null))
         {
@@ -337,6 +352,14 @@ public sealed partial class ShellViewModel : ObservableObject
         PageFocusRequested?.Invoke(); // from the menu or Ctrl+Shift+Home: the reader moves to the page
     }
 
+    [RelayCommand(CanExecute = nameof(SignedIn))]
+    private void ShowReports()
+    {
+        Reports.IsSelected = false;
+        Reports.IsSelected = true;
+        PageFocusRequested?.Invoke();
+    }
+
     /// <summary>A command opened a page: the window puts the keyboard (and a screen reader) on it.</summary>
     public event Action? PageFocusRequested;
 
@@ -368,12 +391,12 @@ public sealed partial class ShellViewModel : ObservableObject
         if (d.ReviewSuggested.Count > 0) md.AppendLine();
 
         md.AppendLine("## Module checks (where reports are made)").AppendLine();
-        md.AppendLine("Each module ends with a module check. When it is complete, that is where a progress report will be made, to hand in to your instructor. **Reports come in a later version of this preview: there is nothing to hand in yet.**").AppendLine();
+        md.AppendLine("Each module ends with a module check. When it is complete, make a progress report there and hand it in to your instructor: **Hand in a report**, the second row on the left (Go ▸ Hand in a report, Ctrl+Shift+R).").AppendLine();
         md.AppendLine("| Module check | Where you are |").AppendLine("|---|---|");
         foreach (var s in d.Submissions)
-            md.AppendLine($"| {s.Check} | {s.State switch { SubmissionState.Generated => "✓ ", SubmissionState.Ready => "● ", _ => "○ " }}{(s.State == SubmissionState.Ready ? "Complete: this is where your report will be made (reports come in a later preview)" : s.Detail)} |");
+            md.AppendLine($"| {s.Check} | {s.State switch { SubmissionState.Generated => "✓ ", SubmissionState.Ready => "● ", _ => "○ " }}{(s.State == SubmissionState.Ready ? "Complete: ready to hand in" : s.Detail)} |");
         md.AppendLine();
-        md.AppendLine("*○ not reached yet. ● module check complete. ✓ report made.*").AppendLine();
+        md.AppendLine("*○ not reached yet. ● module check complete: ready to hand in. ✓ report made.*").AppendLine();
 
         md.AppendLine("## The path").AppendLine();
         md.AppendLine("| Module | Where you are | Items | Time |").AppendLine("|---|---|---|---|");

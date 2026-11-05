@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Learning.Core/Learning.Core.csproj" />
+    <Project Path="src/Learning.Reports.Pdf/Learning.Reports.Pdf.csproj" />
     <Project Path="src/Learning.Shell/Learning.Shell.csproj" />
     <Project Path="src/Plc.Engine/Plc.Engine.csproj" />
     <Project Path="src/Plc.Dialects.Iec/Plc.Dialects.Iec.csproj" />

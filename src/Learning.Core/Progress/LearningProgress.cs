@@ -16,7 +16,7 @@ public sealed record ModuleProgress(ModuleState State, int Complete, int Total);
 /// learner had been shown, the computer it ran on, and for a quiz which questions were right.
 /// </summary>
 public sealed record Attempt(string ItemId, string ChallengeId, DateTimeOffset At, double Score, double MaxScore, bool Passed, string WorkHash,
-    int HintsShown = 0, string? Machine = null, Dictionary<string, bool>? Questions = null, string? Id = null)
+    int HintsShown = 0, string? Machine = null, Dictionary<string, bool>? Questions = null, string? Id = null, List<TestResult>? Tests = null)
 {
     /// <summary>The attempt's unique ID, so two copies of a progress file merge without losing or doubling one (spec 8.3).
     /// Attempts saved before IDs existed get one made from what they hold.</summary>
@@ -49,6 +49,7 @@ public static class EventKinds
     public const string PinChanged = "pin-changed";
     public const string PinReset = "pin-reset";
     public const string Created = "created";
+    public const string Reported = "reported";
 }
 
 /// <summary>
@@ -67,8 +68,18 @@ public sealed class StudySession
     public Dictionary<string, double> Items { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
-/// <summary>A report made at a submission point (spec 8.4, SubmissionRecord). Phase 8 makes them; the dashboard shows them.</summary>
-public sealed record SubmissionRecord(string PointId, string ReportId, DateTimeOffset Generated, string ReportHash);
+/// <summary>One test of an exercise, as a report shows it: a hidden test is named "Hidden test N", not by what it checks (D9).</summary>
+public sealed record TestResult(string Name, bool Passed);
+
+/// <summary>
+/// A report made at a submission point (spec 8.4, SubmissionRecord): its ID, when, the SHA-256 of the saved file, whether the
+/// work was complete, and the result line that went with it. <see cref="PointId"/> is <see cref="FullReport"/> for a report of everything.
+/// </summary>
+public sealed record SubmissionRecord(string PointId, string ReportId, DateTimeOffset Generated, string ReportHash,
+    bool? Complete = null, string? Title = null, string? ResultLine = null, string? FileName = null)
+{
+    public const string FullReport = "full";
+}
 
 public sealed class ItemRecord
 {
@@ -203,8 +214,12 @@ public sealed class LearningProgress
     public void Record(LearningItem item, ChallengeOutcome outcome, DateTimeOffset now, int hintsShown = 0, string? machine = null)
     {
         var questions = item.Quiz is null ? null : outcome.Scenarios.ToDictionary(s => s.Name, s => s.Passed, StringComparer.OrdinalIgnoreCase);
+        // The tests' results go in the report (spec 9.2). A hidden test is not named by what it checks (D9).
+        var hidden = 0;
+        var tests = item.Quiz is not null ? null
+            : outcome.Scenarios.Select(s => new TestResult(s.Hidden ? $"Hidden test {++hidden}" : s.Name, s.Passed)).ToList();
         Attempts.Add(new Attempt(item.Id, outcome.ChallengeId, now, outcome.Score, outcome.MaxScore, outcome.Passed, outcome.WorkHash,
-            hintsShown, machine, questions, Guid.NewGuid().ToString("N")));
+            hintsShown, machine, questions, Guid.NewGuid().ToString("N"), tests));
         LastChanged = now;
         var record = Items.TryGetValue(item.Id, out var r) ? r : Items[item.Id] = new ItemRecord { FirstOpened = now, LastOpened = now };
         Log(EventKinds.Attempted, item.Id, $"{(outcome.Passed ? "Passed" : "Did not pass")}: {outcome.Score:0.#} of {outcome.MaxScore:0.#}.", now);

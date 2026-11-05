@@ -46,7 +46,7 @@ public static class Dashboard
             var detail = state switch
             {
                 SubmissionState.Generated => $"Report made {latest!.Generated.ToLocalTime().ToString("ddd d MMM yyyy", CultureInfo.CurrentCulture)}",
-                SubmissionState.Ready => "Reached: the module check is complete",
+                SubmissionState.Ready => "Complete: ready to hand in",
                 _ => $"{done} of {check.Covers.Count} items done" + (check.Quiz is null ? "" : questionsPassed ? ", questions passed" : ", questions not passed yet"),
             };
             submissions.Add(new SubmissionPoint(check, state, detail, latest));

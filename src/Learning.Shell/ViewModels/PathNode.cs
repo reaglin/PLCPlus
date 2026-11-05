@@ -6,11 +6,13 @@ using Learning.Core.Content;
 
 namespace Learning.Shell.ViewModels;
 
-/// <summary>A row of the learning path's tree: My progress, a module, or an item.</summary>
+/// <summary>A row of the learning path's tree: My progress, Hand in a report, a module, or an item.</summary>
 public sealed partial class PathNode : ObservableObject
 {
     /// <summary>The "My progress" row at the top of the tree (Ron, 2026-11-05).</summary>
     public bool IsDashboard { get; init; }
+    /// <summary>The "Hand in a report" row, under My progress (plan 8.2).</summary>
+    public bool IsReports { get; init; }
     public LearningModule? Module { get; init; }
     public LearningItem? Item { get; init; }
     public PathNode? Parent { get; init; }

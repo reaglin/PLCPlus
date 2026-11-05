@@ -401,6 +401,8 @@ public partial class LearnerScreen : UserControl
 
     private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = Owner }.ShowDialog();
 
+    private void CheckReport_Click(object sender, RoutedEventArgs e) => new VerifyWindow(Owner).ShowDialog();
+
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
     {
         try

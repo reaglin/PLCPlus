@@ -13,6 +13,25 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 8 — reports: make one, hand it in, check it (plan 8.1–8.8), 2026-11-05
+
+Use a learner with module 3 finished (hand-test 7.4 makes one), or finish it first.
+
+| # | Do this | You should see |
+|---|---|---|
+| 8.1 | Sign in. Look at the path | A second row under My progress: **✉ Hand in a report**, "1 module check ready to hand in". My progress, Module checks: module 3 "● Complete: ready to hand in" |
+| 8.2 | Choose **Hand in a report** (or Ctrl+Shift+R) | 1. the module checks and **Everything so far**, module 3 chosen; 2. the card: "✓ Complete: ready to hand in", your name, overall score, items, outcomes, time, "On the cover: your name, no class code"; the help on the right says the three steps |
+| 8.3 | Press **Save the PDF report…** | First **My details for reports**: every box optional. Type a student ID, a course and the class code `7K3M-9QX2-4F2A-BD30` (try it in lower case, with spaces: it is accepted). Then **Continue** (Cancel says no report was made). A Save window follows, with the name `PLCPlus_<YourLastName>_Module3Check_<today>.pdf`: save it on the desktop |
+| 8.4 | Look at section **3. Hand it in** | The report's ID and where it was saved; why not to save the PDF again; what the result line is, and the line starting `PLC1|`; **Copy the result line**, **Send to my instructor…**, **Show the file in its folder**. The report is listed under **Reports you have made**; the tree row now says ✓ report made |
+| 8.5 | Open the PDF | Page 1: "PLC+ progress report", the green **Complete** box, your details, the report ID. Then the summary, the exercise detail with each item's tests, the outcomes, and **Verification** with a QR code. In a reader with a "Read aloud" or tag view, the headings and tables are read in order |
+| 8.6 | Choose **Module 5 check** (not finished), press **Save the PDF report (marked Incomplete)…** | PLC+ asks first: **Make it, marked Incomplete** / Not now. Make it: the PDF says **Incomplete** in an amber box and lists what is missing. Any exercise you passed is shown as a picture of your program |
+| 8.7 | Press **Send to my instructor…** | Your e-mail program opens with the result line in the message, and the folder with the PDF opens beside it, to drag it in. Nothing is sent until you press Send in your e-mail program (close it without sending) |
+| 8.8 | **File ▸ Check a report (for instructors)…** Choose the module 3 PDF, paste its result line, type the class code, press **Check** | "✓ THE REPORT IS GENUINE … signed with your class code", what the report says, and "✓ THE RESULT LINE IS GENUINE" |
+| 8.9 | Change one thing and check again: a digit of the score in the line; then open the PDF in Edge, add a comment or highlight, save it, and check that file | "✗ THE RESULT LINE DOES NOT CHECK OUT"; for the edited PDF "✗ THE REPORT WAS CHANGED", with what it said when it was made |
+| 8.10 | **Switch learner**, then on the start screen press **Check a report (for instructors)…**, then **Make a new class code** | It works without signing in; a new code appears under the button, copied, with how to give it to a class; the class code box is not changed |
+
+---
+
 ## Hand-test 7 — My progress, time, text size and Help (plan 7.1–7.7), 2026-11-05
 
 | # | Do this | You should see |
