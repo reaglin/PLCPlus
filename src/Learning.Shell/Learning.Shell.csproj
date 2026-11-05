@@ -9,6 +9,8 @@
     <RootNamespace>Learning.Shell</RootNamespace>
     <!-- Declares PerMonitorV2; without it the app is not DPI aware and WACK warns. -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- The rung with the "+" as its coil; drawn by packaging/make-store-assets.ps1 (plan 12.1). -->
+    <ApplicationIcon>PLCPlus.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

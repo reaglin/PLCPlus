@@ -51,7 +51,12 @@ Example or Exercise in its own resizable modal window. The validator enforces D2
 374 tests.
 **Phase 11 (the release gate) built 2026-11-05:** a full UX sweep of every screen fixed; "preview" gone (title PLC+, version 1.0.0 in
 `Directory.Build.props`); Help ▸ Testing guide and feedback, and the start screen's part for instructors; the round manual test at the
-top of `docs/MANUAL-TESTING.md`. 375 tests. The links to softwareplus.ai/plcplus/testing and /privacy need those pages (phase 12).
+top of `docs/MANUAL-TESTING.md`. 375 tests.
+**Phase 12 (the Store) built 2026-11-05:** the icon (a ladder rung, the amber "+" as its coil), the MSIX scripts from Author+
+(`packaging/`), the release documents (`docs/release/STORE-SUBMISSION.md`, `LAB-INSTALL.md`), screenshots (`store/`), About's Store
+line (shown once `StoreUpdates.StorePage` has the Store ID), and on softwareplus.ai the privacy policy, the instructors' testing guide
+(`/plcplus/testing/`) and the review site without the zip. ⚠️ Waits for Ron: the Package/Identity/Name and Store ID from Partner
+Center, WACK, then the submission (hidden, direct link).
 
 **The goal now (Ron, 2026-11-05, D24): the instructors' release.** PLC+ 1.0 on the Microsoft Store, hidden (direct link only), for
 the PLC instructors who give feedback; modules 1–8 and 11 written; a testing guide at softwareplus.ai/plcplus/testing/. Plan phases
@@ -89,10 +94,15 @@ tools/make-phase2-content.py  wrote the six scenes, challenges and example progr
 tests/Learning.Core.Tests/     architecture rule
 tests/Plc.Editors.Tests/       the editor, including building a program and passing a challenge
 tools/capture-window.ps1 photographs the window (PrintWindow) and presses buttons by UI Automation
+packaging/               AppxManifest.xml, pack.ps1, make-msixupload.ps1, run-wack.ps1, make-store-assets.ps1 (from Author+)
+store/                   images/ (listing art, drawn by make-store-assets.ps1), screenshots/ (seven, 1424 × 836)
+docs/release/            STORE-SUBMISSION.md (Partner Center field by field), LAB-INSTALL.md
 ```
 
 **Build and test:** `dotnet build PLCPlus.slnx`, then `dotnet test` each of `tests/Plc.Engine.Tests`, `tests/Plc.Editors.Tests`, `tests/Learning.Core.Tests`.
-**The review build** for instructors (self-contained, gitignored `review\`): `dotnet publish src/Learning.Shell/Learning.Shell.csproj -c Release
+**The Store package:** `.\packaging\make-msixupload.ps1` (add `-IdentityName … -Publisher … -VerifyFamilyName` for the real one), then
+`.\packaging\run-wack.ps1` (administrator); see `docs/release/STORE-SUBMISSION.md`.
+**The old review build** (no longer offered; 1.0 comes from the Store) (self-contained, gitignored `review\`): `dotnet publish src/Learning.Shell/Learning.Shell.csproj -c Release
 -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 -p:EnableCompressionInSingleFile=true -p:DebugType=none -o review/PLCPlus-preview`, copy `docs/INSTRUCTOR-REVIEW.md` in, and zip it.
 

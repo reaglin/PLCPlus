@@ -24,10 +24,15 @@
             </StackPanel>
         </DockPanel>
 
-        <!-- Links (portfolio rules): the program's page and all the programs. The Store link comes with a Store ID. -->
+        <!-- Links (portfolio rules, plan 12.6): the program's page, the Store page and all the programs. The Store line shows once
+             StoreUpdates.StorePage has the Store ID from Partner Center. -->
         <TextBlock TextWrapping="Wrap" Margin="0,0,0,4">
             More about PLC+, with help and examples:
             <Hyperlink ToolTip="Opens PLC+&#x27;s page on softwareplus.ai in your web browser" NavigateUri="https://softwareplus.ai/plcplus/" RequestNavigate="Link_RequestNavigate">softwareplus.ai/plcplus</Hyperlink>
+        </TextBlock>
+        <TextBlock x:Name="StoreLine" TextWrapping="Wrap" Margin="0,0,0,4" Visibility="Collapsed">
+            PLC+ on the Microsoft Store (updates, ratings and reviews):
+            <Hyperlink x:Name="StoreLink" ToolTip="Opens PLC+&#x27;s page on the Microsoft Store in your web browser" RequestNavigate="Link_RequestNavigate"><Run x:Name="StoreLinkText" /></Hyperlink>
         </TextBlock>
         <TextBlock TextWrapping="Wrap" Margin="0,0,0,4">
             Reviewing PLC+? The testing guide, and how to send your notes:

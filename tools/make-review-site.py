@@ -9,7 +9,7 @@ The pages are made from this repository, never edited on the site:
   - reference.html  the Reference pages
   - images/ladders  every program drawn by PLC+ itself (PLCPlus.exe --export-ladders)
   - images/screens  pictures of the window (tools/capture-window.ps1; copied from docs/images/review/)
-  - PLCPlus-preview.zip  the review build (review/PLCPlus-preview-2026-11-04.zip), if it has been made
+  (the program itself is installed from the Microsoft Store; the testing guide, ../testing/, says how — plan 12.9)
 
 Like the other review pages on the site they are not linked from anywhere and carry noindex. Comments go
 through the site's comment service (js/review-comments.js): a reviewer's link ends ?user=yes.
@@ -29,7 +29,6 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(REPO, 'content', 'plcplus-foundations')
 OUT = os.path.join(os.path.dirname(REPO), 'SoftwarePlus', 'site', 'plcplus', 'review')
 EXE = os.path.join(REPO, 'src', 'Learning.Shell', 'bin', 'Debug', 'net10.0-windows10.0.19041.0', 'PLCPlus.exe')
-ZIP = os.path.join(REPO, 'review', 'PLCPlus-preview-2026-11-04.zip')
 SCREENS = os.path.join(REPO, 'docs', 'images', 'review')
 EMAIL = 'ron.eaglin@gmail.com'
 COLOUR = '#1E7B34'  # PLC+'s power-on green
@@ -218,9 +217,10 @@ def main():
     if os.path.isdir(SCREENS):
         for f in os.listdir(SCREENS):
             shutil.copy(os.path.join(SCREENS, f), os.path.join(OUT, 'images', 'screens', f))
-    has_zip = os.path.exists(ZIP)
-    if has_zip:
-        shutil.copy(ZIP, os.path.join(OUT, 'PLCPlus-preview.zip'))
+    # The preview zip is gone: PLC+ is installed from the Microsoft Store (plan 12.9).
+    old_zip = os.path.join(OUT, 'PLCPlus-preview.zip')
+    if os.path.exists(old_zip):
+        os.remove(old_zip)
 
     manifest = json.load(open(os.path.join(CONTENT, 'manifest.json'), encoding='utf-8'))
     challenges = {}
@@ -339,8 +339,8 @@ def main():
                    f'<td>{len(items)}</td></tr>' for meta, _, items in modules)
     top = ['<h1>PLC+ — review for PLC instructors</h1>',
            '<p class="note">Thank you for reviewing PLC+. <strong>Read the modules on this site</strong>, and comment under each item. '
-           + ('To try the program itself (Windows), <a href="PLCPlus-preview.zip">download the preview</a> (a zip, 63 MB; unzip it and open PLCPlus.exe). '
-              if has_zip else '')
+           + 'To try the program itself (Windows 10 or 11), install it from the Microsoft Store link in your invitation; '
+             '<a href="../testing/">the testing guide</a> takes you through it. '
            + f'You can also email notes to Ron Eaglin at <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>',
            '<h2>The modules</h2><table class="modules"><tr><th>Module</th><th>Title</th><th>State</th><th>Items</th></tr>' + rows + '</table>',
            '<p><a href="reference.html">All the Reference pages</a></p>']
@@ -353,7 +353,7 @@ def main():
     body = '\n'.join(top) + '<h2>The guide</h2>' + guide_html + '<section class="item"><h2>General comments</h2>' \
         + thread('/plcplus/review/index.html?q=general', 'PLC+ review: general comments') + '</section>'
     open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8').write(page('Review for PLC instructors', body))
-    print(f'wrote {OUT}: {len(modules)} module pages, {len(refs)} reference pages, zip {"copied" if has_zip else "not made yet"}')
+    print(f'wrote {OUT}: {len(modules)} module pages, {len(refs)} reference pages')
 
 
 if __name__ == '__main__':

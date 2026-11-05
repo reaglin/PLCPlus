@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Navigation;
@@ -12,11 +11,17 @@ public partial class AboutWindow : Window
         InitializeComponent();
         var v = Assembly.GetExecutingAssembly().GetName().Version;
         VersionText.Text = $"Version {v?.ToString(3)}";
+        if (StoreUpdates.StorePage.Length > 0)
+        {
+            StoreLink.NavigateUri = new Uri(StoreUpdates.StorePage);
+            StoreLinkText.Text = StoreUpdates.StorePage.Replace("https://", "", StringComparison.Ordinal);
+            StoreLine.Visibility = Visibility.Visible;
+        }
     }
 
     private void Link_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        WebLinks.Open(this, e.Uri.AbsoluteUri, "The page");
         e.Handled = true;
     }
 

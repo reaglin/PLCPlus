@@ -13,6 +13,31 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 11 — the Store package, the icon and the pages on softwareplus.ai (plan 12.1–12.10), 2026-11-05
+
+Before the submission (needs nothing from Partner Center):
+
+1. **The icon.** Open `store\images\asset-contact-sheet.png`: one rung of ladder logic in white on steel blue, the amber "+" as its
+   coil, "PLC+" under it on the larger tiles. Is it the mark you want? (The 16 and 32 px ones are the taskbar's.) The exe in
+   `manual-test\` has it too: look at its title bar and the taskbar.
+2. **The pages.** Open https://softwareplus.ai/plcplus/testing/ and https://softwareplus.ai/plcplus/privacy/ (and the program's page,
+   softwareplus.ai/plcplus/). Read the testing guide as an instructor would: is anything missing, wrong, or more than they need?
+3. **About** (Help ▸ About PLC+): the testing guide and privacy links open those pages. There is no Store line yet; it appears once the
+   Store ID is in the program.
+4. **WACK.** In the repository folder: `.\packaging\run-wack.ps1` (it asks for administrator rights; leave the computer alone for a
+   few minutes). Expected: overall PASS, 23 of 24 (Blocked executables is the usual one). Send the summary.
+5. **Partner Center ▸ PLC+ ▸ Product identity:** send me the **Package/Identity/Name** and the **Store ID**. I rebuild the package with
+   them (`docs/release/STORE-SUBMISSION.md` §3), and you submit it with §9: **hidden, direct link only**.
+
+After it is live (installed from the Store link):
+
+6. It opens; the Start menu and taskbar show the icon; the start screen's folder is `C:\ProgramData\PLCPlus\Learners`, and your
+   learners from the hand-test exe are there (it is the same folder).
+7. About shows the Store line; it opens the Store page. Help ▸ Check for a new version says you have the latest version (1.0.0).
+8. **A lab computer** (12.4): the four steps at the end of `docs/release/LAB-INSTALL.md` (two Windows accounts, one folder).
+
+---
+
 ## Round 2026-11 — usability, the release gate (plan 11.2), 2026-11-05
 
 Build: `manual-test\PLCPlus.exe` (made 2026-11-05, version 1.0.0). Close any copy that is open first.

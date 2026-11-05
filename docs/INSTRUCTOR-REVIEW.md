@@ -1,8 +1,9 @@
-# PLC+ — a guide for instructors reviewing the preview
+# PLC+ — a guide for instructors reviewing the course
 
-Thank you for looking at PLC+. This is an **early preview**. We are asking PLC instructors to judge the **flow** of the
-software and whether its exercises teach the right things, before the rest of it is built. Nothing here is final. Your
-notes will shape what comes next.
+Thank you for looking at PLC+. **PLC+ 1.0 is the instructors' release**: on the Microsoft Store for the PLC instructors
+reviewing the course, before students use it. We are asking you to judge the **flow** of the software and whether its lessons
+and exercises teach the right things. The modules are first drafts; nothing is final, and your notes shape what comes next.
+The step-by-step **testing guide** is at https://softwareplus.ai/plcplus/testing/.
 
 ## What PLC+ is for
 
@@ -12,7 +13,7 @@ hardware, and each exercise is **checked automatically by what the program does*
 learner saves a **PDF progress report** and hands it in through the instructor's LMS. Everything works offline. Several
 students can share one computer, each with a PIN-protected progress file they can carry to another machine.
 
-## What this preview shows, and what it does not
+## What this release shows, and what it does not
 
 **It shows:**
 - **the learning path:** twelve modules, from electrical foundations to industrial systems. Modules 1 to 8 and 11 (electrical
@@ -31,17 +32,21 @@ students can share one computer, each with a PIN-protected progress file they ca
   for the examples, the ladder editor, and automatic
   checking with hints and a plain-words replay of what went wrong.
 
-**It does not have yet:** several learners with PIN-protected files, and the PDF reports.
-Those come next, and your notes decide their shape.
+- several learners on one computer, each with a PIN-locked progress file, and **My progress** (outcomes, what to review, time);
+- **Hand in a report:** a signed PDF progress report at each module check, and **File ▸ Check a report** for the instructor.
+
+**It does not have yet:** modules 9, 10 and 12 (analog and PID, Structured Text, industrial systems), the Allen-Bradley
+instruction set as its own dialect (lessons give the Allen-Bradley names beside the IEC ones), and some editor features: renaming
+a tag, starting values, and declaring DINT or arrays.
 
 ## Running it
 
 **You can review the modules without the program:** the review site (https://softwareplus.ai/plcplus/review/) shows every
 module, every item's lesson, the machines' programs and the Reference pages, with a comment box under each item.
 
-To try the program itself on Windows, download the preview from the review site (or use the zip you were sent), unzip it and
-open **PLCPlus.exe**. Keep the `content` folder beside it. Windows may say it does not recognise the program, because this
-preview is not yet signed; choose **More info**, then **Run anyway**. PLC+ makes no internet connection.
+To try the program itself, install it from the **Microsoft Store link in your invitation** (Windows 10 or 11; free). The
+listing is hidden, so searching the Store does not find it; the link does. The testing guide
+(https://softwareplus.ai/plcplus/testing/) takes you through it step by step. PLC+ works offline and sends nothing.
 
 Press **F1** at any time for help on the screen.
 
@@ -109,8 +114,8 @@ Right-click a contact or coil to force its tag on or off.
 
 - **The garage door only stops** when something is in the doorway. A real opener must also reverse (UL 325); that is planned
   as a later challenge. Say if you would rather have it from the start.
-- **Analog signals** (levels, temperatures, a numeric display) are not wired to the PLC yet; they come with the analog unit.
-  The tank uses two float switches.
+- **Analog signals** (levels, temperatures) are not wired to the PLC yet; they come with the analog unit (module 9). The tank
+  uses two float switches. Numbers do reach the PLC through a thumbwheel and a numeric display (module 7).
 - **Time** runs on a simulated clock of exactly 10 ms per scan, so results never vary. A real PLC's scan varies a little.
 
 ## What we would most like to know
@@ -127,7 +132,7 @@ Please answer whichever you can. Short notes are fine.
 6. **Allen-Bradley.** The lab uses Allen-Bradley PLCs; PLC+ starts with the generic IEC 61131-3 names (TON with PT/ET/Q,
    contacts and coils). Should lessons show the Allen-Bradley names beside them from the start (XIC/XIO/OTE, .PRE/.ACC/.DN)?
 7. **Your course.** Which topics and machines from your course would you most want to see?
-8. **Reports.** When students hand in a progress report, what do you need to see on it?
+8. **Reports.** Make a report (Hand in a report) and check it (File ▸ Check a report). Does it show what you need to see?
 9. **The editor.** Is it quick enough to build a rung? What do your students reach for that is missing?
 10. **The drafts.** Read the Learn pages of modules 1 to 8 and 11. Is the wording right for your students? Is anything wrong, or
     taught in a way you would not teach it? In particular: the lockout/tagout steps (1.4), the panel voltages (1.3), sinking and

@@ -274,19 +274,20 @@ exercise's (D21), a module check, Reference pages, outcomes in `docs/OUTCOMES.md
 | 11.4 | The words "preview" taken out where the release is meant (window title, About, status); the content package's version and note for the release | ⚠️ Built: the window title is **PLC+**; About says **Version 1.0.0** (`Directory.Build.props`); the welcome and unwritten-page words say which modules are written from the content itself; the help panel, the Store-check message and the new-learner form no longer say preview; the content package is 1.0.0, "PLC+ — foundations" |
 | 11.5 | The engine matches a lab PLC on the reference programs (1.12). **Not needed for the instructors' release**; it waits for the lab instructor and stays in the spec's Phase 1 gate | ⚠️ waits for the lab instructor |
 
-## Phase 12 — the Microsoft Store, the testing guide and softwareplus.ai
+## Phase 12 — the Microsoft Store, the testing guide and softwareplus.ai — built 2026-11-05; waits for the Partner Center identity
 
 | # | Task | Done when |
 |---|---|---|
-| 12.1 | **PLC+** reserved in Partner Center (Ron, question 1); the icon with the "+" theme. **Free** (question 2) | ⚠️ **PLC+ reserved by Ron 2026-11-04.** The name in the program changed to PLC+ the same day; the Store ID goes in About's Store link once Partner Center shows it |
-| 12.2 | MSIX packaging (from Gamify+ / TrafficLab+), version 1.0.0, WACK, release documents in `docs/release/` | |
-| 12.3 | **Visibility: hidden, direct link only** (Ron, 2026-11-05): Partner Center ▸ Pricing and availability ▸ Visibility, "Public audience" with "Make this product available but not discoverable in the Store"; the steps in `docs/release/` | |
-| 12.4 | Lab install: provisioned for every account on a lab PC; tested on a shared login and on separate logins; the learners' folder under the Store's MSIX install (6.8) | |
-| 12.5 | Package signing of the content (4.8): the built-in package ships inside the signed MSIX, so it is enough for this release; separate packages later | |
-| 12.6 | Help ▸ About's three links (page, Store, all programs) and Check for a new version | |
+| 12.1 | **PLC+** reserved in Partner Center (Ron, question 1); the icon with the "+" theme. **Free** (question 2) | ⚠️ **PLC+ reserved by Ron 2026-11-04.** **The icon built 2026-11-05** (`packaging/make-store-assets.ps1`, from Author+'s): one rung of ladder logic in white on steel blue (#14324A), a normally-open contact and, in the coil's place, the suite's amber "+"; "PLC+" under it on tiles of 71 px and up; 52 tiles (none over WACK's cap), five listing images, `src/Learning.Shell/PLCPlus.ico` (the exe's icon), the softwareplus.ai tile. ⚠️ Ron: look at `store/images/asset-contact-sheet.png` (hand-test 11.1) |
+| 12.2 | MSIX packaging (from Gamify+ / TrafficLab+), version 1.0.0, WACK, release documents in `docs/release/` | ⚠️ Built 2026-11-05 from Author+'s scripts: `packaging/AppxManifest.xml` (one capability, `runFullTrust`; PLC+ needs no internet capability), `pack.ps1`, `make-msixupload.ps1`, `run-wack.ps1`; `artifacts\PLCPlus_1.0.0.0_x64_bundle.msixupload` (68.8 MB, development identity) builds, holds the content, and its program opens. `docs/release/STORE-SUBMISSION.md`: identity, every Partner Center field, certification notes, listing copy; seven screenshots in `store/screenshots/` (PrintWindow, sample learner). ⚠️ Ron: **the Package/Identity/Name and the Store ID** from Partner Center ▸ Product identity (then I rebuild with them, §3), and **WACK** (`.\packaging
+un-wack.ps1`, needs administrator) — hand-test 11.4–11.5 |
+| 12.3 | **Visibility: hidden, direct link only** (Ron, 2026-11-05): Partner Center ▸ Pricing and availability ▸ Visibility, "Public audience" with "Make this product available but not discoverable in the Store"; the steps in `docs/release/` | ⚠️ Written: `docs/release/STORE-SUBMISSION.md` §9 (Public audience → not discoverable → **Direct link only**; markets All; free; later, for students, made discoverable without a new package). Ron sets it at submission |
+| 12.4 | Lab install: provisioned for every account on a lab PC; tested on a shared login and on separate logins; the learners' folder under the Store's MSIX install (6.8) | ⚠️ Written: `docs/release/LAB-INSTALL.md` (the shared folder `C:\ProgramData\PLCPlus\Learners` is not redirected by MSIX, which redirects only AppData; installing per account or with `winget --scope machine`; reimaged labs and backups; uninstall keeps the files). ⚠️ Ron: its four-step hand-test on a computer with two accounts, once the Store copy is live (hand-test 11.8) |
+| 12.5 | Package signing of the content (4.8): the built-in package ships inside the signed MSIX, so it is enough for this release; separate packages later | ⚠️ Decided for 1.0: the content (`content/plcplus-foundations`) ships inside the package the Store signs; `pack.ps1` says so. Signed content packages sent on their own stay with 4.8 |
+| 12.6 | Help ▸ About's three links (page, Store, all programs) and Check for a new version | ⚠️ Built: About has the page, testing guide, privacy and all-programs links, and **a Store line that appears once `StoreUpdates.StorePage` has the Store ID** (one line to change, `STORE-SUBMISSION.md` §3); About's links now go through `WebLinks.Open` (a browser that will not open says where the page is). Check for a new version is built (7.x); it asks the Store once the ID is in. ⚠️ Ron: try both in the Store copy (hand-test 11.7) |
 | 12.7 | Privacy policy at `softwareplus.ai/plcplus/privacy/`; the program's page and help at `softwareplus.ai/plcplus/`; a row in `status.html` | |
 | 12.8 | **The instructors' testing guide** at `softwareplus.ai/plcplus/testing/`: what PLC+ is for and what to review; install from the Store link; a guided tour (a learner, a module, an example, an exercise, a check, a report, checking a report); what to try in each module; how to send feedback (the review site's comments, or e-mail); what is known to be missing. Help ▸ **Testing guide** in the program links to it. Pictures taken from the program with PrintWindow | |
-| 12.9 | The review site and the instructors' review guide (`docs/INSTRUCTOR-REVIEW.md`) changed to the Store install (the zip of the preview goes) | |
+| 12.9 | The review site and the instructors' review guide (`docs/INSTRUCTOR-REVIEW.md`) changed to the Store install (the zip of the preview goes) | ⚠️ Done 2026-11-05: `docs/INSTRUCTOR-REVIEW.md` says 1.0 is on the Store for the reviewers (install from the invitation's link, the testing guide), what it now has (learners, My progress, reports) and what it does not; `tools/make-review-site.py` no longer offers the zip (and removes it from the site); the review site's four pictures retaken from 1.0. Deploy with 12.7 |
 | 12.10 | Submitted by Ron; once live, the link goes in the testing guide and the guide is sent to the instructors | ⚠️ Ron |
 
 ## Phase 13 — after the instructors' feedback (spec Phase 2, the rest)
@@ -340,7 +341,11 @@ connection). No research analytics: the grant does not require research on outco
 - `docs/CONTENT-FORMAT.md` — how modules, items, Reference pages and widgets are written, and the validator (4.1, 4.7)
 - `docs/MANUAL-TESTING.md` — Ron's hand-tests and the hand-test build command
 - `docs/LAB-COMPARISON.md` — running the reference programs on the lab's Allen-Bradley PLC (1.12)
-- `docs/INSTRUCTOR-REVIEW.md` — the guide for the PLC instructors reviewing the preview (2.11)
+- `docs/INSTRUCTOR-REVIEW.md` — the guide for the PLC instructors reviewing the course (2.11, 12.9)
+- `docs/OUTCOMES.md` — the learning outcomes of the written modules (9.6, 10.5)
+- `docs/release/STORE-SUBMISSION.md` — the Store submission: identity, Partner Center field by field, listing copy (12.2, 12.3)
+- `docs/release/LAB-INSTALL.md` — PLC+ on a shared lab computer (12.4)
+- `packaging/` — the MSIX scripts and manifest; `store/` — the listing images and screenshots (12.1, 12.2)
 - `tests/golden/` — the reference programs R01–R11 and their expected traces (1.11)
 - `docs/images/architecture.png` — the architecture diagram from the spec
 - `content/plcplus-foundations/` — the learning path (modules, items, Reference pages) and the machines
