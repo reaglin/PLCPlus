@@ -296,6 +296,11 @@ The instructors' notes, turned into tasks. Then: more scenes and fault injection
 report refinements from the faculty pilot. Gate: a student pilot in one course section, with PDF reports handed in through the
 LMS and reviewed end to end.
 
+| # | Task | Done when |
+|---|---|---|
+| 13.1 | **Move to the shared Learning Core packages** (2026-11-11). Statistics+ is the second program to use the learning engine, so per D5 `Learning.Core` and `Learning.Reports.Pdf` now live in `..\LearningCore\` and are packed to `C:
+uget-local` (`Eaglin.Learning.Core`, `Eaglin.Learning.Reports.Pdf` 1.0.0). With the next PLC+ release: delete `src/Learning.Core`, `src/Learning.Reports.Pdf` and `tests/Learning.Core.Tests` here, reference the packages, and set `LearningApp.Name = "PLC+"` at start-up (the core's messages now name the program through it). **Until then, the copies in this repository are frozen: make changes in `..\LearningCore`.** Not done now, so as not to disturb the 1.0.0 Store submission | PLC+ builds from the packages, all its tests are green, and the hand-test exe runs unchanged |
+
 ## Phase 14 — spec Phase 3: advanced and dialects
 
 Units 9, 10 and 12 (analog and PID, Structured Text and function blocks, industrial systems); the Structured Text editor
