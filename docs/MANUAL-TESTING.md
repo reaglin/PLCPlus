@@ -13,6 +13,35 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 13 — the notes tab, Ask the AI, the Laboratory tab, my course's links (plan 13.3–13.6), 2026-11-15
+
+**On the branch `my-notes`.** The build is **`manual-test-notes\PLCPlus.exe`**; use a test folder of learners as in hand-test 12:
+`$env:PLCPLUS_DATA = "$env:TEMP\plcplus-notes-test"; .\manual-test-notes\PLCPlus.exe`.
+
+1. **The ✎ after a paragraph.** Open 5.2. Right-click the paragraph "The motor station has a Start button…" ▸ Add a note to this
+   paragraph…: a small window shows the paragraph's words. Type a note, Add note (or Ctrl+Enter). The paragraph ends with a ✎;
+   point at it to read the note. Is it enough to notice? Is the lesson's width what you wanted?
+2. **The My notes tab** (Ctrl+6, the last tab, "My notes (n)"). Click the ✎ in the lesson: the tab opens with that note marked ▶.
+   Show takes you back to the paragraph. Write a note in Write a note: it goes on the item.
+3. **Leaving.** Type in Write a note, go to the Learn tab and back: your words are still in the box. Then click another item: the status line says the note was kept. Next ▸ from the My notes tab stays
+   on the My notes tab (to read your notes item by item).
+4. **Ask the AI, not set up.** On a computer (or Windows account) with no AI key: Ask the AI says what a key is and where to get one;
+   AI settings… opens AI Manager's settings. Everything else works.
+5. **Ask the AI.** With a key: type a question about 5.2 and press Enter. The answer comes in a few seconds, with "Answer by …,
+   check it against the lesson". **Save to my notes**: it is listed as "You asked the AI: …", marked as the AI's answer.
+   Ask another and **Discard** it: nothing is kept. AI ▸ What the AI has cost… lists them.
+6. **An answer waiting.** Ask, and before saving go to another item and back: the answer is still waiting. Is the answer the right
+   length and level for a student? Should the AI be allowed to help with an exercise (now it explains, it does not give the program)?
+7. **The Laboratory tab.** 5.2 and 6.1 have an example lab (time, equipment, safety, what to do, what to show). Other items say
+   "Laboratory exercises can be added here" and by whom. Is this the shape for the instructors' real labs? Right-click a paragraph of the lab: notes work there too.
+8. **My course's links.** At the top of the path, My course's links…: type `reaglin.github.io/EGN3214/` as the course's text and
+   your LMS course's address; Save. The buttons 📘 Course website and 🎓 Course in the LMS open them in your browser (Go ▸ too).
+   Type words instead of an address: it says what to do.
+
+Tell me what to change, and whether the AI should be on or off by default for a class (now: on wherever a key is set up).
+
+---
+
 ## Hand-test 12 — My notes, and PLC+ on the shared Learning Core (plan 13.1, 13.2), 2026-11-15
 
 **On the branch `my-notes`, not the 1.0 release.** Its build is in **`manual-test-notes\PLCPlus.exe`** (the 1.0 build in

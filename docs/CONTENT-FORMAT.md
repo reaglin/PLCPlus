@@ -18,6 +18,8 @@ content/plcplus-foundations/
       06-check.md        the module check, last
   reference/
     seal-in.md           a Reference page, shared by every item that lists it
+  labs/
+    lab-5-seal-in.md     a lab exercise for the Laboratory tab: settings (title, minutes, equipment), then what to do
   challenges/ programs/ scenes/   the machines (see docs/PLAN.md, the grader)
 ```
 
@@ -77,6 +79,7 @@ The Learn page, in Markdown …
 | (the Markdown after the settings) | **Learn** |
 | `example` (a challenge ID), `example-program` (which of its programs first; the first if left out) | **Example**: the machine running that program; the learner can switch to the common mistake |
 | `exercise` (a challenge ID) | **Exercise**: My program, checked against that challenge. **The item is complete when it passes.** An item with no exercise is complete when the learner presses *I have read this* |
+| `lab` (lab names, from `labs/`) | **Laboratory** (Ron, 2026-11-15): the exercises the learner does live, on the real PLC in the lab. Each lab page's settings are `title`, `minutes` (time in the lab) and `equipment` (a list); its Markdown says what to do and what to show the lab instructor. An item without one says the tab is for labs. An instructor's labs come with the course pack later (Learning Core plan 4.6) |
 | `reference` (Reference page names) | **Reference**: those pages, one after another |
 | `objectives` | The module outcomes this item teaches |
 | `builds-on` | The item before it in the learner's mind, shown in the header |

@@ -151,19 +151,30 @@ public partial class MainWindow : Window
             panel.Changed = NotesChanged;
             panel.Status = SetStatus;
             panel.GoTo = GoToNote;
-            panel.PageText = (item, tab) => tab == NoteTabs.Reference ? ReferenceMarkdown(item) : item.Learn;
+            panel.PageText = (item, tab) => tab switch
+            {
+                NoteTabs.Reference => ReferenceMarkdown(item),
+                NoteTabs.Laboratory => LabMarkdown(item),
+                _ => item.Learn,
+            };
         }
-        LearnView.EnableNotes();
-        ReferenceView.EnableNotes();
-        LearnView.NoteRequested += i => RequestNote(LearnView, NoteTabs.Learn, i);
-        ReferenceView.NoteRequested += i => RequestNote(ReferenceView, NoteTabs.Reference, i);
+        // Ask the AI (Learning Core plan 3.8): optional, through the shared AI Manager.
+        ItemNotes.AiReady = () => PlcAi.Shared.IsReady;
+        ItemNotes.AiStatus = () => PlcAi.Shared.Status;
+        ItemNotes.AiSettings = AiSettingsDone;
+        ItemNotes.AskAi = (item, question, ct) => PlcAi.Shared.AskAsync(PlcAi.TutorInstructions("PLC+"), PlcAi.Prompt(item, item.Learn, question), ct);
+        foreach (var (view, tab) in new[] { (LearnView, NoteTabs.Learn), (LabView, NoteTabs.Laboratory), (ReferenceView, NoteTabs.Reference) })
+        {
+            view.EnableNotes();
+            view.NoteRequested += i => RequestNote(view, tab, i);
+            view.NoteMarkClicked += i => ShowNotesOn(view, tab, i);
+        }
+        LabView.WidgetFactory = w => LessonWidgets.Create(_plc, w);
 
         Loaded += (_, _) => SignInScreen.Show();
     }
 
     // ---- My notes (Learning Core plan 3.2) --------------------------------------------------------------
-
-    private const string NotesPanePreference = "notesPane";
 
     /// <summary>A note was added, changed or deleted: saved in the learner's file, and the path, marks and lists drawn again.</summary>
     private void NotesChanged()
@@ -176,48 +187,60 @@ public partial class MainWindow : Window
         if (NotesPage.Visibility == Visibility.Visible) AllNotesPanel.ShowAll();
     }
 
-    /// <summary>The item's notes: a bar on each paragraph that has one, and the list beside the tabs.</summary>
+    /// <summary>The pages a learner can note, with the tab each is on.</summary>
+    private IEnumerable<(MarkdownView View, string Tab)> NotedPages => [(LearnView, NoteTabs.Learn), (LabView, NoteTabs.Laboratory), (ReferenceView, NoteTabs.Reference)];
+
+    /// <summary>The item's notes: a ✎ after each paragraph that has one, the list on the My notes tab, and the count on the tab.</summary>
     private void RefreshNotes()
     {
         if (_item is not { } item || _session is null) return;
         var book = _session.Data.Notes;
-        var learn = book.Place(item.Id, NoteTabs.Learn, LearnView.BlockSources).Where(p => p.Note.Anchor.Block is not null).ToList();
-        var reference = book.Place(item.Id, NoteTabs.Reference, ReferenceView.BlockSources).Where(p => p.Note.Anchor.Block is not null).ToList();
-        LearnView.MarkNotes(learn.Where(p => p.BlockIndex is not null).Select(p => (p.BlockIndex!.Value, NotesPanel.Short(p.Note.Text, 200))));
-        ReferenceView.MarkNotes(reference.Where(p => p.BlockIndex is not null).Select(p => (p.BlockIndex!.Value, NotesPanel.Short(p.Note.Text, 200))));
-        ItemNotes.ShowItem(item, learn.Concat(reference).GroupBy(p => p.Note.Id).ToDictionary(g => g.Key, g => g.First()));
+        var placed = new List<NoteLocation>();
+        foreach (var (view, tab) in NotedPages)
+        {
+            var here = book.Place(item.Id, tab, view.BlockSources).Where(p => p.Note.Anchor.Block is not null).ToList();
+            view.MarkNotes(here.Where(p => p.BlockIndex is not null).Select(p => (p.BlockIndex!.Value, NotesPanel.Short(p.Note.Text, 200))));
+            placed.AddRange(here);
+        }
+        ItemNotes.ShowItem(item, placed.GroupBy(p => p.Note.Id).ToDictionary(g => g.Key, g => g.First()));
         var count = book.For(item.Id).Count;
-        NotesButton.Content = count == 0 ? "✎ My _notes" : $"✎ My _notes ({count})";
-        System.Windows.Automation.AutomationProperties.SetName(NotesButton, count == 0 ? "My notes" : $"My notes, {count} on this item");
+        NotesTab.Header = count == 0 ? "My no_tes" : $"My no_tes ({count})";
+        System.Windows.Automation.AutomationProperties.SetName(NotesTab, count == 0 ? "My notes" : $"My notes, {count} on this item");
     }
 
-    private void SetNotesPane(bool open, bool remember = true)
-    {
-        ItemNotes.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
-        NotesButton.IsChecked = open;
-        if (!remember || _session is null) return;
-        _session.Data.Preferences[NotesPanePreference] = open ? "open" : "closed";
-        SaveProgress();
-    }
-
-    private void NotesButton_Click(object sender, RoutedEventArgs e)
-    {
-        var open = NotesButton.IsChecked == true;
-        if (!open) ItemNotes.KeepDraft();
-        SetNotesPane(open);
-        SetStatus(open
-            ? "My notes is open on the right: write a note in its box and press Add note, or right-click a paragraph of the lesson to note that paragraph. ✎ My notes hides it."
-            : "My notes is hidden. Your notes are kept; ✎ My notes shows them again.");
-    }
-
-    /// <summary>Add a note to this paragraph (or page), from the lesson's right-click menu.</summary>
+    /// <summary>Add a note to this paragraph (or page), from the lesson's right-click menu: a small window over the lesson.</summary>
     private void RequestNote(MarkdownView view, string tab, int? block)
     {
-        if (_item is null || _session is null) return;
+        if (_item is not { } item || _session is null) return;
         var sources = view.BlockSources;
-        var anchor = block is int i && i < sources.Count ? NoteAnchor.OnBlock(_item.Id, tab, sources[i]) : NoteAnchor.OnItem(_item.Id, tab);
-        SetNotesPane(true);
-        ItemNotes.StartNote(anchor);
+        var anchor = block is int i && i < sources.Count ? NoteAnchor.OnBlock(item.Id, tab, sources[i]) : NoteAnchor.OnItem(item.Id, tab);
+        var page = $"{item.Number}'s {TabWord(tab)} page";
+        if (NoteWindow.Ask(this, anchor, page) is not { } text) { SetStatus("No note was added."); return; }
+        if (_session.Data.Notes.Add(anchor, text, DateTimeOffset.Now) is null) return;
+        NotesChanged();
+        SetStatus(anchor.Block is null
+            ? $"Note added to {page}. It is on the My notes tab with your other notes on {item.Number}."
+            : $"Note added: a ✎ after the paragraph shows it (point at it to read it, click it to open My notes).");
+    }
+
+    private static string TabWord(string tab) => tab switch
+    {
+        NoteTabs.Laboratory => "Laboratory",
+        NoteTabs.Reference => "Reference",
+        NoteTabs.Example => "Example",
+        NoteTabs.Exercise => "Exercise",
+        _ => "Learn",
+    };
+
+    /// <summary>The ✎ after a paragraph was clicked: the My notes tab, with that paragraph's newest note marked.</summary>
+    private void ShowNotesOn(MarkdownView view, string tab, int block)
+    {
+        if (_item is not { } item || _session is null) return;
+        var note = _session.Data.Notes.Place(item.Id, tab, view.BlockSources).Where(p => p.BlockIndex == block).Select(p => p.Note)
+            .OrderByDescending(n => n.Created).FirstOrDefault();
+        ItemTabs.SelectedItem = NotesTab;
+        if (note is not null) Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => ItemNotes.Highlight(note.Id));
+        SetStatus($"Your notes on {item.Number}: the one on that paragraph is marked ▶. Its Show button takes you back to the paragraph.");
     }
 
     /// <summary>Open a note where it is: its item, its tab, and the paragraph it is on.</summary>
@@ -226,28 +249,29 @@ public partial class MainWindow : Window
         if (_package.FindItem(note.Anchor.ItemId) is not { } item) return;
         if (_item != item) _vm.Select(item);
         if (_item != item) return;
-        SetNotesPane(true);
         var (tab, view) = note.Anchor.Tab switch
         {
             NoteTabs.Learn => (LearnTab, LearnView),
+            NoteTabs.Laboratory => (LabTab, LabView),
             NoteTabs.Reference => (ReferenceTab, ReferenceView),
             NoteTabs.Example => (ExampleTab, (MarkdownView?)null),
             NoteTabs.Exercise => (ExerciseTab, null),
             _ => ((TabItem?)null, null),
         };
-        if (tab is not null) ItemTabs.SelectedItem = tab;
+        // A note on a paragraph goes to the paragraph; any other goes to the My notes tab, marked.
+        var at = view is null || _session is null || note.Anchor.Block is null ? null
+            : _session.Data.Notes.Place(item.Id, note.Anchor.Tab!, view.BlockSources).FirstOrDefault(p => p.Note.Id == note.Id);
+        ItemTabs.SelectedItem = at?.BlockIndex is not null ? tab : note.Anchor.Block is null && tab is not null ? tab : NotesTab;
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
         {
             ItemNotes.Highlight(note.Id);
-            var at = view is null || _session is null ? null
-                : _session.Data.Notes.Place(item.Id, note.Anchor.Tab!, view.BlockSources).FirstOrDefault(p => p.Note.Id == note.Id);
-            if (view is not null && at?.BlockIndex is int i) view.ShowBlock(i);
+            if (view is not null && at?.BlockIndex is int i && ItemTabs.SelectedItem == tab) view.ShowBlock(i);
             SetStatus(at?.Place switch
             {
-                NotePlace.Found => $"Your note on {item.Number} is beside the paragraph it is on (selected, with a bar on its left).",
+                NotePlace.Found => $"The paragraph your note is on is selected, with a ✎ after it. The note is on the My notes tab.",
                 NotePlace.Changed => $"The lesson has been updated since you wrote this note: the selected paragraph is the one most like the one it was on.",
-                NotePlace.Gone => $"The paragraph this note was on is no longer in the lesson; the note stays on {item.Number}, with the words it was on.",
-                _ => $"Your notes on {item.Number} are on the right.",
+                NotePlace.Gone => $"The paragraph this note was on is no longer in the lesson; the note stays on {item.Number}'s My notes tab, with the words it was on.",
+                _ => ItemTabs.SelectedItem == NotesTab ? $"Your note is marked ▶ on {item.Number}'s My notes tab." : $"Your note is on {item.Number}'s {TabWord(note.Anchor.Tab ?? "")} tab; the My notes tab lists it.",
             });
         });
     }
@@ -285,6 +309,7 @@ public partial class MainWindow : Window
     {
         _lastInput = DateTime.Now;
         var same = _vm.SignIn(file, DateTimeOffset.Now);
+        ShowCourseLinks();
         SignInScreen.Visibility = Visibility.Collapsed;
         AppContent.Visibility = Visibility.Visible;
         if (same && (_item is not null || _module is not null || DashboardPage.Visibility == Visibility.Visible))
@@ -330,7 +355,7 @@ public partial class MainWindow : Window
         _backupMade = where is not null;
         if (_backupMade) SetStatus($"Backed up: a copy of your progress is now at {where}. {combined}{(combined is null ? "" : " ")}On another computer, Add learner from file brings it in.");
         else if (_session is not null) SetStatus("No backup was made.");
-        if (combined is not null) { _vm.Refresh(); RefreshNotes(); }
+        if (combined is not null) { _vm.Refresh(); RefreshNotes(); ShowCourseLinks(); }
         _vm.Save();
     }
 
@@ -605,6 +630,7 @@ public partial class MainWindow : Window
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
         var keptNote = _item != item ? KeepNoteDraft() : null;
+        var tabBefore = _item is not null && _item != item ? ItemTabs.SelectedItem : null;
         _item = item;
         _module = item.Module;
         _vm.CurrentItem = item;
@@ -671,13 +697,17 @@ public partial class MainWindow : Window
         // Reference
         ReferenceView.Markdown = ReferenceMarkdown(item);
 
-        // My notes: open beside the item if the learner left it open; the bars on noted paragraphs.
-        ItemNotes.CurrentTab = NoteTabs.Learn;
-        SetNotesPane(_session?.Data.Preferences.GetValueOrDefault(NotesPanePreference) == "open", remember: false);
+        // Laboratory
+        LabView.Markdown = LabMarkdown(item);
+        LabTab.Header = item.Labs.Count == 0 ? "Lab_oratory (none)" : "Lab_oratory";
+        LabTab.ToolTip = item.Labs.Count == 0 ? "No lab exercise for this item yet; the tab says how one can be added (Ctrl+4)" : "The lab exercise you do live, on the real equipment in the lab (Ctrl+4)";
+
+        // My notes: the ✎ after noted paragraphs, the My notes tab.
         RefreshNotes();
 
         ShowItemStatus();
-        ItemTabs.SelectedItem = LearnTab;
+        // Moving on from the My notes tab stays on it (reading notes item by item); from anywhere else, the lesson first.
+        ItemTabs.SelectedItem = tabBefore == NotesTab ? NotesTab : LearnTab;
         ShowScreenHelp();
         SetStatus((keptNote is null ? "" : keptNote + " ") + $"{item}: {LearnFooterText.Text}" + (missing.Count > 0
             ? $" (Recommended first: {string.Join(" and ", missing.Select(m => $"module {m.Number}"))}. You can work on this now; PLC+ notes that you started early.)"
@@ -733,6 +763,29 @@ public partial class MainWindow : Window
             ? "Every item is complete: so is this module check. ✓"
             : "When every item above is complete, so is this module check.");
         md.AppendLine().AppendLine("**To hand in your work:** press **Hand in a report…** (top right) to make this check's progress report: your name, your scores, the tests and your programs, as a PDF to hand in to your instructor.");
+        return md.ToString();
+    }
+
+    /// <summary>The Laboratory tab (Learning Core plan 3.9): the item's lab exercises, or what the tab is for.</summary>
+    private string LabMarkdown(LearningItem item)
+    {
+        var labs = item.Labs.Select(l => _package.Labs.TryGetValue(l, out var lab) ? lab : null).OfType<LabPage>().ToList();
+        if (labs.Count == 0)
+            return "# Laboratory\n\n*No lab exercise here yet.*\n\nLaboratory exercises can be added here: by the book's author, as a lab " +
+                   "page in the book, or by your instructor for your class, in the course materials they send (a course pack, made in PLC+ or " +
+                   "in CourseBuilder+). A lab exercise is one you do live, on the real PLC and equipment in the lab: what to bring, what to do " +
+                   "and what to show your lab instructor. Items 5.2 and 6.1 have an example.";
+        var md = new StringBuilder();
+        foreach (var lab in labs)
+        {
+            if (md.Length > 0) md.Append("\n\n---\n\n");
+            md.Append("# Lab: ").Append(lab.Title).Append("\n\n");
+            var facts = new List<string>();
+            if (lab.Minutes > 0) facts.Add($"**Time in the lab:** about {lab.Minutes} minutes");
+            if (lab.Equipment is { Count: > 0 } kit) facts.Add("**Equipment:** " + string.Join(", ", kit));
+            if (facts.Count > 0) md.Append(string.Join(" · ", facts)).Append("\n\n");
+            md.Append(lab.Body.Trim());
+        }
         return md.ToString();
     }
 
@@ -846,8 +899,6 @@ public partial class MainWindow : Window
     {
         if (!ReferenceEquals(e.OriginalSource, ItemTabs)) return; // a ComboBox inside a tab
         ExerciseWorkspace.CommitPendingEdit();
-        ItemNotes.CurrentTab = ItemTabs.SelectedItem == ExampleTab ? NoteTabs.Example : ItemTabs.SelectedItem == ExerciseTab ? NoteTabs.Exercise
-            : ItemTabs.SelectedItem == ReferenceTab ? NoteTabs.Reference : NoteTabs.Learn;
         var machine = (ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible)
                       || (ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible)
                       || (ItemTabs.SelectedItem == ExerciseTab && QuizScroll.Visibility == Visibility.Visible
@@ -1026,12 +1077,16 @@ public partial class MainWindow : Window
             : ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible
                 ? ("This screen: Exercise", "Write your own program. Click a part and type its tag in the Tag box, then press Enter. The tools above the rungs add contacts (key O), coils (Q), branches (B) and boxes (I). Check my program runs the tests: when they all pass, the item is complete. In a find-and-fix exercise My program starts with a fault: work the machine, find it, fix it; Start again ▾ gives the program back. Pop out gives it a window of its own.")
             : ItemTabs.SelectedItem == ReferenceTab
-                ? ("This screen: Reference", "The symbols and rules this item uses, with the Allen-Bradley names, to look up while you work.")
+                ? ("This screen: Reference", "The symbols and rules this item uses, with the Allen-Bradley names, to look up while you work. Right-click a paragraph to keep a note on it.")
+            : ItemTabs.SelectedItem == LabTab
+                ? ("This screen: Laboratory", "The lab exercise for this item: what you do live, on the real PLC and equipment in the lab, what to bring and what to show your lab instructor. Read it before the lab session. Not every item has one; your instructor may add more for your class. Right-click a paragraph to keep a note on it.")
+            : ItemTabs.SelectedItem == NotesTab
+                ? ("This screen: My notes", "Your own notes on this item. Write a note on the item as a whole in Write a note. To note one paragraph, right-click it in the lesson: a ✎ after the paragraph shows it, and clicking the ✎ brings you here. Ask the AI (optional) answers a question about this item from its lesson; Save to my notes keeps the answer, marked as the AI's, and Discard throws it away. Only you see your notes; they never go in a report. Go ▸ My notes lists every note, with a search.")
             : ItemTabs.SelectedItem == ExerciseTab
                 ? QuizScroll.Visibility == Visibility.Visible
                     ? ("This screen: Questions", "Answer every question, then press Check my answers at the bottom. Each answer is marked ✓ or ✗. In practice questions every answer says why, and a wrong one shows the right answer. In a module check, a wrong one says where to read again. Change the wrong ones and check again; your answers stay while PLC+ is open. For a machine with a fault, work its buttons and watch which contact or device never changes; right-click a contact or coil to force it.")
                     : ("This screen: Exercise", "What this item asks you to do. A reading has no exercise; a module check lists the items it covers.")
-                : ("This screen: Learn", "The lesson. Read it, then try the Example and Exercise tabs if the item has them. A reading is complete when you press I have read this. To keep a note on a paragraph, right-click it and choose Add a note to this paragraph; ✎ My notes (top right) shows your notes on this item.");
+                : ("This screen: Learn", "The lesson. Read it, then try the Example and Exercise tabs if the item has them. A reading is complete when you press I have read this. To keep a note on a paragraph, right-click it and choose Add a note to this paragraph: a ✎ after it shows the note. The My notes tab has your notes on this item, and Ask the AI.");
     }
 
     // ---- The rest --------------------------------------------------------------------------------------
@@ -1044,6 +1099,81 @@ public partial class MainWindow : Window
     private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
 
     private void WebHelp_Click(object sender, RoutedEventArgs e) => WebLinks.Open(this, WebLinks.Help, "Help on the web");
+
+    // ---- My course's links (Learning Core plan 3.10) and the AI (plan 3.8) --------------------------------
+
+    /// <summary>The buttons at the top of the path: the course's text and the LMS when set, and a way to set them.</summary>
+    private void ShowCourseLinks()
+    {
+        var links = _session?.Data.Course;
+        var named = string.IsNullOrWhiteSpace(links?.Name) ? "your course" : links!.Name!;
+        CourseTextButton.Visibility = links?.TextUrl is null ? Visibility.Collapsed : Visibility.Visible;
+        CourseLmsButton.Visibility = links?.LmsUrl is null ? Visibility.Collapsed : Visibility.Visible;
+        CourseTextButton.ToolTip = $"Opens the website of {named} in your web browser: {links?.TextUrl}";
+        CourseLmsButton.ToolTip = $"Opens {named} in the learning management system, in your web browser: {links?.LmsUrl}";
+        var any = links is not null && (links.TextUrl is not null || links.LmsUrl is not null);
+        CourseLinksButton.Content = any ? "Change links…" : "My course's links…";
+        System.Windows.Automation.AutomationProperties.SetName(CourseLinksButton, any ? "Change my course's links" : "Add my course's links");
+    }
+
+    private void CourseLinks_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session is null) return;
+        if (CourseLinksWindow.Edit(this, _session.Data.Course) is not { } links) { SetStatus("Your course's links are as they were."); return; }
+        _session.Data.Course = links.IsEmpty ? null : links;
+        _session.Data.NotesChanged(DateTimeOffset.Now);
+        SaveProgress();
+        ShowCourseLinks();
+        SetStatus(links.IsEmpty ? "Your course's links are cleared."
+            : links.TextUrl is null && links.LmsUrl is null ? "Your course's name is kept. Add an address to get a button that opens it."
+            : "Your course's links are kept: the buttons at the top of the learning path open them.");
+    }
+
+    private void CourseText_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session?.Data.Course?.TextUrl is { } url) WebLinks.Open(this, url, "Your course's website");
+        else CourseLinks_Click(sender, e);
+    }
+
+    private void CourseLms_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session?.Data.Course?.LmsUrl is { } url) WebLinks.Open(this, url, "Your course in the LMS");
+        else CourseLinks_Click(sender, e);
+    }
+
+    private void AiMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        AskAiItem.IsEnabled = _item is not null;
+        AskAiItem.ToolTip = _item is null
+            ? "Open an item in the learning path first: the AI answers questions about the item you are reading"
+            : "Opens this item's My notes tab with the cursor in Ask the AI: ask a question about the topic, then keep the answer in My notes or discard it";
+    }
+
+    private void AskAi_Click(object sender, RoutedEventArgs e)
+    {
+        if (_item is null)
+        {
+            SetStatus("Choose an item in the learning path first: the AI answers questions about the item you are reading.");
+            return;
+        }
+        ItemTabs.SelectedItem = NotesTab;
+        ItemNotes.FocusQuestion();
+        SetStatus(PlcAi.Shared.IsReady ? "Type your question in Ask the AI and press Enter." : "The AI is not set up yet: press AI settings… in Ask the AI. Everything else works without it.");
+    }
+
+    private void AiSettings_Click(object sender, RoutedEventArgs e) => AiSettingsDone();
+
+    /// <summary>AI settings, then a word on what changed.</summary>
+    private void AiSettingsDone()
+    {
+        var saved = PlcAi.Shared.ShowSettings(this);
+        ItemNotes.AiSettingsChanged();
+        SetStatus(!saved ? "AI settings were not changed."
+            : PlcAi.Shared.IsReady ? "The AI is set up. Ask it on any item's My notes tab (AI ▸ Ask the AI about this item)."
+            : "AI settings were saved, but the AI is not ready yet: it needs a key. AI ▸ AI settings… again to add one.");
+    }
+
+    private void AiUsage_Click(object sender, RoutedEventArgs e) => PlcAi.Shared.ShowUsage(this);
 
     private void TestingGuide_Click(object sender, RoutedEventArgs e) => WebLinks.Open(this, WebLinks.Testing, "The testing guide");
 

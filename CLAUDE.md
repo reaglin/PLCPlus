@@ -125,7 +125,8 @@ docs/release/            STORE-SUBMISSION.md (Partner Center field by field), LA
 - **Content is data:** lessons, scenes and challenges are files in `content/`, not code (NFR-4).
 - **Words for a beginner:** validation messages, failed tests and hints say what happened and what to do. Never show
   colour alone: power is green **and** thick **and** TRUE.
-- **Modules → items** (Ron, 2026-11-04, D20): every item has the tabs Learn, Example, Exercise and Reference; a module's first
+- **Modules → items** (Ron, 2026-11-04, D20): every item has the tabs Learn, Example, Exercise, Laboratory (2026-11-15), Reference
+  and My notes (2026-11-15); a module's first
   page shows prerequisites (recommended, not enforced), outcomes, topics and items; its last item is the module check. PLC
   instructors will review the flow, so expect it to change. Run the content validator after editing content.
 - **The instructors' review site** (https://softwareplus.ai/plcplus/review/) is generated from this repo: after changing content or
@@ -134,7 +135,9 @@ docs/release/            STORE-SUBMISSION.md (Partner Center field by field), LA
 - `PLCPLUS_DATA=<folder>` points a run at its own learners' folder and settings (for captures and tests), so it never changes a
   tester's learners in `%ProgramData%\PLCPlus`, and never takes the preview's progress.
 - Name: **PLC+** in front of a person (Ron, 2026-11-04); `PLCPlus` in code, folders and the exe.
-- **No AI in Phase 1** (Ron). The lab PLC is **Allen-Bradley**: the engine is compared against it, and Rockwell is the
+- **The AI is optional** (Ron, 2026-11-15: "make the shell AI enabled (optional)"; it was "no AI in Phase 1" until then). It goes
+  only through the shared AI Manager (`src/Learning.Shell/PlcAi.cs`), sends a question and the book's words, never learner data, and
+  PLC+ works fully without a key. Every release moves to the latest AI Manager first (plan R.1). The lab PLC is **Allen-Bradley**: the engine is compared against it, and Rockwell is the
   first vendor dialect. Ron signs content packages when they are published; the key never goes in git.
 
 ## Portfolio conventions that apply

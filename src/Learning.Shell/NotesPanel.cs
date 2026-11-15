@@ -10,9 +10,10 @@ using Learning.Core.Notes;
 namespace Learning.Shell;
 
 /// <summary>
-/// My notes (Learning Core plan 3.2): the learner's own notes, kept in their progress file. One control, two places:
-/// beside an item (its notes, and a box to write a new one: on the item, or on the paragraph the learner right-clicked),
-/// and as the My notes page in the path (every note, with search, each opening its item).
+/// My notes (Learning Core plan 3.2, 3.8): the learner's own notes, kept in their progress file. One control, two places:
+/// the My notes tab of an item (Ron, 2026-11-15: a tab, so the lesson keeps its width) with every note on the item, a box
+/// to write a new one, and Ask the AI; and the My notes page in the path (every note, with search, each opening its item).
+/// A note on one paragraph is written from the lesson's right-click menu (<see cref="NoteWindow"/>).
 /// </summary>
 public sealed class NotesPanel : UserControl
 {
@@ -27,29 +28,34 @@ public sealed class NotesPanel : UserControl
     /// <summary>Go to a note: open its item and tab, and show the paragraph it is on.</summary>
     public Action<LearnerNote> GoTo { get; set; } = _ => { };
 
-    /// <summary>The tab showing now ("learn", "example", …): a note written in the box without a paragraph goes on it.</summary>
-    public string? CurrentTab
-    {
-        get => _tab;
-        set
-        {
-            _tab = value;
-            if (_built && !AllNotes) ShowOn(); // the box says where a new note will go
-        }
-    }
-
-    private string? _tab;
+    /// <summary>Ask the AI (plan 3.8): what it would send and cost, or what it needs; asking; and the AI's settings.</summary>
+    public Func<bool> AiReady { get; set; } = () => false;
+    public Func<string> AiStatus { get; set; } = () => "";
+    public Func<LearningItem, string, CancellationToken, Task<AiReply>>? AskAi { get; set; }
+    public Action AiSettings { get; set; } = () => { };
 
     private readonly StackPanel _list = new();
     private readonly TextBlock _heading = new();
+    private readonly TextBlock _listHeading = new();
     private readonly TextBox _box = new();
     private readonly TextBlock _onText = new();
-    private readonly Button _wholeItem = new();
     private readonly TextBox _search = new();
     private readonly TextBlock _found = new();
 
+    // Ask the AI.
+    private readonly TextBox _question = new();
+    private readonly TextBlock _aiLead = new();
+    private readonly Button _ask = new();
+    private readonly Button _aiSettings = new();
+    private readonly StackPanel _answerPanel = new();
+    private CancellationTokenSource? _asking;
+    /// <summary>
+    /// Answers not yet kept or discarded, by learner and item: moving to another item, or the idle lock, does not throw away
+    /// an answer that was paid for. Only in memory, and only the learner who asked sees theirs.
+    /// </summary>
+    private readonly Dictionary<(string Learner, string Item), (string Question, AiReply Reply)> _answers = [];
+
     private LearningItem? _item;
-    private NoteAnchor? _pending;
     private IReadOnlyDictionary<string, NoteLocation> _placed = new Dictionary<string, NoteLocation>();
 
     /// <summary>
@@ -60,7 +66,7 @@ public sealed class NotesPanel : UserControl
     private string? _editDraft;
     private TextBox? _editBox;
 
-    /// <summary>The page in the path asks the window for an item's page (Learn or Reference), to say whether a note's paragraph is still there.</summary>
+    /// <summary>The page in the path asks the window for an item's page (Learn, Laboratory or Reference), to say whether a note's paragraph is still there.</summary>
     public Func<LearningItem, string, string> PageText { get; set; } = (_, _) => "";
 
     public NotesPanel()
@@ -82,8 +88,8 @@ public sealed class NotesPanel : UserControl
         top.Children.Add(Lead(AllNotes
             ? "Every note you have written, newest first. Only you see them: they are kept in your progress file, locked with your PIN, " +
               "backed up with it, and never put in a report. Press Open to go to the note in its lesson."
-            : "Your own notes on this item. Only you see them: they are kept in your progress file, locked with your PIN, and never put " +
-              "in a report. To put a note on one paragraph, right-click it on the Learn or Reference tab."));
+            : "Your own notes on this item, and the AI answers you kept. Only you see them: they are kept in your progress file, " +
+              "locked with your PIN, and never put in a report. A ✎ after a paragraph of the lesson shows a note on it."));
 
         if (AllNotes)
         {
@@ -105,57 +111,298 @@ public sealed class NotesPanel : UserControl
         }
         else
         {
-            var compose = new StackPanel { Margin = new Thickness(0, 2, 0, 10) };
-            _onText.TextWrapping = TextWrapping.Wrap;
-            _onText.FontWeight = FontWeights.SemiBold;
-            _onText.Margin = new Thickness(0, 0, 0, 3);
-            compose.Children.Add(_onText);
-            _wholeItem.Content = "Put it on the whole item instead";
-            _wholeItem.ToolTip = "The note goes on the item as a whole, not on one paragraph";
-            _wholeItem.HorizontalAlignment = HorizontalAlignment.Left;
-            _wholeItem.Margin = new Thickness(0, 0, 0, 4);
-            _wholeItem.Padding = new Thickness(6, 1, 6, 1);
-            _wholeItem.Click += (_, _) => { _pending = null; ShowOn(); _box.Focus(); };
-            compose.Children.Add(_wholeItem);
-            _box.AcceptsReturn = true;
-            _box.TextWrapping = TextWrapping.Wrap;
-            _box.MinHeight = 72;
-            _box.MaxHeight = 200;
-            _box.MaxLength = NoteBook.MaxLength;
-            _box.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-            _box.Padding = new Thickness(4, 3, 4, 3);
-            _box.ToolTip = "Type your note: a question for class, a reminder, the idea in your own words. Ctrl+Enter adds it.";
-            AutomationProperties.SetLabeledBy(_box, _onText);
-            _box.PreviewKeyDown += (_, e) =>
-            {
-                if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = true; Add(); }
-                else if (e.Key == Key.Escape && _box.Text.Length == 0 && _pending is not null) { e.Handled = true; _pending = null; ShowOn(); }
-            };
-            compose.Children.Add(_box);
-            var buttons = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
-            var add = new Button { Content = "_Add note", ToolTip = "Keeps the note in your progress file (Ctrl+Enter)" };
-            add.Click += (_, _) => Add();
-            buttons.Children.Add(add);
-            compose.Children.Add(buttons);
-            top.Children.Add(compose);
+            top.Children.Add(TwoColumns(ComposePart(), AiPart()));
+            _listHeading.Style = (Style)FindResource("PanelTitle");
+            _listHeading.Margin = new Thickness(0, 14, 0, 6);
+            AutomationProperties.SetHeadingLevel(_listHeading, AutomationHeadingLevel.Level2);
+            top.Children.Add(_listHeading);
         }
 
-        var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Content = _list, Focusable = false };
         AutomationProperties.SetName(_list, AllNotes ? "My notes" : "My notes on this item");
-        var dock = new DockPanel();
-        DockPanel.SetDock(top, Dock.Top);
-        dock.Children.Add(top);
-        dock.Children.Add(scroll);
-        Content = AllNotes ? dock : new Border
+        if (AllNotes)
         {
-            Child = dock,
-            Padding = new Thickness(14, 10, 12, 10),
-            Background = (Brush)FindResource("PanelBrush"),
-            BorderBrush = (Brush)FindResource("LineBrush"),
-            BorderThickness = new Thickness(1, 0, 0, 0),
+            var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Content = _list, Focusable = false };
+            var dock = new DockPanel();
+            DockPanel.SetDock(top, Dock.Top);
+            dock.Children.Add(top);
+            dock.Children.Add(scroll);
+            Content = dock;
+            ShowAll();
+        }
+        else
+        {
+            // On the tab, the boxes and the list scroll together, so a long answer never hides the notes.
+            top.Children.Add(_list);
+            Content = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                Content = top, Padding = new Thickness(10, 8, 10, 8), Focusable = false,
+            };
+            Redraw();
+        }
+    }
+
+    /// <summary>Two parts side by side when there is room, one above the other when the window is narrow.</summary>
+    private static Grid TwoColumns(FrameworkElement left, FrameworkElement right)
+    {
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition());
+        grid.ColumnDefinitions.Add(new ColumnDefinition());
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        grid.Children.Add(left);
+        grid.Children.Add(right);
+        void Lay(double width)
+        {
+            var wide = width >= 640;
+            Grid.SetColumn(right, wide ? 1 : 0);
+            Grid.SetRow(right, wide ? 0 : 1);
+            Grid.SetColumnSpan(left, wide ? 1 : 2);
+            Grid.SetColumnSpan(right, wide ? 1 : 2);
+            left.Margin = new Thickness(0, 0, wide ? 8 : 0, wide ? 0 : 12);
+            right.Margin = new Thickness(wide ? 8 : 0, 0, 0, 0);
+        }
+        grid.SizeChanged += (_, e) => { if (e.WidthChanged) Lay(e.NewSize.Width); };
+        Lay(1000);
+        return grid;
+    }
+
+    private Border Part(string title, string tip, UIElement body)
+    {
+        var heading = new TextBlock { Text = title, Style = (Style)FindResource("PanelTitle"), TextWrapping = TextWrapping.Wrap, ToolTip = tip };
+        AutomationProperties.SetHeadingLevel(heading, AutomationHeadingLevel.Level2);
+        var panel = new StackPanel();
+        panel.Children.Add(heading);
+        panel.Children.Add(body);
+        return new Border
+        {
+            Child = panel, Padding = new Thickness(12, 8, 12, 10),
+            Background = (Brush)FindResource("PanelBrush"), BorderBrush = (Brush)FindResource("LineBrush"), BorderThickness = new Thickness(1),
         };
-        if (AllNotes) ShowAll();
-        else Redraw();
+    }
+
+    private Border ComposePart()
+    {
+        var compose = new StackPanel();
+        _onText.TextWrapping = TextWrapping.Wrap;
+        _onText.Margin = new Thickness(0, 0, 0, 4);
+        _onText.FontSize = 12.5;
+        _onText.Foreground = (Brush)FindResource("MutedTextBrush");
+        compose.Children.Add(_onText);
+        _box.AcceptsReturn = true;
+        _box.TextWrapping = TextWrapping.Wrap;
+        _box.MinHeight = 72;
+        _box.MaxHeight = 200;
+        _box.MaxLength = NoteBook.MaxLength;
+        _box.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+        _box.Padding = new Thickness(4, 3, 4, 3);
+        _box.ToolTip = "Type your note: a question for class, a reminder, the idea in your own words. Ctrl+Enter adds it.";
+        AutomationProperties.SetName(_box, "Write a note on this item");
+        AutomationProperties.SetHelpText(_box, "Type your note, then press Add note or Ctrl+Enter");
+        _box.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = true; Add(); }
+        };
+        compose.Children.Add(_box);
+        var add = new Button { Content = "A_dd note", ToolTip = "Keeps the note in your progress file (Ctrl+Enter)", HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 6, 0, 0) };
+        add.Click += (_, _) => Add();
+        compose.Children.Add(add);
+        return Part("Write a note", "A note on this item as a whole. For one paragraph, right-click it in the lesson.", compose);
+    }
+
+    private Border AiPart()
+    {
+        var ai = new StackPanel();
+        _aiLead.Style = (Style)FindResource("Lead");
+        _aiLead.Margin = new Thickness(0, 0, 0, 4);
+        _aiLead.FontSize = 12.5;
+        ai.Children.Add(_aiLead);
+        _question.TextWrapping = TextWrapping.Wrap;
+        _question.MinHeight = 48;
+        _question.MaxLength = 600;
+        _question.Padding = new Thickness(4, 3, 4, 3);
+        _question.ToolTip = "Type a question about this item, such as \u201cWhy is the Stop button wired normally closed?\u201d, then press Ask the AI (Enter)";
+        AutomationProperties.SetName(_question, "Your question for the AI");
+        _question.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.None) { e.Handled = true; _ = Ask(); }
+        };
+        ai.Children.Add(_question);
+        var row = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+        _ask.Margin = new Thickness(0, 0, 8, 0);
+        _ask.Click += (_, _) => { if (_asking is null) _ = Ask(); else _asking.Cancel(); };
+        ToolTipService.SetShowOnDisabled(_ask, true);
+        _aiSettings.Content = "AI settings…";
+        _aiSettings.ToolTip = "Set up the AI: choose the AI company and paste its key (kept on this computer only)";
+        _aiSettings.Click += (_, _) => AiSettings();
+        row.Children.Add(_ask);
+        row.Children.Add(_aiSettings);
+        ai.Children.Add(row);
+        _answerPanel.Margin = new Thickness(0, 8, 0, 0);
+        AutomationProperties.SetLiveSetting(_answerPanel, AutomationLiveSetting.Polite);
+        ai.Children.Add(_answerPanel);
+        return Part("Ask the AI about this topic (optional)", "Ask a question; the AI answers from this item's lesson. Keep the answer in My notes, or discard it.", ai);
+    }
+
+    /// <summary>Puts the cursor in the question box (AI ▸ Ask the AI about this item).</summary>
+    public void FocusQuestion()
+    {
+        if (!_built) Build();
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () => { _question.BringIntoView(); _question.Focus(); Keyboard.Focus(_question); });
+    }
+
+    private string LearnerKey => Session()?.Data.Profile.ProfileId ?? "";
+
+    /// <summary>The item being asked about while the AI answers (null when not asking).</summary>
+    private LearningItem? _askingItem;
+    /// <summary>Why the last question on an item got no answer; shown until the next question or AI settings. Never replaces an answer.</summary>
+    private readonly Dictionary<(string Learner, string Item), string> _failures = [];
+    /// <summary>A question typed on an item and not yet asked stays with that item (UX review 2026-11-15).</summary>
+    private readonly Dictionary<(string Learner, string Item), string> _questions = [];
+
+    /// <summary>The AI's settings closed: an old "no key" message no longer applies.</summary>
+    public void AiSettingsChanged()
+    {
+        _failures.Clear();
+        if (_built && !AllNotes) ShowAi();
+    }
+
+    /// <summary>Draws the Ask the AI part: ready or not, asking or not, and an answer waiting to be kept or discarded.</summary>
+    private void ShowAi()
+    {
+        var ready = AiReady();
+        _aiLead.Text = AiStatus();
+        _answerPanel.Children.Clear();
+        var item = _item;
+        var key = (LearnerKey, item?.Id ?? "");
+        var waiting = item is not null && _answers.TryGetValue(key, out var w) ? w : ((string, AiReply)?)null;
+        var askingHere = _asking is not null && _askingItem == item;
+        _question.IsEnabled = ready && _asking is null && waiting is null;
+        _ask.IsEnabled = ready && (askingHere || (_asking is null && waiting is null));
+        _ask.Content = askingHere ? "_Stop" : "As_k the AI";
+        _ask.ToolTip = !ready ? "Set up the AI first: AI settings… (the button beside this one)"
+            : askingHere ? "Stops waiting for the answer; nothing is kept and your question goes back in the box"
+            : _asking is not null ? $"The AI is still answering your question on {_askingItem?.Number}; ask again when it has answered"
+            : waiting is not null ? "Save or discard the answer below first"
+            : "Sends your question and this item's lesson to the AI (Enter)";
+        if (askingHere)
+        {
+            _answerPanel.Children.Add(Lead("Asking the AI… The answer usually takes a few seconds."));
+            return;
+        }
+        if (_asking is not null)
+            _answerPanel.Children.Add(Lead($"The AI is still answering your question on {_askingItem?.Number}. Its answer will wait on {_askingItem?.Number}'s My notes tab."));
+        if (item is not null && _failures.TryGetValue(key, out var problemText))
+        {
+            var problem = Lead(problemText);
+            problem.Foreground = new SolidColorBrush(Color.FromRgb(0xA4, 0x1E, 0x1E));
+            _answerPanel.Children.Add(problem);
+        }
+        if (item is null || waiting is not { } shown) return;
+        var (question, reply) = shown;
+        var answer = new StackPanel();
+        answer.Children.Add(new TextBlock { Text = $"You asked: \u201c{question}\u201d", FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 4) });
+        var text = new TextBox
+        {
+            Text = reply.Text, IsReadOnly = true, TextWrapping = TextWrapping.Wrap, BorderThickness = new Thickness(0),
+            Background = Brushes.Transparent,
+        };
+        text.SetResourceReference(ForegroundProperty, "InkBrush");
+        AutomationProperties.SetName(text, "The AI's answer");
+        answer.Children.Add(text);
+        answer.Children.Add(new TextBlock
+        {
+            Text = $"Answer by {reply.Source}. These are the AI's words, not the book's: check them against the lesson.",
+            FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = (Brush)FindResource("MutedTextBrush"), Margin = new Thickness(0, 4, 0, 0),
+        });
+        var buttons = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+        var keep = SmallButton("Save to my notes", "Keeps the question and the answer in My notes, marked as the AI's answer");
+        var discard = SmallButton("Discard", "Throws the answer away; nothing is kept");
+        keep.Click += (_, _) => KeepAnswer(question, reply);
+        discard.Click += (_, _) =>
+        {
+            _answers.Remove(key);
+            ShowAi();
+            Status("The AI's answer was discarded. Ask another question when you like.");
+        };
+        buttons.Children.Add(keep);
+        buttons.Children.Add(discard);
+        answer.Children.Add(buttons);
+        _answerPanel.Children.Add(new Border
+        {
+            Child = answer, Padding = new Thickness(10, 8, 10, 8), Background = (Brush)FindResource("PageBrush"),
+            BorderBrush = (Brush)FindResource("LineBrush"), BorderThickness = new Thickness(1),
+        });
+    }
+
+    private async Task Ask()
+    {
+        if (_item is not { } item || AskAi is null || _asking is not null) return;
+        var key = (LearnerKey, item.Id);
+        if (_answers.ContainsKey(key))
+        {
+            Status("Save or discard the AI's answer first: a new question would replace it.");
+            return;
+        }
+        var question = _question.Text.Trim();
+        if (question.Length == 0)
+        {
+            Status("Type your question in the box first, then press Ask the AI.");
+            _question.Focus();
+            return;
+        }
+        if (!AiReady())
+        {
+            ShowAi();
+            Status("The AI is not set up on this computer: press AI settings… to set it up. Everything else works without it.");
+            return;
+        }
+        _failures.Remove(key);
+        using var asking = new CancellationTokenSource();
+        (_asking, _askingItem) = (asking, item);
+        ShowAi();
+        Status($"Asking the AI about {item.Number}…");
+        AiReply reply;
+        try
+        {
+            reply = await AskAi(item, question, asking.Token);
+        }
+        catch (Exception ex)
+        {
+            reply = AiReply.Failed("Something went wrong asking the AI. Try again. Details for support: " + ex.Message);
+        }
+        finally
+        {
+            (_asking, _askingItem) = (null, null);
+        }
+        var here = _item == item;
+        if (asking.IsCancellationRequested)
+        {
+            ShowAi();
+            Status("Stopped: nothing was kept. Your question is still in the box; press Ask the AI to try again.");
+            return;
+        }
+        if (reply.Ok)
+        {
+            _answers[key] = (question, reply);
+            if (here) _question.Clear(); else _questions.Remove(key);
+        }
+        else _failures[key] = reply.Problem;
+        ShowAi();
+        Status(!reply.Ok ? $"The AI did not answer your question on {item.Number}: " + reply.Problem
+            : here ? $"The AI answered your question on {item.Number}. Save to my notes keeps it; Discard throws it away."
+            : $"The AI answered your question on {item.Number}: open {item.Number}'s My notes tab to save it or discard it.");
+    }
+
+    private void KeepAnswer(string question, AiReply reply)
+    {
+        if (_item is not { } item || Session() is not { } s) return;
+        var note = s.Data.Notes.AddAiAnswer(NoteAnchor.OnItem(item.Id), question, reply.Text, reply.Source, DateTimeOffset.Now);
+        _answers.Remove((LearnerKey, item.Id));
+        Changed();
+        ShowAi();
+        if (note is not null) Highlight(note.Id);
+        Status($"The AI's answer is kept in My notes on {item.Number}, marked as the AI's.");
     }
 
     private TextBlock Lead(string text) => new() { Text = text, Style = (Style)FindResource("Lead") };
@@ -168,35 +415,14 @@ public sealed class NotesPanel : UserControl
         if (_item != item)
         {
             KeepDraft();
-            _pending = null;
             _highlight = null;
+            // The question typed on the last item stays with it; this item's comes back.
+            if (_item is not null && _asking is null) _questions[(LearnerKey, _item.Id)] = _question.Text;
+            _question.Text = _questions.GetValueOrDefault((LearnerKey, item.Id)) ?? "";
         }
         _item = item;
         _placed = placed;
         if (_built) Redraw();
-    }
-
-    /// <summary>Starts a note on a paragraph (or on the item, if <paramref name="anchor"/> names no block) and puts the cursor in the box.</summary>
-    public void StartNote(NoteAnchor anchor)
-    {
-        _pending = anchor.Block is null && anchor.Tab is null ? null : anchor;
-        if (!_built) Build();
-        ShowOn();
-        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () => { _box.Focus(); Keyboard.Focus(_box); });
-        Status(_pending is null
-            ? $"Write your note on {_item?.Number} in the box under My notes (right), then press Add note or Ctrl+Enter."
-            : "Write your note on that paragraph in the box under My notes (right), then press Add note or Ctrl+Enter. The paragraph gets a bar on its left.");
-    }
-
-    private void ShowOn()
-    {
-        if (_item is null) return;
-        _onText.Text = _pending?.Quote is { } quote ? $"New note on the paragraph: “{Short(quote, 90)}”"
-            : _pending?.Tab is { } page ? $"New note on {_item.Number}'s {TabName(page)} {(page is NoteTabs.Learn or NoteTabs.Reference ? "page" : "tab")}"
-            : CurrentTab is NoteTabs.Example or NoteTabs.Exercise ? $"New note on {_item.Number}'s {TabName(CurrentTab)} tab"
-            : $"New note on {_item.Number} {_item.Title}";
-        _wholeItem.Visibility = _pending is null ? Visibility.Collapsed : Visibility.Visible;
-        AutomationProperties.SetName(_box, _onText.Text);
     }
 
     private void Add()
@@ -212,14 +438,12 @@ public sealed class NotesPanel : UserControl
             _box.Focus();
             return;
         }
-        var anchor = _pending ?? NoteAnchor.OnItem(_item.Id, CurrentTab is NoteTabs.Example or NoteTabs.Exercise ? CurrentTab : null);
-        s.Data.Notes.Add(anchor, _box.Text, DateTimeOffset.Now);
+        var note = s.Data.Notes.Add(NoteAnchor.OnItem(_item.Id), _box.Text, DateTimeOffset.Now);
         _box.Clear();
-        _pending = null;
         Changed();
+        if (note is not null) Highlight(note.Id);
         Status($"Note added to {_item.Number}. It is in your progress file; see all your notes under My notes in the path.");
     }
-
 
     /// <summary>
     /// What was typed and not yet added is kept, not lost: leaving the item or locking adds the half-written note, and keeps an
@@ -230,11 +454,9 @@ public sealed class NotesPanel : UserControl
         var kept = CommitEdit();
         if (_item is not null && _box.Text.Trim().Length > 0 && Session() is { } session)
         {
-            var anchor = _pending ?? NoteAnchor.OnItem(_item.Id, CurrentTab is NoteTabs.Example or NoteTabs.Exercise ? CurrentTab : null);
-            session.Data.Notes.Add(anchor, _box.Text, DateTimeOffset.Now);
+            session.Data.Notes.Add(NoteAnchor.OnItem(_item.Id), _box.Text, DateTimeOffset.Now);
             kept = (kept is null ? "" : kept + " ") + $"The note you were writing on {_item.Number} was added to My notes.";
             _box.Clear();   // only once it is kept: a box with nowhere to go keeps its words
-            _pending = null;
         }
         if (kept is not null) Changed();
         return kept;
@@ -257,7 +479,9 @@ public sealed class NotesPanel : UserControl
     {
         _box.Clear();
         _search.Clear();
-        _pending = null;
+        _question.Clear();
+        _asking?.Cancel();
+        _answerPanel.Children.Clear();
         (_editId, _editDraft, _editBox) = (null, null, null);
         _highlight = null;
         _item = null;
@@ -280,11 +504,13 @@ public sealed class NotesPanel : UserControl
         ClearList();
         if (_item is null || Session() is not { } s) return;
         var notes = s.Data.Notes.For(_item.Id);
-        _heading.Text = notes.Count == 0 ? "My notes" : $"My notes ({notes.Count})";
-        ShowOn();
+        _heading.Text = $"My notes on {_item.Number} {_item.Title}";
+        _onText.Text = $"A note on {_item.Number} as a whole. To put one on a paragraph, right-click the paragraph in the lesson.";
+        _listHeading.Text = notes.Count == 0 ? "Notes on this item" : $"Notes on this item ({notes.Count})";
+        ShowAi();
         if (notes.Count == 0)
         {
-            _list.Children.Add(Lead("No notes on this item yet. Write one in the box above, or right-click a paragraph of the lesson and choose Add a note to this paragraph."));
+            _list.Children.Add(Lead("No notes on this item yet. Write one above, or right-click a paragraph of the lesson and choose Add a note to this paragraph."));
             return;
         }
         foreach (var note in notes.Reverse()) _list.Children.Add(Card(note, showItem: false));
@@ -310,7 +536,7 @@ public sealed class NotesPanel : UserControl
             : $"{shown.Count} of your {all.Count} notes have “{query}”.";
         if (all.Count == 0)
         {
-            _list.Children.Add(Lead("You have no notes yet. On any item, press ✎ My notes (top right) and write one, or right-click a paragraph of a lesson " +
+            _list.Children.Add(Lead("You have no notes yet. On any item, open its My notes tab and write one, or right-click a paragraph of a lesson " +
                                     "and choose Add a note to this paragraph. Your notes come together here, so you can read them again before a module check."));
             return;
         }
@@ -351,7 +577,11 @@ public sealed class NotesPanel : UserControl
         }
         else
         {
+            if (note.Kind == NoteKind.AiAnswer)
+                panel.Children.Add(new TextBlock { Text = $"You asked the AI: \u201c{note.Question}\u201d", FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 3) });
             panel.Children.Add(new TextBlock { Text = note.Text, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 3) });
+            if (note.Kind == NoteKind.AiAnswer)
+                panel.Children.Add(new TextBlock { Text = $"The AI's answer ({note.Source}), not the book's words: check it against the lesson.", FontSize = 12, FontStyle = FontStyles.Italic, TextWrapping = TextWrapping.Wrap, Foreground = (Brush)FindResource("MutedTextBrush") });
             var when = note.Modified > note.Created.AddMinutes(1) ? $"Written {Words.When(note.Created)}, changed {Words.When(note.Modified)}" : $"Written {Words.When(note.Created)}";
             panel.Children.Add(new TextBlock { Text = when, FontSize = 12, Foreground = (Brush)FindResource("MutedTextBrush") });
 
@@ -385,7 +615,7 @@ public sealed class NotesPanel : UserControl
             BorderThickness = new Thickness(4, 1, 1, 1),
             Background = (Brush)FindResource("PageBrush"),
         };
-        AutomationProperties.SetName(card, $"Note: {note.Text}. {where}");
+        AutomationProperties.SetName(card, note.Kind == NoteKind.AiAnswer ? $"The AI's answer to {note.Question}: {note.Text}. {where}" : $"Note: {note.Text}. {where}");
         _cards[note.Id] = card;
         if (note.Id == _highlight)
         {
@@ -430,7 +660,7 @@ public sealed class NotesPanel : UserControl
                 _ => $"The paragraph this note was on is no longer on the {tab} page (the lesson has been updated). It said: {quote}." + MoveIt,
             };
         }
-        return note.Anchor.Tab is not null ? $"On the {tab} tab" : "On the item as a whole";
+        return note.Kind == NoteKind.AiAnswer ? "Asked about this item" : note.Anchor.Tab is not null ? $"On the {tab} tab" : "On the item as a whole";
     }
 
     private static string TabName(string? tab) => tab switch
@@ -439,6 +669,7 @@ public sealed class NotesPanel : UserControl
         NoteTabs.Example => "Example",
         NoteTabs.Exercise => "Exercise",
         NoteTabs.Reference => "Reference",
+        NoteTabs.Laboratory => "Laboratory",
         _ => "item",
     };
 

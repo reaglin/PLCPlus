@@ -34,7 +34,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
     // again by its words (Learning.Core.Notes.BlockText). Tables and widgets take no notes of their own.
 
     private readonly List<(Paragraph Block, string Source)> _blocks = [];
-    private readonly List<(Paragraph Block, Thickness Border, Thickness Padding, object? Tip)> _marked = [];
+    private readonly List<(Paragraph Block, Inline Mark)> _marked = [];
 
     /// <summary>The page's blocks' source words, in order: what <see cref="Learning.Core.Notes.NoteBook.Place"/> needs.</summary>
     public IReadOnlyList<string> BlockSources => [.. _blocks.Select(b => b.Source)];
@@ -74,29 +74,37 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
     }
 
     /// <summary>
-    /// Shows where the learner's notes are: a bar down the left of each block with a note, and the note as the block's tooltip.
-    /// A shape and words, not colour alone. Clears the last call's marks first.
+    /// Shows where the learner's notes are (Ron, 2026-11-15: "a small note icon at the end of the paragraph is sufficient"): a
+    /// ✎ after the last word of each block with a note (✎ 2 for two), the notes as its tooltip, and a click on it opens them
+    /// on the My notes tab. A sign and words, not colour alone, and the page keeps its width. Clears the last call's marks first.
     /// </summary>
     public void MarkNotes(IEnumerable<(int Index, string Tip)> notes)
     {
-        foreach (var (block, border, padding, tip) in _marked)
-        {
-            (block.BorderThickness, block.Padding, block.ToolTip) = (border, padding, tip);
-            block.ClearValue(Block.BorderBrushProperty);
-        }
+        foreach (var (block, mark) in _marked) block.Inlines.Remove(mark);
         _marked.Clear();
-        var brush = TryFindResource("AccentBrush") as Brush ?? Brushes.DarkOrange;
         foreach (var group in notes.Where(n => n.Index >= 0 && n.Index < _blocks.Count).GroupBy(n => n.Index))
         {
             var block = _blocks[group.Key].Block;
-            _marked.Add((block, block.BorderThickness, block.Padding, block.ToolTip));
-            block.BorderBrush = brush;
-            block.BorderThickness = new Thickness(4, 0, 0, 0);
-            block.Padding = new Thickness(8, 0, 0, 0);
-            block.ToolTip = string.Join(Environment.NewLine, group.Select(n => "✎ My note: " + n.Tip))
-                            + Environment.NewLine + "Open ✎ My notes (top right) to read or change it.";
+            var count = group.Count();
+            var index = group.Key;
+            var link = new Hyperlink(new Run(count == 1 ? "\u00A0✎" : $"\u00A0✎\u00A0{count}"))
+            {
+                TextDecorations = null,
+                FontWeight = FontWeights.SemiBold,
+                Cursor = Cursors.Hand,
+                ToolTip = string.Join(Environment.NewLine, group.Select(n => "✎ My note: " + n.Tip))
+                          + Environment.NewLine + "Click ✎ to open it on the My notes tab.",
+            };
+            link.SetResourceReference(TextElement.ForegroundProperty, "AccentBrush");
+            System.Windows.Automation.AutomationProperties.SetName(link, count == 1 ? "My note on this paragraph" : $"My {count} notes on this paragraph");
+            link.Click += (_, _) => NoteMarkClicked?.Invoke(index);
+            block.Inlines.Add(link);
+            _marked.Add((block, link));
         }
     }
+
+    /// <summary>The learner clicked the ✎ after a block: show its notes (the block's index in <see cref="BlockSources"/>).</summary>
+    public event Action<int>? NoteMarkClicked;
 
     /// <summary>Scrolls a block into view and selects it, so the learner sees which paragraph a note is on.</summary>
     public void ShowBlock(int index)

@@ -7,6 +7,7 @@ builds-on: plc.m5.contacts-coils
 example: u5.pump-start-stop
 exercise: u5.motor-start-stop
 reference: [seal-in, wiring-stop, contacts, coils]
+lab: [lab-5-seal-in]
 ---
 
 

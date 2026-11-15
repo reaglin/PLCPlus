@@ -11,6 +11,8 @@
         <KeyBinding Key="D2" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="1" />
         <KeyBinding Key="D3" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="2" />
         <KeyBinding Key="D4" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="3" />
+        <KeyBinding Key="D5" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="4" />
+        <KeyBinding Key="D6" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="5" />
         <KeyBinding Key="PageDown" Modifiers="Ctrl+Shift" Command="{Binding NextCommand}" />
         <KeyBinding Key="PageUp" Modifiers="Ctrl+Shift" Command="{Binding PreviousCommand}" />
         <KeyBinding Key="Home" Modifiers="Ctrl+Shift" Command="{Binding ShowDashboardCommand}" />
@@ -66,6 +68,8 @@
                 <MenuItem x:Name="BackupItem" Header="_Back up my progress…" Click="Backup_Click"
                           ToolTip="Saves a copy of your progress file on a USB drive or in a cloud folder (OneDrive, Google Drive …), so it is safe if this computer's copy is lost" />
                 <MenuItem Header="_Change my PIN…" Click="ChangePin_Click" ToolTip="Choose a new PIN; you need the PIN you use now" />
+                <MenuItem Header="My course's _links…" Click="CourseLinks_Click"
+                          ToolTip="The web addresses of your course website and of your course in the LMS (Canvas, Brightspace …), from your instructor" />
                 <Separator />
                 <MenuItem Header="_Switch learner" InputGestureText="Ctrl+Shift+L" Click="SwitchLearner_Click"
                           ToolTip="Saves your work, locks your progress and goes back to the list of learners, for the next person" />
@@ -75,7 +79,7 @@
                           ToolTip="Your progress through the whole path: each module, the module checks, outcomes to review, and your time in PLC+" />
                 <MenuItem Header="_Hand in a report" InputGestureText="Ctrl+Shift+R" Command="{Binding ShowReportsCommand}"
                           ToolTip="Make a progress report (a PDF) for a module check, or of everything so far, and hand it in to your instructor" />
-                <MenuItem Header="My _notes" InputGestureText="Ctrl+Shift+N" Command="{Binding ShowNotesCommand}"
+                <MenuItem Header="My n_otes" InputGestureText="Ctrl+Shift+N" Command="{Binding ShowNotesCommand}"
                           ToolTip="Every note you have written on the lessons, with a search box. Only you see them" />
                 <MenuItem Header="_Continue where I left off" Command="{Binding ContinueWhereILeftOffCommand}"
                           ToolTip="Opens the first item in the path you have not completed yet" />
@@ -87,13 +91,30 @@
                 <MenuItem Header="_Learn tab" InputGestureText="Ctrl+1" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="0" />
                 <MenuItem Header="_Example tab" InputGestureText="Ctrl+2" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="1" />
                 <MenuItem Header="E_xercise tab" InputGestureText="Ctrl+3" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="2" />
-                <MenuItem Header="_Reference tab" InputGestureText="Ctrl+4" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="3" />
+                <MenuItem Header="L_aboratory tab" InputGestureText="Ctrl+4" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="3" />
+                <MenuItem Header="_Reference tab" InputGestureText="Ctrl+5" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="4" />
+                <MenuItem Header="My notes _tab" InputGestureText="Ctrl+6" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="5" />
+                <Separator />
+                <MenuItem x:Name="CourseTextItem" Header="My course _website" Click="CourseText_Click"
+                          ToolTip="Opens your course's website in your web browser (or, if its address is not set yet, asks for it)" />
+                <MenuItem x:Name="CourseLmsItem" Header="My course in the LM_S" Click="CourseLms_Click"
+                          ToolTip="Opens your course in the learning management system (Canvas, Brightspace …) in your web browser (or, if its address is not set yet, asks for it)" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="_Larger text" InputGestureText="Ctrl++" Command="{x:Static local:MainWindow.TextLarger}"
                           ToolTip="Makes everything in the window bigger. Kept for you, in your progress file" />
                 <MenuItem Header="_Smaller text" InputGestureText="Ctrl+−" Command="{x:Static local:MainWindow.TextSmaller}" ToolTip="Makes everything in the window smaller" />
                 <MenuItem Header="_Normal size" InputGestureText="Ctrl+0" Command="{x:Static local:MainWindow.TextNormal}" ToolTip="Back to the usual size" />
+            </MenuItem>
+            <!-- The AI, optional (Ron, 2026-11-15; Learning Core plan 3.8): through the shared AI Manager. -->
+            <MenuItem Header="_AI" SubmenuOpened="AiMenu_Opened">
+                <MenuItem x:Name="AskAiItem" Header="_Ask the AI about this item…" Click="AskAi_Click" ToolTipService.ShowOnDisabled="True"
+                          ToolTip="Opens this item's My notes tab with the cursor in Ask the AI: ask a question about the topic, then keep the answer in My notes or discard it" />
+                <Separator />
+                <MenuItem Header="AI _settings…" Click="AiSettings_Click"
+                          ToolTip="Optional: choose the AI company and paste its key. Kept on this computer only, and shared with Dr. Ron Eaglin's other programs" />
+                <MenuItem Header="What the AI has _cost…" Click="AiUsage_Click"
+                          ToolTip="Every question asked through this key, and what it cost" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_Help for this screen" InputGestureText="F1" Command="ApplicationCommands.Help"
@@ -135,9 +156,9 @@
                     <TextBlock Style="{StaticResource Lead}">
                         The modules, in order, each with its items. My progress at the top shows the whole path. The mark says how far you have got: ○ not started, ◐ started, ✓ complete; a module can also be ★ mastered (every outcome mastered) or ↺ review suggested. Choose a module to see what it teaches and what to finish first; choose an item to work on it.
                     </TextBlock>
-                    <TextBlock Text="An item's four tabs" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Text="An item's tabs" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Learn: read the lesson. Example: a working program on a machine like the exercise's (not the same one): run it, and see a common mistake. Exercise: write your own program and check it, or answer practice questions. Reference: the symbols and rules the item uses, on one page. Pop out gives a program and its machine a window of their own.
+                        Learn: read the lesson. Example: a working program on a machine like the exercise's (not the same one): run it, and see a common mistake. Exercise: write your own program and check it, or answer practice questions. Laboratory: the lab exercise you do live on the real PLC, when the item has one. Reference: the symbols and rules the item uses, on one page. My notes: your own notes on the item, and Ask the AI (optional). Pop out gives a program and its machine a window of their own.
                     </TextBlock>
                     <TextBlock Text="Completing an item" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
@@ -153,7 +174,7 @@
                     </TextBlock>
                     <TextBlock Text="My notes" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Write your own notes as you learn: press ✎ My notes on an item, or right-click a paragraph of a lesson and choose Add a note to this paragraph (it gets a bar on its left). Only you see them; they are kept in your progress file. My notes in the path (Ctrl+Shift+N) has them all, with a search box.
+                        Write your own notes as you learn: on an item's My notes tab (Ctrl+6), or right-click a paragraph of a lesson and choose Add a note to this paragraph (a ✎ after it shows the note). Only you see them; they are kept in your progress file. My notes in the path (Ctrl+Shift+N) has them all, with a search box. The My notes tab can also ask the AI a question about the item (optional: AI ▸ AI settings…); you choose whether to keep its answer. If your class gives you its course website and LMS address, My course's links… (top of the path) keeps them, with buttons that open them.
                     </TextBlock>
                     <TextBlock Text="Your progress" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
@@ -185,6 +206,13 @@
                     <TextBlock x:Name="PathTime" Text="{Binding TimeText}" Style="{StaticResource Lead}" Margin="0,2,0,0" Foreground="{DynamicResource InkBrush}"
                                ToolTip="Time counts while you are using PLC+ (a key or the mouse in the last two minutes), not while it sits idle" />
                     <TextBlock Text="★ mastered · ✓ complete · ↺ review · ◐ started · ○ not started · – coming later" Style="{StaticResource Lead}" FontSize="12" Margin="0,2,0,0" TextWrapping="Wrap" />
+                    <!-- My course's links (Learning Core plan 3.10): the course's text and the LMS, or a way to add them. -->
+                    <WrapPanel x:Name="CourseLinksRow" Margin="0,6,0,0">
+                        <Button x:Name="CourseTextButton" Content="📘 Course website" Click="CourseText_Click" Padding="8,2" Margin="0,0,6,4" Visibility="Collapsed" />
+                        <Button x:Name="CourseLmsButton" Content="🎓 Course in the LMS" Click="CourseLms_Click" Padding="8,2" Margin="0,0,6,4" Visibility="Collapsed" />
+                        <Button x:Name="CourseLinksButton" Content="My course's links…" Click="CourseLinks_Click" Padding="8,2" Margin="0,0,0,4"
+                                ToolTip="Add the web addresses of your course website and your course in the LMS (Canvas, Brightspace …), from your instructor" />
+                    </WrapPanel>
                 </StackPanel>
                 <TreeView x:Name="PathTree" ItemsSource="{Binding Roots}" BorderThickness="0" Background="Transparent" Padding="4,0,4,8" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           SelectedItemChanged="PathTree_SelectedItemChanged"
@@ -269,8 +297,6 @@
             <DockPanel x:Name="ItemPage" Grid.Column="2" Margin="18,10,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
                 <DockPanel DockPanel.Dock="Top">
                     <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Top">
-                        <ToggleButton x:Name="NotesButton" Content="✎ My _notes" Padding="12,5" Margin="0,0,8,0" Click="NotesButton_Click"
-                                      ToolTip="Shows or hides your own notes on this item, and a box to write a new one (only you see them)" />
                         <Button x:Name="HandInButton" Content="Hand in a _report…" Click="HandIn_Click" Visibility="Collapsed"
                                 ToolTip="Make a progress report for this module check, to hand in to your instructor (you can make one before the check is complete: it is marked Incomplete)" />
                         <Button x:Name="PreviousButton" Content="◂ Previous" Command="{Binding PreviousCommand}" ToolTipService.ShowOnDisabled="True" ToolTip="The item before this one (Ctrl+Shift+PgUp)" />
@@ -282,8 +308,6 @@
                         <TextBlock x:Name="ItemStatusText" Style="{StaticResource Lead}" Margin="0,0,0,2" AutomationProperties.LiveSetting="Polite" />
                     </StackPanel>
                 </DockPanel>
-                <!-- My notes beside the item (Learning Core plan 3.2): shown with ✎ My notes, or when the learner adds a note. -->
-                <local:NotesPanel x:Name="ItemNotes" DockPanel.Dock="Right" Width="330" Margin="10,6,0,0" Visibility="Collapsed" />
                 <TabControl x:Name="ItemTabs" Margin="0,6,0,0" SelectionChanged="ItemTabs_SelectionChanged">
                     <TabControl.Resources>
                         <Style TargetType="TabItem">
@@ -322,8 +346,16 @@
                             </ScrollViewer>
                         </Grid>
                     </TabItem>
-                    <TabItem x:Name="ReferenceTab" Header="Refere_nce" ToolTip="The symbols and rules this item uses (Ctrl+4)">
+                    <!-- Lab exercises done live on the real equipment (Ron, 2026-11-15; Learning Core plan 3.9). -->
+                    <TabItem x:Name="LabTab" Header="Lab_oratory" ToolTip="The lab exercise you do live, on the real equipment in the lab (Ctrl+4)">
+                        <local:MarkdownView x:Name="LabView" AutomationProperties.Name="Laboratory: the lab exercise for this item" />
+                    </TabItem>
+                    <TabItem x:Name="ReferenceTab" Header="Refere_nce" ToolTip="The symbols and rules this item uses (Ctrl+5)">
                         <local:MarkdownView x:Name="ReferenceView" AutomationProperties.Name="Reference" />
+                    </TabItem>
+                    <!-- My notes (Ron, 2026-11-15: a tab, in place of the pane beside the tabs; Learning Core plan 3.2, 3.8). -->
+                    <TabItem x:Name="NotesTab" Header="My no_tes" ToolTip="Your own notes on this item, a box to write one, and Ask the AI (Ctrl+6)">
+                        <local:NotesPanel x:Name="ItemNotes" />
                     </TabItem>
                 </TabControl>
             </DockPanel>

@@ -194,6 +194,10 @@ foreach ($step in $Steps) {
         $h = $d; $title = $rest
         $root = [System.Windows.Automation.AutomationElement]::FromHandle($h)
         Write-Output "window '$rest'"
+    } elseif ($kind -eq 'wait') {
+        # wait:ms lets the program work (an answer from the AI, a long check) before the next step.
+        Start-Sleep -Milliseconds ([int]$rest)
+        Write-Output "waited $rest ms"
     } elseif ($kind -eq 'toggle') {
         # toggle:Name switches a check box, in step order.
         $el = Find-Named $rest

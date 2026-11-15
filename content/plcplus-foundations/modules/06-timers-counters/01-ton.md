@@ -7,6 +7,7 @@ builds-on: plc.m5.seal-in
 example: u6.warning-horn
 exercise: u6.traffic-light
 reference: [timers]
+lab: [lab-6-traffic-light]
 ---
 
 # On-delay timers: a traffic light
