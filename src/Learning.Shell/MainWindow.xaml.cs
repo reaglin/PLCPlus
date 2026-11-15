@@ -339,9 +339,9 @@ public partial class MainWindow : Window
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
         KeepNoteDraft();
-        var id = _vm.Lock(switching, DateTimeOffset.Now);
-        ItemNotes.Forget();
+        ItemNotes.Forget();      // before the lock: it keeps an unasked question for this learner
         AllNotesPanel.Forget();
+        var id = _vm.Lock(switching, DateTimeOffset.Now);
         AppContent.Visibility = Visibility.Hidden;
         SignInScreen.Show(banner, id);
     }

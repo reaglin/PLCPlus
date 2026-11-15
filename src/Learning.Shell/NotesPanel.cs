@@ -479,6 +479,8 @@ public sealed class NotesPanel : UserControl
     {
         _box.Clear();
         _search.Clear();
+        // A question typed and not asked waits for the same learner (kept by learner and item, only in memory).
+        if (_item is not null && _question.Text.Trim().Length > 0) _questions[(LearnerKey, _item.Id)] = _question.Text;
         _question.Clear();
         _asking?.Cancel();
         _answerPanel.Children.Clear();
