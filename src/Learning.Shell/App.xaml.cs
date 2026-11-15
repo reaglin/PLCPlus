@@ -10,6 +10,9 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // The shared Learning Core names the program in what it says to a person (plan 13.1).
+        global::Learning.Core.LearningApp.Name = "PLC+";
+
         // PLCPlus.exe --export-ladders <folder>: every program in the content package drawn as a PNG, with the same
         // drawing as the window. The instructors' review pages on softwareplus.ai show them (tools/make-review-site.py).
         if (e.Args.Length == 2 && e.Args[0] == "--export-ladders")

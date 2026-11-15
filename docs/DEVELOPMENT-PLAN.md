@@ -298,8 +298,7 @@ LMS and reviewed end to end.
 
 | # | Task | Done when |
 |---|---|---|
-| 13.1 | **Move to the shared Learning Core packages** (2026-11-11). Statistics+ is the second program to use the learning engine, so per D5 `Learning.Core` and `Learning.Reports.Pdf` now live in `..\LearningCore\` and are packed to `C:
-uget-local` (`Eaglin.Learning.Core`, `Eaglin.Learning.Reports.Pdf` 1.0.0). With the next PLC+ release: delete `src/Learning.Core`, `src/Learning.Reports.Pdf` and `tests/Learning.Core.Tests` here, reference the packages, and set `LearningApp.Name = "PLC+"` at start-up (the core's messages now name the program through it). **Until then, the copies in this repository are frozen: make changes in `..\LearningCore`.** Not done now, so as not to disturb the 1.0.0 Store submission | PLC+ builds from the packages, all its tests are green, and the hand-test exe runs unchanged |
+| 13.1 | **Move to the shared Learning Core packages** (2026-11-11). Statistics+ is the second program to use the learning engine, so per D5 `Learning.Core` and `Learning.Reports.Pdf` live in `..\LearningCore\` and are packed to `C:\nuget-local`. With the next PLC+ release: delete `src/Learning.Core`, `src/Learning.Reports.Pdf` and `tests/Learning.Core.Tests` here, reference the packages, and set `LearningApp.Name = "PLC+"` at start-up. | ⚠️ **Done on the branch `my-notes` 2026-11-15** (not on `main`, which stays the 1.0.0 Store build): the copies deleted, `Eaglin.Learning.Core` and `Eaglin.Learning.Reports.Pdf` **1.3.0** referenced by `Learning.Shell` and `Plc.Grading`, `LearningApp.Name = "PLC+"` in `App.OnStartup` and the content validator, and the report's subject words set in `PlcReports.Words` exactly as PLC+'s reports have said them (Learning Core plan 2.1–2.2). Engine 255 and editor 15 tests green; the validator finds no problems. Ron: a report made on the branch reads as before (hand-test 13.1) |
 
 ## Phase 14 — spec Phase 3: advanced and dialects
 

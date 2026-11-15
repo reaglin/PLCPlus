@@ -25,11 +25,12 @@
   <!-- MVVM (plan 7.1; Ron, 2026-11-05: the toolkit, step by step). The family's MAUI apps use the same package. -->
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <!-- The shared learning engine, from the local feed C:\nuget-local (..\LearningCore\build\pack.ps1). -->
+    <PackageReference Include="Eaglin.Learning.Core" Version="1.3.0" />
+    <PackageReference Include="Eaglin.Learning.Reports.Pdf" Version="1.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Learning.Core\Learning.Core.csproj" />
-    <ProjectReference Include="..\Learning.Reports.Pdf\Learning.Reports.Pdf.csproj" />
     <ProjectReference Include="..\Plc.Engine\Plc.Engine.csproj" />
     <ProjectReference Include="..\Plc.Dialects.Iec\Plc.Dialects.Iec.csproj" />
     <ProjectReference Include="..\Plc.Scenes\Plc.Scenes.csproj" />

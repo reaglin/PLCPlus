@@ -78,9 +78,9 @@ the PLC instructors who give feedback; modules 1–8 and 11 written; a testing g
 
 ```
 PLCPlus.slnx
-src/Learning.Core/       the shared learning engine; subject-neutral, NEVER references Plc.* (architecture test)
+(Learning Core)          the shared learning engine and the PDF report: the packages Eaglin.Learning.Core and Eaglin.Learning.Reports.Pdf
+                         from C:\nuget-local, built from ..\LearningCore (plan 13.1; its own tests are there)
 src/Learning.Shell/      the WPF program, PLCPlus.exe (ViewModels/: the window's state, MVVM; ReportScreens.cs: hand in and check reports)
-src/Learning.Reports.Pdf/ the progress report as a tagged PDF/A (PDFsharp, QRCoder); subject-neutral like Learning.Core
 src/Plc.Engine/          program model (JSON), PlcRuntime (scan cycle), validator, instruction contract
 src/Plc.Dialects.Iec/    Generic IEC 61131-3 instructions
 src/Plc.Scenes/          simulated machines (JSON scenes, components)
@@ -91,7 +91,6 @@ tools/ContentValidator/  checks a content package: dotnet run --project tools/Co
 tests/Plc.Engine.Tests/  engine, instructions, scenes, grading
 tests/golden/            reference programs R01–R11 (+ .trace.txt), written by tools/make-golden-cases.py
 tools/make-phase2-content.py  wrote the six scenes, challenges and example programs (the JSON is the source now)
-tests/Learning.Core.Tests/     architecture rule
 tests/Plc.Editors.Tests/       the editor, including building a program and passing a challenge
 tools/capture-window.ps1 photographs the window (PrintWindow) and presses buttons by UI Automation
 packaging/               AppxManifest.xml, pack.ps1, make-msixupload.ps1, run-wack.ps1, make-store-assets.ps1 (from Author+)
@@ -99,7 +98,7 @@ store/                   images/ (listing art, drawn by make-store-assets.ps1), 
 docs/release/            STORE-SUBMISSION.md (Partner Center field by field), LAB-INSTALL.md
 ```
 
-**Build and test:** `dotnet build PLCPlus.slnx`, then `dotnet test` each of `tests/Plc.Engine.Tests`, `tests/Plc.Editors.Tests`, `tests/Learning.Core.Tests`.
+**Build and test:** `dotnet build PLCPlus.slnx`, then `dotnet test` each of `tests/Plc.Engine.Tests` and `tests/Plc.Editors.Tests` (on a fresh computer, first run `..\LearningCore\build\pack.ps1`).
 **The Store package:** `.\packaging\make-msixupload.ps1` (add `-IdentityName … -Publisher … -VerifyFamilyName` for the real one), then
 `.\packaging\run-wack.ps1` (administrator); see `docs/release/STORE-SUBMISSION.md`.
 **The old review build** (no longer offered; 1.0 comes from the Store) (self-contained, gitignored `review\`): `dotnet publish src/Learning.Shell/Learning.Shell.csproj -c Release

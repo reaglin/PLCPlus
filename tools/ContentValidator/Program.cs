@@ -1,5 +1,7 @@
 using Plc.Grading;
 
+Learning.Core.LearningApp.Name = "PLC+";
+
 // Usage: dotnet run --project tools/ContentValidator [package folder]
 // Checks IDs, prerequisites, outcomes, challenges, programs, reference pages and widgets.
 // Exit code 0 when the package is clean, 1 when it has problems, 2 when the folder is missing.

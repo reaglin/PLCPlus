@@ -23,7 +23,21 @@ internal static class PlcReports
 
     public static readonly ReportWords Words = new(
         "To check it, an instructor opens PLC+ and chooses File, then Check a report (for instructors), or Check a report on the start screen.",
-        "Counted only while the learner was using PLC+ (a key or the mouse in the last two minutes), so it is a lower bound.");
+        "Counted only while the learner was using PLC+ (a key or the mouse in the last two minutes), so it is a lower bound.")
+    {
+        // The shared renderer's subject words (Learning Core 1.1.0 and 1.2.0), as PLC+'s reports have always said them.
+        EvidenceHeading = "Program evidence",
+        EvidenceLead = "The programs that passed, as the learner wrote them. The fingerprint is the SHA-256 of the program that was graded; " +
+                       "the program itself is inside this file, so it can be run through the same grader again.",
+        FingerprintName = "Program fingerprint (SHA-256)",
+        PictureText = e => $"The ladder program for {e.Title}, as the learner wrote it",
+        PointName = "Submission point",
+        ChecksNote = "The tests of each exercise follow the table; a hidden test is named only by its number.",
+        ChecksHeading = "Tests, from the best attempt",
+        Passed = "pass",
+        NotPassed = "FAIL",
+        HighStakesNote = "For a high-stakes assessment, use the lab or a proctored challenge.",
+    };
 
     public static string Percent(double? value) => value is { } v ? $"{Math.Round(v, MidpointRounding.AwayFromZero).ToString(CultureInfo.CurrentCulture)}%" : "no score";
 }
