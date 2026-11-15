@@ -1365,7 +1365,7 @@ public partial class MainWindow : Window
         StopReading();
         _readView = view;
         ShowReaderButtons();
-        SetStatus($"Reading aloud with {voice.Name}. The paragraph being read has an amber background. ⏸ Pause or ■ Stop above the tabs (Ctrl+Shift+A pauses).");
+        SetStatus($"Reading aloud with {voice.Name}. The part being read (a paragraph, or a row of a table) has an amber background. ⏸ Pause or ■ Stop above the tabs (Ctrl+Shift+A pauses).");
         var run = ++_readRun;
         string? problem;
         try

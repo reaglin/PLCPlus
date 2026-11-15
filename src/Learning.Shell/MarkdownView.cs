@@ -43,6 +43,15 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
     public event Action<int?>? NoteRequested;
 
     private int? _menuBlock;
+    private int? _menuRead;
+
+    /// <summary>The reading step a click landed in: a paragraph, or a row of a table.</summary>
+    private int? ReadingAt(object? source)
+    {
+        for (var element = source as DependencyObject; element is not null; element = LogicalTreeHelper.GetParent(element))
+            if (element is TextElement t && _units.FindIndex(u => u.Element == t) is var i and >= 0) return i;
+        return null;
+    }
 
     /// <summary>On the pages a learner can write notes on (Learn and Reference), the right-click menu offers it.</summary>
     public void EnableNotes()
@@ -51,7 +60,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
         var page = new MenuItem { Header = "Add a note to this _page…", ToolTip = "Write your own note on this page as a whole. Only you see it." };
         var copy = new MenuItem { Header = "_Copy", Command = ApplicationCommands.Copy, ToolTip = "Copies the words you selected" };
         var read = new MenuItem { Header = "_Read aloud from here", ToolTip = "Reads the page aloud from this paragraph (View ▸ Read aloud has the voice and speed)" };
-        read.Click += (_, _) => ReadAloudRequested?.Invoke(_menuBlock);
+        read.Click += (_, _) => ReadAloudRequested?.Invoke(_menuRead);
         ToolTipService.SetShowOnDisabled(here, true);
         here.Click += (_, _) => NoteRequested?.Invoke(_menuBlock);
         page.Click += (_, _) => NoteRequested?.Invoke(null);
@@ -60,6 +69,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
         ContextMenuOpening += (_, e) =>
         {
             _menuBlock = BlockAt(e.OriginalSource) ?? BlockAt(Selection?.Start.Paragraph);
+            _menuRead = ReadingAt(e.OriginalSource) ?? ReadingIndexOf(_menuBlock);
             here.IsEnabled = _menuBlock is not null;
             here.ToolTip = _menuBlock is null
                 ? "Right-click on a paragraph (not a table or a picture) to put a note on it"
@@ -129,7 +139,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
     /// <summary>A marked key term was clicked: the window shows it in the Glossary.</summary>
     public event Action<GlossaryEntry>? TermClicked;
 
-    /// <summary>The learner asked to hear the page read, from a block (its index in <see cref="BlockSources"/>) or the start.</summary>
+    /// <summary>The learner asked to hear the page read, from a step (its index in <see cref="ReadableBlocks"/>) or the start.</summary>
     public event Action<int?>? ReadAloudRequested;
 
     private static readonly TextDecorationCollection Dotted = MakeDotted();
@@ -198,14 +208,85 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
         }
     }
 
-    /// <summary>The page's blocks as words to read aloud, in order: the text a learner sees, without the ✎ marks.</summary>
-    public IReadOnlyList<string> ReadableBlocks =>
-        [.. _blocks.Select(b => NoteMark().Replace(new TextRange(b.Block.ContentStart, b.Block.ContentEnd).Text, "").Trim())];
+    /// <summary>
+    /// What the Reader reads, in page order (Learning Core plan 3.15; Ron, 2026-11-15: tables too): each paragraph, list entry
+    /// and heading, and each table as its column names and then one row at a time ("Symbol: -| |-, Name: normally open
+    /// contact"). A ladder picture or a truth table is read from its description (rung by rung, row by row); other widgets are not read. <c>Block</c> is the paragraph's index in
+    /// <see cref="BlockSources"/>, or null for a table row.
+    /// </summary>
+    private readonly List<(TextElement Element, Func<string> Text, int? Block)> _units = [];
+
+    private void Units(BlockCollection blocks)
+    {
+        foreach (var block in blocks)
+        {
+            switch (block)
+            {
+                case Paragraph p:
+                    var i = _blocks.FindIndex(x => x.Block == p);
+                    _units.Add((p, () => PlainText(p), i >= 0 ? i : null));
+                    break;
+                case List list:
+                    foreach (var item in list.ListItems) Units(item.Blocks);
+                    break;
+                case Section section:
+                    Units(section.Blocks);
+                    break;
+                case BlockUIContainer { Child: { } part } container
+                    when System.Windows.Automation.AutomationProperties.GetName(part) is { Length: > 0 } described:
+                    // A ladder picture or a truth table says what it shows (its name for screen readers): the Reader says it too.
+                    _units.Add((container, () => described, null));
+                    break;
+                case Table table:
+                    var rows = table.RowGroups.SelectMany(g => g.Rows).ToList();
+                    if (rows.Count == 0) break;
+                    var header = rows[0].Cells.Select(CellText).ToList();
+                    var headerRow = rows[0];
+                    _units.Add((headerRow, () => header.Any(h => h.Length > 0)
+                        ? $"A table with {rows.Count - 1} row{(rows.Count == 2 ? "" : "s")}, and the columns: {string.Join(", ", header.Where(h => h.Length > 0))}."
+                        : "A table.", null));
+                    foreach (var row in rows.Skip(1))
+                    {
+                        var r = row;
+                        _units.Add((r, () => string.Join(". ", r.Cells.Select((c, k) => (Head: k < header.Count ? header[k] : "", Value: CellText(c)))
+                            .Where(x => x.Value.Length > 0)
+                            .Select(x => x.Head.Length > 0 ? $"{x.Head}: {x.Value}" : x.Value)) + ".", null));
+                    }
+                    break;
+            }
+        }
+    }
+
+    private static string CellText(TableCell cell) =>
+        string.Join(" ", cell.Blocks.OfType<Paragraph>().Select(PlainText)).Trim();
+
+    private static string PlainText(Paragraph p) => NoteMark().Replace(new TextRange(p.ContentStart, p.ContentEnd).Text, "").Trim();
+
+    /// <summary>The page's words to read aloud, in order (see <see cref="_units"/>), with ladder symbols said as words.</summary>
+    public IReadOnlyList<string> ReadableBlocks => [.. _units.Select(u => Spoken(u.Text()))];
+
+    /// <summary>Where reading starts for a paragraph (its index in <see cref="BlockSources"/>), as an index in <see cref="ReadableBlocks"/>.</summary>
+    public int? ReadingIndexOf(int? block) => block is int b && _units.FindIndex(u => u.Block == b) is var i and >= 0 ? i : null;
+
+    /// <summary>Ladder symbols and marks as a voice should say them.</summary>
+    public static string Spoken(string text)
+    {
+        foreach (var (symbol, words) in SymbolWords) text = text.Replace(symbol, words, StringComparison.Ordinal);
+        return text;
+    }
+
+    private static readonly (string, string)[] SymbolWords =
+    [
+        ("-|/|-", " normally closed contact symbol "), ("-| |-", " normally open contact symbol "),
+        ("-|P|-", " rising edge contact symbol "), ("-|N|-", " falling edge contact symbol "),
+        ("-(/)-", " negated coil symbol "), ("-(S)-", " set coil symbol "), ("-(R)-", " reset coil symbol "), ("-( )-", " coil symbol "),
+        ("✓", " yes "), ("✗", " no "), ("→", " to "), ("≥", " at least "), ("≤", " at most "), ("≠", " not equal to "),
+    ];
 
     [GeneratedRegex(@"\u00A0✎(\u00A0\d+)?")]
     private static partial Regex NoteMark();
 
-    private Paragraph? _reading;
+    private TextElement? _reading;
     private static readonly Brush ReadingBrush = MakeReadingBrush();
 
     private static Brush MakeReadingBrush()
@@ -215,13 +296,13 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
         return brush;
     }
 
-    /// <summary>Marks the block being read with a light amber background and scrolls it into view, without taking the keyboard.</summary>
+    /// <summary>Marks what is being read (a paragraph, or a table row) with a light amber background and scrolls to it, without taking the keyboard.</summary>
     public void ShowReading(int? index)
     {
-        if (_reading is not null) _reading.ClearValue(TextElement.BackgroundProperty);
+        _reading?.ClearValue(TextElement.BackgroundProperty);
         _reading = null;
-        if (index is not int i || i < 0 || i >= _blocks.Count) return;
-        _reading = _blocks[i].Block;
+        if (index is not int i || i < 0 || i >= _units.Count) return;
+        _reading = _units[i].Element;
         _reading.Background = ReadingBrush;
         _reading.BringIntoView();
     }
@@ -426,6 +507,9 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
 
         Document = document;
         MarkTerms(document);
+        _units.Clear();
+        _reading = null;
+        Units(document.Blocks);
     }
 
     /// <summary>A table row's cells. A | inside `code` belongs to the code: ladder symbols such as -| |- are written that way.</summary>
