@@ -216,21 +216,34 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
     /// </summary>
     private readonly List<(TextElement Element, Func<string> Text, int? Block)> _units = [];
 
+    /// <summary>The last heading, and the paragraph just before the current block, while the page is walked: a table's title.</summary>
+    private string? _lastHeading;
+    private string? _justBefore;
+
     private void Units(BlockCollection blocks)
     {
         foreach (var block in blocks)
         {
+            var before = _justBefore;
+            _justBefore = null;
             switch (block)
             {
                 case Paragraph p:
                     var i = _blocks.FindIndex(x => x.Block == p);
                     _units.Add((p, () => PlainText(p), i >= 0 ? i : null));
+                    var text = PlainText(p);
+                    if (p.FontSize > 14.5) _lastHeading = text;
+                    else _justBefore = text;
                     break;
                 case List list:
                     foreach (var item in list.ListItems) Units(item.Blocks);
                     break;
                 case Section section:
                     Units(section.Blocks);
+                    break;
+                case BlockUIContainer { Child: FrameworkElement { Tag: ReaderTitle spoken } } titled:
+                    // A widget of values (a truth table) gives the Reader its title only.
+                    _units.Add((titled, () => spoken.Text, null));
                     break;
                 case BlockUIContainer { Child: { } part } container
                     when System.Windows.Automation.AutomationProperties.GetName(part) is { Length: > 0 } described:
@@ -242,6 +255,13 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
                     if (rows.Count == 0) break;
                     var header = rows[0].Cells.Select(CellText).ToList();
                     var headerRow = rows[0];
+                    if (IsTableOfValues(rows.Skip(1)))
+                    {
+                        // A table of values (Ron, 2026-11-15): its title only; the values are for the eye.
+                        var title = before is { Length: > 0 and <= 90 } ? before.TrimEnd(':', '.') : _lastHeading;
+                        _units.Add((table, () => title is null ? "A table of values: see the page." : $"A table of values: {title}. See the page for the values.", null));
+                        break;
+                    }
                     _units.Add((headerRow, () => header.Any(h => h.Length > 0)
                         ? $"A table with {rows.Count - 1} row{(rows.Count == 2 ? "" : "s")}, and the columns: {string.Join(", ", header.Where(h => h.Length > 0))}."
                         : "A table.", null));
@@ -256,6 +276,21 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
             }
         }
     }
+
+    /// <summary>
+    /// A table of values: most of its cells are TRUE/FALSE, numbers, binary or hex, times and voltages, or marks, not words.
+    /// </summary>
+    private static bool IsTableOfValues(IEnumerable<TableRow> rows)
+    {
+        var cells = rows.SelectMany(r => r.Cells.Select(CellText)).Where(c => c.Length > 0).ToList();
+        if (cells.Count == 0) return false;
+        return cells.Count(IsValue) >= cells.Count * 0.7;
+    }
+
+    [GeneratedRegex(@"^(TRUE|FALSE|ON|OFF|yes|no|[-+]?[0-9][0-9_.,]*\s*[a-zA-Zµ%°]{0,3}|0x[0-9A-Fa-f_]+|[0-9A-F]{1,4}h?|[01 _]+|[✓✗–—-]|\S{1,3})( ✓)?$", RegexOptions.IgnoreCase)]
+    private static partial Regex ValuePattern();
+
+    private static bool IsValue(string cell) => ValuePattern().IsMatch(cell.Trim());
 
     private static string CellText(TableCell cell) =>
         string.Join(" ", cell.Blocks.OfType<Paragraph>().Select(PlainText)).Trim();
@@ -509,6 +544,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
         MarkTerms(document);
         _units.Clear();
         _reading = null;
+        (_lastHeading, _justBefore) = (null, null);
         Units(document.Blocks);
     }
 
@@ -709,3 +745,6 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
     [GeneratedRegex(@"https://[^\s)]+[^\s).,;:]")]
     private static partial Regex LinkPattern();
 }
+
+/// <summary>What the Reader says for a widget of values (a truth table): its title, not every row (Ron, 2026-11-15).</summary>
+public sealed record ReaderTitle(string Text);

@@ -98,6 +98,7 @@ internal static class LessonWidgets
         panel.Children.Add(new TextBlock { Text = "Truth table: " + e.Text, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 4) });
         panel.Children.Add(new Border { Child = grid, BorderBrush = Line, BorderThickness = new Thickness(1, 1, 0, 0) });
         AutomationProperties.SetName(panel, $"Truth table for {e.Text}. " + string.Join(". ", spoken));
+        panel.Tag = new ReaderTitle($"A truth table: {e.Text}. See the page for the values.");
         return panel;
     }
 }

@@ -30,7 +30,7 @@ module 5 has takeaways and key terms, 5.1 and 5.2 have self-tests, and the gloss
 6. **Voices.** Under the reading buttons: "Reader voice: … · Change voice…". Click Change voice… (or View ▸ Reader voice and speed…):
    the Windows voices on this computer, Hear it, a speed. **Choose a Google voice…** opens AI Manager's voice chooser (by language
    and kind, with prices, Hear it); pick one, Save, and read a page: it asks first, with the cost. (Without a Google voice key the
-   button says Set up Google voices… and opens AI settings.) Is a Windows voice good enough for students? Tables are read too: open 5.1's Reference and read it — the column names, then each row (in amber); ladder pictures rung by rung.
+   button says Set up Google voices… and opens AI settings.) Is a Windows voice good enough for students? Tables are read too: open 5.1's Reference and read it — the column names, then each row (in amber); ladder pictures rung by rung. A table of values (2.1's binary and hex, a truth table) is read by its title only.
 
 Answered 2026-11-15: the Windows voice first, with the choice to change (Google may cost); In this item only on Learn; tables read.
 
