@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using Learning.Core.Content;
 
@@ -26,6 +27,85 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         IsToolBarVisible = false;
         Document = new FlowDocument();
+    }
+
+    // ---- My Notes (Learning Core plan 3.2) --------------------------------------------------------------
+    // Each paragraph, list entry and heading keeps the words it was made from, so a note can be put on it and found
+    // again by its words (Learning.Core.Notes.BlockText). Tables and widgets take no notes of their own.
+
+    private readonly List<(Paragraph Block, string Source)> _blocks = [];
+    private readonly List<(Paragraph Block, Thickness Border, Thickness Padding, object? Tip)> _marked = [];
+
+    /// <summary>The page's blocks' source words, in order: what <see cref="Learning.Core.Notes.NoteBook.Place"/> needs.</summary>
+    public IReadOnlyList<string> BlockSources => [.. _blocks.Select(b => b.Source)];
+
+    /// <summary>The learner asked to write a note: on a block (its index in <see cref="BlockSources"/>), or on the page (null).</summary>
+    public event Action<int?>? NoteRequested;
+
+    private int? _menuBlock;
+
+    /// <summary>On the pages a learner can write notes on (Learn and Reference), the right-click menu offers it.</summary>
+    public void EnableNotes()
+    {
+        var here = new MenuItem { Header = "Add a _note to this paragraph…" };
+        var page = new MenuItem { Header = "Add a note to this _page…", ToolTip = "Write your own note on this page as a whole. Only you see it." };
+        var copy = new MenuItem { Header = "_Copy", Command = ApplicationCommands.Copy, ToolTip = "Copies the words you selected" };
+        ToolTipService.SetShowOnDisabled(here, true);
+        here.Click += (_, _) => NoteRequested?.Invoke(_menuBlock);
+        page.Click += (_, _) => NoteRequested?.Invoke(null);
+        ContextMenu = new ContextMenu();
+        foreach (var part in new Control[] { here, page, new Separator(), copy }) ContextMenu.Items.Add(part);
+        ContextMenuOpening += (_, e) =>
+        {
+            _menuBlock = BlockAt(e.OriginalSource) ?? BlockAt(Selection?.Start.Paragraph);
+            here.IsEnabled = _menuBlock is not null;
+            here.ToolTip = _menuBlock is null
+                ? "Right-click on a paragraph (not a table or a picture) to put a note on it"
+                : "Write your own note on this paragraph. Only you see it; it is kept in your progress file.";
+        };
+    }
+
+    /// <summary>The block a click landed in (a run, a bold word, a link), or null if it is not one that takes notes.</summary>
+    private int? BlockAt(object? source)
+    {
+        for (var element = source as DependencyObject; element is not null; element = LogicalTreeHelper.GetParent(element))
+            if (element is Paragraph p && _blocks.FindIndex(b => b.Block == p) is var i and >= 0) return i;
+        return null;
+    }
+
+    /// <summary>
+    /// Shows where the learner's notes are: a bar down the left of each block with a note, and the note as the block's tooltip.
+    /// A shape and words, not colour alone. Clears the last call's marks first.
+    /// </summary>
+    public void MarkNotes(IEnumerable<(int Index, string Tip)> notes)
+    {
+        foreach (var (block, border, padding, tip) in _marked)
+        {
+            (block.BorderThickness, block.Padding, block.ToolTip) = (border, padding, tip);
+            block.ClearValue(Block.BorderBrushProperty);
+        }
+        _marked.Clear();
+        var brush = TryFindResource("AccentBrush") as Brush ?? Brushes.DarkOrange;
+        foreach (var group in notes.Where(n => n.Index >= 0 && n.Index < _blocks.Count).GroupBy(n => n.Index))
+        {
+            var block = _blocks[group.Key].Block;
+            _marked.Add((block, block.BorderThickness, block.Padding, block.ToolTip));
+            block.BorderBrush = brush;
+            block.BorderThickness = new Thickness(4, 0, 0, 0);
+            block.Padding = new Thickness(8, 0, 0, 0);
+            block.ToolTip = string.Join(Environment.NewLine, group.Select(n => "✎ My note: " + n.Tip))
+                            + Environment.NewLine + "Open ✎ My notes (top right) to read or change it.";
+        }
+    }
+
+    /// <summary>Scrolls a block into view and selects it, so the learner sees which paragraph a note is on.</summary>
+    public void ShowBlock(int index)
+    {
+        if (index < 0 || index >= _blocks.Count) return;
+        var block = _blocks[index].Block;
+        block.BringIntoView();
+        Selection?.Select(block.ContentStart, block.ContentEnd);
+        Focus();
     }
 
     /// <summary>Makes the live part for a widget line, or returns null to show the line as a problem.</summary>
@@ -67,6 +147,14 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
             TextAlignment = TextAlignment.Left,
         };
 
+        _blocks.Clear();
+        _marked.Clear();
+        Paragraph Noted(Paragraph block, string source)
+        {
+            _blocks.Add((block, source));
+            return block;
+        }
+
         string[] lines = markdown.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
         var paragraph = new List<string>();
         var bullets = new List<string>();
@@ -77,7 +165,8 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
         {
             if (paragraph.Count > 0)
             {
-                document.Blocks.Add(Text(string.Join(' ', paragraph), 0, 0, 8));
+                var source = string.Join(' ', paragraph);
+                document.Blocks.Add(Noted(Text(source, 0, 0, 8), source));
                 paragraph.Clear();
             }
         }
@@ -93,7 +182,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
 
             foreach (string bullet in bullets)
             {
-                list.ListItems.Add(new ListItem(Text(bullet, 0, 0, 2)));
+                list.ListItems.Add(new ListItem(Noted(Text(bullet, 0, 0, 2), bullet)));
             }
 
             document.Blocks.Add(list);
@@ -113,7 +202,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
 
             foreach (string step in numbered)
             {
-                list.ListItems.Add(new ListItem(Text(step, 0, 0, 4)));
+                list.ListItems.Add(new ListItem(Noted(Text(step, 0, 0, 4), step)));
             }
 
             document.Blocks.Add(list);
@@ -205,7 +294,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
                 Paragraph heading = Text(line[level..].Trim(),
                     level switch { 1 => 21, 2 => 17, _ => 15 }, level == 1 ? 0 : 14, 6);
                 heading.FontWeight = FontWeights.SemiBold;
-                document.Blocks.Add(heading);
+                document.Blocks.Add(Noted(heading, line[level..].Trim()));
                 continue;
             }
 

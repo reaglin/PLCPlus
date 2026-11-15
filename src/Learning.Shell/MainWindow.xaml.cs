@@ -10,6 +10,7 @@ using System.Windows.Media;
 using Learning.Core;
 using Learning.Core.Content;
 using Learning.Core.Learners;
+using Learning.Core.Notes;
 using Learning.Core.Progress;
 using System.Windows.Threading;
 using Learning.Shell.ViewModels;
@@ -84,6 +85,7 @@ public partial class MainWindow : Window
         _vm.PageFocusRequested += () => Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
         {
             if (ReportsPage.IsVisible) ReportsPanel.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+            else if (NotesPage.IsVisible) AllNotesPanel.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
             else DashboardView.Focus();
         });
 
@@ -141,7 +143,139 @@ public partial class MainWindow : Window
         QuizPanel.WhereToLook = q => _package.AllItems.FirstOrDefault(i => i.Kind == ItemKind.Lesson && q.Objective is not null
             && i.Objectives.Contains(q.Objective, StringComparer.OrdinalIgnoreCase))?.ToString();
 
+        // My notes (Learning Core plan 3.2): beside an item, and as a page in the path.
+        foreach (var panel in new[] { ItemNotes, AllNotesPanel })
+        {
+            panel.Session = () => _session;
+            panel.FindItem = _package.FindItem;
+            panel.Changed = NotesChanged;
+            panel.Status = SetStatus;
+            panel.GoTo = GoToNote;
+            panel.PageText = (item, tab) => tab == NoteTabs.Reference ? ReferenceMarkdown(item) : item.Learn;
+        }
+        LearnView.EnableNotes();
+        ReferenceView.EnableNotes();
+        LearnView.NoteRequested += i => RequestNote(LearnView, NoteTabs.Learn, i);
+        ReferenceView.NoteRequested += i => RequestNote(ReferenceView, NoteTabs.Reference, i);
+
         Loaded += (_, _) => SignInScreen.Show();
+    }
+
+    // ---- My notes (Learning Core plan 3.2) --------------------------------------------------------------
+
+    private const string NotesPanePreference = "notesPane";
+
+    /// <summary>A note was added, changed or deleted: saved in the learner's file, and the path, marks and lists drawn again.</summary>
+    private void NotesChanged()
+    {
+        if (_session is null) return;
+        _session.Data.NotesChanged(DateTimeOffset.Now);
+        SaveProgress();
+        _vm.Refresh();
+        RefreshNotes();
+        if (NotesPage.Visibility == Visibility.Visible) AllNotesPanel.ShowAll();
+    }
+
+    /// <summary>The item's notes: a bar on each paragraph that has one, and the list beside the tabs.</summary>
+    private void RefreshNotes()
+    {
+        if (_item is not { } item || _session is null) return;
+        var book = _session.Data.Notes;
+        var learn = book.Place(item.Id, NoteTabs.Learn, LearnView.BlockSources).Where(p => p.Note.Anchor.Block is not null).ToList();
+        var reference = book.Place(item.Id, NoteTabs.Reference, ReferenceView.BlockSources).Where(p => p.Note.Anchor.Block is not null).ToList();
+        LearnView.MarkNotes(learn.Where(p => p.BlockIndex is not null).Select(p => (p.BlockIndex!.Value, NotesPanel.Short(p.Note.Text, 200))));
+        ReferenceView.MarkNotes(reference.Where(p => p.BlockIndex is not null).Select(p => (p.BlockIndex!.Value, NotesPanel.Short(p.Note.Text, 200))));
+        ItemNotes.ShowItem(item, learn.Concat(reference).GroupBy(p => p.Note.Id).ToDictionary(g => g.Key, g => g.First()));
+        var count = book.For(item.Id).Count;
+        NotesButton.Content = count == 0 ? "✎ My _notes" : $"✎ My _notes ({count})";
+        System.Windows.Automation.AutomationProperties.SetName(NotesButton, count == 0 ? "My notes" : $"My notes, {count} on this item");
+    }
+
+    private void SetNotesPane(bool open, bool remember = true)
+    {
+        ItemNotes.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+        NotesButton.IsChecked = open;
+        if (!remember || _session is null) return;
+        _session.Data.Preferences[NotesPanePreference] = open ? "open" : "closed";
+        SaveProgress();
+    }
+
+    private void NotesButton_Click(object sender, RoutedEventArgs e)
+    {
+        var open = NotesButton.IsChecked == true;
+        if (!open) ItemNotes.KeepDraft();
+        SetNotesPane(open);
+        SetStatus(open
+            ? "My notes is open on the right: write a note in its box and press Add note, or right-click a paragraph of the lesson to note that paragraph. ✎ My notes hides it."
+            : "My notes is hidden. Your notes are kept; ✎ My notes shows them again.");
+    }
+
+    /// <summary>Add a note to this paragraph (or page), from the lesson's right-click menu.</summary>
+    private void RequestNote(MarkdownView view, string tab, int? block)
+    {
+        if (_item is null || _session is null) return;
+        var sources = view.BlockSources;
+        var anchor = block is int i && i < sources.Count ? NoteAnchor.OnBlock(_item.Id, tab, sources[i]) : NoteAnchor.OnItem(_item.Id, tab);
+        SetNotesPane(true);
+        ItemNotes.StartNote(anchor);
+    }
+
+    /// <summary>Open a note where it is: its item, its tab, and the paragraph it is on.</summary>
+    private void GoToNote(LearnerNote note)
+    {
+        if (_package.FindItem(note.Anchor.ItemId) is not { } item) return;
+        if (_item != item) _vm.Select(item);
+        if (_item != item) return;
+        SetNotesPane(true);
+        var (tab, view) = note.Anchor.Tab switch
+        {
+            NoteTabs.Learn => (LearnTab, LearnView),
+            NoteTabs.Reference => (ReferenceTab, ReferenceView),
+            NoteTabs.Example => (ExampleTab, (MarkdownView?)null),
+            NoteTabs.Exercise => (ExerciseTab, null),
+            _ => ((TabItem?)null, null),
+        };
+        if (tab is not null) ItemTabs.SelectedItem = tab;
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+        {
+            ItemNotes.Highlight(note.Id);
+            var at = view is null || _session is null ? null
+                : _session.Data.Notes.Place(item.Id, note.Anchor.Tab!, view.BlockSources).FirstOrDefault(p => p.Note.Id == note.Id);
+            if (view is not null && at?.BlockIndex is int i) view.ShowBlock(i);
+            SetStatus(at?.Place switch
+            {
+                NotePlace.Found => $"Your note on {item.Number} is beside the paragraph it is on (selected, with a bar on its left).",
+                NotePlace.Changed => $"The lesson has been updated since you wrote this note: the selected paragraph is the one most like the one it was on.",
+                NotePlace.Gone => $"The paragraph this note was on is no longer in the lesson; the note stays on {item.Number}, with the words it was on.",
+                _ => $"Your notes on {item.Number} are on the right.",
+            });
+        });
+    }
+
+    /// <summary>Leaving an item (or locking): a note half written, or an edit not saved, is kept rather than lost.</summary>
+    private string? KeepNoteDraft()
+    {
+        if (_session is null) return null;
+        var item = ItemNotes.KeepDraft();
+        var page = AllNotesPanel.KeepDraft();
+        return item is null ? page : page is null ? item : item + " " + page;
+    }
+
+    private void ShowNotesPage()
+    {
+        ExerciseWorkspace.CommitPendingEdit();
+        QuizPanel.Remember();
+        var kept = KeepNoteDraft();
+        _item = null;
+        _module = null;
+        _vm.CurrentItem = null;
+        _vm.CurrentModule = null;
+        ItemPage.Visibility = ModulePage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = Visibility.Collapsed;
+        NotesPage.Visibility = Visibility.Visible;
+        _vm.Refresh();
+        AllNotesPanel.ShowAll();
+        ShowScreenHelp();
+        SetStatus((kept is null ? "" : kept + " ") + "My notes: every note you have written, newest first. Type in Find in my notes to search; Open goes to a note in its lesson.");
     }
 
     // ---- Learners (plan 6.1–6.10) ---------------------------------------------------------------------
@@ -157,6 +291,9 @@ public partial class MainWindow : Window
         {
             // Back after a lock: everything is as it was.
             _vm.CurrentItem = _item;
+            // The notes were cleared from the screen when it locked: the same learner gets them back (UX review 2026-11-15).
+            if (_item is not null) RefreshNotes();
+            if (NotesPage.Visibility == Visibility.Visible) AllNotesPanel.ShowAll();
             SetStatus($"Welcome back, {file.Data.Profile.DisplayName}. Everything is as you left it.");
             return;
         }
@@ -176,7 +313,10 @@ public partial class MainWindow : Window
         _popOut?.Close();   // nothing of the learner's stays on screen
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        KeepNoteDraft();
         var id = _vm.Lock(switching, DateTimeOffset.Now);
+        ItemNotes.Forget();
+        AllNotesPanel.Forget();
         AppContent.Visibility = Visibility.Hidden;
         SignInScreen.Show(banner, id);
     }
@@ -190,7 +330,7 @@ public partial class MainWindow : Window
         _backupMade = where is not null;
         if (_backupMade) SetStatus($"Backed up: a copy of your progress is now at {where}. {combined}{(combined is null ? "" : " ")}On another computer, Add learner from file brings it in.");
         else if (_session is not null) SetStatus("No backup was made.");
-        if (combined is not null) _vm.Refresh();
+        if (combined is not null) { _vm.Refresh(); RefreshNotes(); }
         _vm.Save();
     }
 
@@ -304,6 +444,7 @@ public partial class MainWindow : Window
         if (e.NewValue is not PathNode node) return;
         if (node.IsDashboard) ShowDashboard();
         else if (node.IsReports) ShowReports();
+        else if (node.IsNotes) ShowNotesPage();
         else if (node.Item is { } item) ShowItem(item);
         else ShowModule(node.Module!);
     }
@@ -314,11 +455,12 @@ public partial class MainWindow : Window
     {
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        KeepNoteDraft();
         _item = null;
         _module = null;
         _vm.CurrentItem = null;
         _vm.CurrentModule = null;
-        ItemPage.Visibility = ModulePage.Visibility = ReportsPage.Visibility = Visibility.Collapsed;
+        ItemPage.Visibility = ModulePage.Visibility = ReportsPage.Visibility = NotesPage.Visibility = Visibility.Collapsed;
         DashboardPage.Visibility = Visibility.Visible;
         _vm.Refresh();
         DashboardTitle.Text = $"My progress · {_session?.Data.Profile.DisplayName}";
@@ -339,11 +481,12 @@ public partial class MainWindow : Window
     {
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        KeepNoteDraft();
         _item = null;
         _module = null;
         _vm.CurrentItem = null;
         _vm.CurrentModule = null;
-        ItemPage.Visibility = ModulePage.Visibility = DashboardPage.Visibility = Visibility.Collapsed;
+        ItemPage.Visibility = ModulePage.Visibility = DashboardPage.Visibility = NotesPage.Visibility = Visibility.Collapsed;
         ReportsPage.Visibility = Visibility.Visible;
         _vm.Refresh();
         ReportsPanel.Show(_reportPoint);
@@ -367,12 +510,13 @@ public partial class MainWindow : Window
     {
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        KeepNoteDraft();
         _module = m;
         _item = null;
         _vm.CurrentItem = null;
         _vm.CurrentModule = m;
         ShowScreenHelp();
-        ItemPage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = Visibility.Collapsed;
+        ItemPage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = NotesPage.Visibility = Visibility.Collapsed;
         ModulePage.Visibility = Visibility.Visible;
 
         var p = _progress.Of(m);
@@ -460,11 +604,12 @@ public partial class MainWindow : Window
     {
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        var keptNote = _item != item ? KeepNoteDraft() : null;
         _item = item;
         _module = item.Module;
         _vm.CurrentItem = item;
         _vm.CurrentModule = item.Module;
-        ModulePage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = Visibility.Collapsed;
+        ModulePage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = NotesPage.Visibility = Visibility.Collapsed;
         ItemPage.Visibility = Visibility.Visible;
         HandInButton.Visibility = item.Kind == ItemKind.Assess ? Visibility.Visible : Visibility.Collapsed;
 
@@ -526,10 +671,15 @@ public partial class MainWindow : Window
         // Reference
         ReferenceView.Markdown = ReferenceMarkdown(item);
 
+        // My notes: open beside the item if the learner left it open; the bars on noted paragraphs.
+        ItemNotes.CurrentTab = NoteTabs.Learn;
+        SetNotesPane(_session?.Data.Preferences.GetValueOrDefault(NotesPanePreference) == "open", remember: false);
+        RefreshNotes();
+
         ShowItemStatus();
         ItemTabs.SelectedItem = LearnTab;
         ShowScreenHelp();
-        SetStatus($"{item}: {LearnFooterText.Text}" + (missing.Count > 0
+        SetStatus((keptNote is null ? "" : keptNote + " ") + $"{item}: {LearnFooterText.Text}" + (missing.Count > 0
             ? $" (Recommended first: {string.Join(" and ", missing.Select(m => $"module {m.Number}"))}. You can work on this now; PLC+ notes that you started early.)"
             : ""));
     }
@@ -696,6 +846,8 @@ public partial class MainWindow : Window
     {
         if (!ReferenceEquals(e.OriginalSource, ItemTabs)) return; // a ComboBox inside a tab
         ExerciseWorkspace.CommitPendingEdit();
+        ItemNotes.CurrentTab = ItemTabs.SelectedItem == ExampleTab ? NoteTabs.Example : ItemTabs.SelectedItem == ExerciseTab ? NoteTabs.Exercise
+            : ItemTabs.SelectedItem == ReferenceTab ? NoteTabs.Reference : NoteTabs.Learn;
         var machine = (ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible)
                       || (ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible)
                       || (ItemTabs.SelectedItem == ExerciseTab && QuizScroll.Visibility == Visibility.Visible
@@ -861,7 +1013,9 @@ public partial class MainWindow : Window
     /// <summary>The help panel's first part says what the screen showing now is for (checklist: local help).</summary>
     private void ShowScreenHelp()
     {
-        (HelpScreenTitle.Text, HelpScreenText.Text) = ReportsPage.Visibility == Visibility.Visible
+        (HelpScreenTitle.Text, HelpScreenText.Text) = NotesPage.Visibility == Visibility.Visible
+            ? ("This screen: My notes", "Every note you have written on the lessons, newest first. Type words in Find in my notes to search your notes and the paragraphs they are on. Open goes to the note in its lesson; Edit changes it; Delete asks first. Only you see your notes: they are kept in your progress file, locked with your PIN and backed up with it, and never go in a report.")
+            : ReportsPage.Visibility == Visibility.Visible
             ? ("This screen: Hand in a report", "1. Choose a module check, or everything so far. 2. Check what the report will say; My details for reports adds your student ID, course and class code to the cover. 3. Save the PDF report, and hand in that file as it is, the way your instructor asks; do not save it again in another program. The result line is a one-line summary of the report your instructor can check: copy it if they ask for it. A report made before the check is complete is marked Incomplete. Every report you make is listed at the bottom.")
             : DashboardPage.Visibility == Visibility.Visible
             ? ("This screen: My progress", "Your progress through the whole path. ★ mastered, ✓ complete, ↺ review suggested, ◐ in progress, ○ not started. Review suggested lists what to read again. At a module check, make a report to hand in: Hand in a report, the next row on the left. Time counts while you use PLC+.")
@@ -877,7 +1031,7 @@ public partial class MainWindow : Window
                 ? QuizScroll.Visibility == Visibility.Visible
                     ? ("This screen: Questions", "Answer every question, then press Check my answers at the bottom. Each answer is marked ✓ or ✗. In practice questions every answer says why, and a wrong one shows the right answer. In a module check, a wrong one says where to read again. Change the wrong ones and check again; your answers stay while PLC+ is open. For a machine with a fault, work its buttons and watch which contact or device never changes; right-click a contact or coil to force it.")
                     : ("This screen: Exercise", "What this item asks you to do. A reading has no exercise; a module check lists the items it covers.")
-                : ("This screen: Learn", "The lesson. Read it, then try the Example and Exercise tabs if the item has them. A reading is complete when you press I have read this.");
+                : ("This screen: Learn", "The lesson. Read it, then try the Example and Exercise tabs if the item has them. A reading is complete when you press I have read this. To keep a note on a paragraph, right-click it and choose Add a note to this paragraph; ✎ My notes (top right) shows your notes on this item.");
     }
 
     // ---- The rest --------------------------------------------------------------------------------------

@@ -15,6 +15,7 @@
         <KeyBinding Key="PageUp" Modifiers="Ctrl+Shift" Command="{Binding PreviousCommand}" />
         <KeyBinding Key="Home" Modifiers="Ctrl+Shift" Command="{Binding ShowDashboardCommand}" />
         <KeyBinding Key="R" Modifiers="Ctrl+Shift" Command="{Binding ShowReportsCommand}" />
+        <KeyBinding Key="N" Modifiers="Ctrl+Shift" Command="{Binding ShowNotesCommand}" />
         <KeyBinding Key="OemPlus" Modifiers="Ctrl" Command="{x:Static local:MainWindow.TextLarger}" />
         <KeyBinding Key="OemPlus" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.TextLarger}" />
         <KeyBinding Key="Add" Modifiers="Ctrl" Command="{x:Static local:MainWindow.TextLarger}" />
@@ -74,6 +75,8 @@
                           ToolTip="Your progress through the whole path: each module, the module checks, outcomes to review, and your time in PLC+" />
                 <MenuItem Header="_Hand in a report" InputGestureText="Ctrl+Shift+R" Command="{Binding ShowReportsCommand}"
                           ToolTip="Make a progress report (a PDF) for a module check, or of everything so far, and hand it in to your instructor" />
+                <MenuItem Header="My _notes" InputGestureText="Ctrl+Shift+N" Command="{Binding ShowNotesCommand}"
+                          ToolTip="Every note you have written on the lessons, with a search box. Only you see them" />
                 <MenuItem Header="_Continue where I left off" Command="{Binding ContinueWhereILeftOffCommand}"
                           ToolTip="Opens the first item in the path you have not completed yet" />
                 <MenuItem Header="_Next item" InputGestureText="Ctrl+Shift+PgDn" Command="{Binding NextCommand}" ToolTipService.ShowOnDisabled="True"
@@ -147,6 +150,10 @@
                     <TextBlock Text="On a machine" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
                         Hold a push button down to press it (or Tab to it and hold the Space bar). The rungs run live: a part that passes power is green and thick and shows TRUE. Check my program (or Check this program on the Example tab) runs the task's tests much faster than real time.
+                    </TextBlock>
+                    <TextBlock Text="My notes" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Style="{StaticResource Lead}">
+                        Write your own notes as you learn: press ✎ My notes on an item, or right-click a paragraph of a lesson and choose Add a note to this paragraph (it gets a bar on its left). Only you see them; they are kept in your progress file. My notes in the path (Ctrl+Shift+N) has them all, with a search box.
                     </TextBlock>
                     <TextBlock Text="Your progress" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
@@ -240,6 +247,11 @@
                 <local:ReportsView x:Name="ReportsPanel" />
             </DockPanel>
 
+            <!-- My notes: every note the learner has written (Learning Core plan 3.2, 3.5) -->
+            <DockPanel x:Name="NotesPage" Grid.Column="2" Margin="18,12,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
+                <local:NotesPanel x:Name="AllNotesPanel" AllNotes="True" />
+            </DockPanel>
+
             <!-- A module's first page -->
             <DockPanel x:Name="ModulePage" Grid.Column="2" Margin="18,12,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
                 <StackPanel DockPanel.Dock="Top">
@@ -257,6 +269,8 @@
             <DockPanel x:Name="ItemPage" Grid.Column="2" Margin="18,10,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
                 <DockPanel DockPanel.Dock="Top">
                     <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Top">
+                        <ToggleButton x:Name="NotesButton" Content="✎ My _notes" Padding="12,5" Margin="0,0,8,0" Click="NotesButton_Click"
+                                      ToolTip="Shows or hides your own notes on this item, and a box to write a new one (only you see them)" />
                         <Button x:Name="HandInButton" Content="Hand in a _report…" Click="HandIn_Click" Visibility="Collapsed"
                                 ToolTip="Make a progress report for this module check, to hand in to your instructor (you can make one before the check is complete: it is marked Incomplete)" />
                         <Button x:Name="PreviousButton" Content="◂ Previous" Command="{Binding PreviousCommand}" ToolTipService.ShowOnDisabled="True" ToolTip="The item before this one (Ctrl+Shift+PgUp)" />
@@ -268,6 +282,8 @@
                         <TextBlock x:Name="ItemStatusText" Style="{StaticResource Lead}" Margin="0,0,0,2" AutomationProperties.LiveSetting="Polite" />
                     </StackPanel>
                 </DockPanel>
+                <!-- My notes beside the item (Learning Core plan 3.2): shown with ✎ My notes, or when the learner adds a note. -->
+                <local:NotesPanel x:Name="ItemNotes" DockPanel.Dock="Right" Width="330" Margin="10,6,0,0" Visibility="Collapsed" />
                 <TabControl x:Name="ItemTabs" Margin="0,6,0,0" SelectionChanged="ItemTabs_SelectionChanged">
                     <TabControl.Resources>
                         <Style TargetType="TabItem">

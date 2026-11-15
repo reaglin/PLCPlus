@@ -13,6 +13,40 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 12 — My notes, and PLC+ on the shared Learning Core (plan 13.1, 13.2), 2026-11-15
+
+**On the branch `my-notes`, not the 1.0 release.** Its build is in **`manual-test-notes\PLCPlus.exe`** (the 1.0 build in
+`manual-test\` is untouched). Rebuild it with the command above and `-o manual-test-notes`.
+
+**Use a test folder of learners**, so your real learners are not opened by a version that is not released:
+in PowerShell, `$env:PLCPLUS_DATA = "$env:TEMP\plcplus-notes-test"; .\manual-test-notes\PLCPlus.exe`, then press New learner.
+(A learner's file with notes, opened later in PLC+ 1.0, would lose the notes when 1.0 saves it: 1.0 does not know them. From
+Learning Core 1.3.0 on, a version keeps what a newer one wrote.)
+
+1. **Reports read as before (13.1).** Complete one reading, then Hand in a report ▸ Save the PDF report. The PDF says "Submission
+   point", "Program evidence", "Tests, from the best attempt", "pass"/"FAIL" as 1.0's do; File ▸ Check a report says it is genuine.
+2. **A note on a paragraph.** Open 5.2 The seal-in. Right-click the paragraph "The motor station has a Start button…" ▸ Add a note
+   to this paragraph… My notes opens on the right with "New note on the paragraph: “The motor station…”". Type a note, press
+   **Add note** (or Ctrl+Enter). The paragraph now has a bar on its left; hover it to read the note. The path says "✎ 1 note".
+3. **A note on the item / on a tab.** Type a note in the box without right-clicking: it goes on the item. On the Exercise tab the box
+   says "New note on 5.2's Exercise tab". Right-click a paragraph on the Reference tab ▸ Add a note to this page…
+4. **Show, Edit, Delete.** On a note: Show selects its paragraph; Edit, change the words, Save (or Esc to cancel; emptying the box
+   deletes it); Delete asks first.
+5. **Nothing lost.** Start typing a note, then click another item in the path: the status line says the note was added. Type
+   another, then Learner ▸ Switch learner and sign in again: it is there.
+6. **My notes page** (in the path under Hand in a report, or Go ▸ My notes, Ctrl+Shift+N): every note, newest first. Type a word in
+   Find in my notes: the notes with it (in the note or in the paragraph it is on). Open goes to the note, selects its paragraph, and
+   outlines the note on the right.
+7. **Private and kept.** Close PLC+ and open it again: the notes are there. Back up, then Add learner from file on the backup copy in
+   another test folder: the notes come too. Notes never appear in a report.
+8. **The pane.** ✎ My notes hides and shows it; PLC+ remembers your choice for you. With the machine on the Exercise tab, is the
+   pane too narrow or in the way?
+
+Tell me: is this how a student would want to take notes in the book? What is missing (highlights, a study-guide PDF of my notes,
+notes shared with a classmate are the next items in Learning Core's plan)?
+
+---
+
 ## Hand-test 11 — the Store package, the icon and the pages on softwareplus.ai (plan 12.1–12.10), 2026-11-05
 
 Before the submission (needs nothing from Partner Center):

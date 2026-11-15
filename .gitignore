@@ -272,3 +272,6 @@ manual-test/
 
 # The self-contained build for the instructors' review (tools/make-review-build)
 review/
+
+# The hand-test build of a branch (my-notes), kept apart from the 1.0 release build in manual-test/
+manual-test-notes/

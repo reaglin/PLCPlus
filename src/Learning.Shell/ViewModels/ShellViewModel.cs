@@ -33,6 +33,8 @@ public sealed partial class ShellViewModel : ObservableObject
         Roots.Add(Dashboard);
         Reports = new PathNode { IsReports = true, Weight = FontWeights.SemiBold };
         Roots.Add(Reports);
+        Notes = new PathNode { IsNotes = true, Weight = FontWeights.SemiBold };
+        Roots.Add(Notes);
         foreach (var m in package.Modules)
         {
             var node = new PathNode { Module = m };
@@ -52,6 +54,7 @@ public sealed partial class ShellViewModel : ObservableObject
     public ObservableCollection<PathNode> Roots { get; } = [];
     public PathNode Dashboard { get; }
     public PathNode Reports { get; }
+    public PathNode Notes { get; }
 
     /// <summary>The item on screen (the window sets it), so time on task goes to the right item.</summary>
     [ObservableProperty]
@@ -125,6 +128,7 @@ public sealed partial class ShellViewModel : ObservableObject
         ContinueWhereILeftOffCommand.NotifyCanExecuteChanged();
         ShowDashboardCommand.NotifyCanExecuteChanged();
         ShowReportsCommand.NotifyCanExecuteChanged();
+        ShowNotesCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>Saves the learner's file. A problem goes on the status line, in words.</summary>
@@ -204,6 +208,15 @@ public sealed partial class ShellViewModel : ObservableObject
         Reports.SpokenName = "Hand in a report: " + Reports.Detail;
         Reports.Tip = "Make a progress report (a PDF) for a module check, or of everything so far, and hand it in to your instructor";
 
+        var noteCounts = Session?.Data.Notes.CountByItem() ?? new Dictionary<string, int>();
+        var notes = noteCounts.Values.Sum();
+        Notes.Header = "My notes";
+        Notes.Mark = "✎";
+        Notes.MarkBrush = notes > 0 ? started : muted;
+        Notes.Detail = notes > 0 ? $"{notes} note{(notes == 1 ? "" : "s")} on {noteCounts.Count} item{(noteCounts.Count == 1 ? "" : "s")}" : "Your own notes on the lessons";
+        Notes.SpokenName = "My notes: " + Notes.Detail;
+        Notes.Tip = "Every note you have written on the lessons, with a search box. Only you see them (Ctrl+Shift+N)";
+
         foreach (var node in Roots.Where(r => r.Module is not null))
         {
             var entry = summary.Modules.First(e => e.Module == node.Module);
@@ -240,7 +253,7 @@ public sealed partial class ShellViewModel : ObservableObject
                     ItemState.InProgress => ("◐", started),
                     _ => ("○", muted),
                 };
-                child.Detail = ItemDetail(item, state);
+                child.Detail = ItemDetail(item, state) + (noteCounts.TryGetValue(item.Id, out var n) ? $" · ✎ {n} note{(n == 1 ? "" : "s")}" : "");
                 child.SpokenName = $"{item.Number} {item.Title}: {child.Detail}";
                 child.Tip = item.Kind == ItemKind.Assess
                     ? item.Quiz is null ? "The module check: complete when every item it covers is" : "The module check: complete when every item it covers is complete and you pass its questions"
@@ -359,6 +372,14 @@ public sealed partial class ShellViewModel : ObservableObject
     {
         Reports.IsSelected = false;
         Reports.IsSelected = true;
+        PageFocusRequested?.Invoke();
+    }
+
+    [RelayCommand(CanExecute = nameof(SignedIn))]
+    private void ShowNotes()
+    {
+        Notes.IsSelected = false;
+        Notes.IsSelected = true;
         PageFocusRequested?.Invoke();
     }
 
