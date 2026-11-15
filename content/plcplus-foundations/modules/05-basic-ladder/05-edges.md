@@ -7,6 +7,11 @@ builds-on: plc.m5.set-reset
 example: u5.push-on-push-off
 exercise: u5.conveyor-sorter
 reference: [edges, set-reset]
+terms: [Rising edge, Falling edge, Scan, Set coil, Reset coil]
+takeaways:
+  - An edge contact passes power for one scan only, when its tag changes: rising from FALSE to TRUE, falling from TRUE to FALSE.
+  - Use an edge when something must happen once per press or once per part, not for as long as the input is on.
+  - An edge and a set coil together remember an event, such as which kind of part passed the sensor.
 ---
 
 

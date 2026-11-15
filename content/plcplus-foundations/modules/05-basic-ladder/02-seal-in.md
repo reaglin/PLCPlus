@@ -8,6 +8,13 @@ example: u5.pump-start-stop
 exercise: u5.motor-start-stop
 reference: [seal-in, wiring-stop, contacts, coils]
 lab: [lab-5-seal-in]
+terms: [Seal-in, Three-wire control, Normally closed, Push button, Contactor]
+self-test: quizzes/m5-seal-in-review.json
+takeaways:
+  - A seal-in puts the output's own contact in parallel with Start, so the output stays on after Start is released.
+  - Stop goes in series after the branch, so it breaks the rung whatever the branch is doing: Stop wins.
+  - The Stop button is wired normally closed, so its tag is TRUE until it is pressed, and a broken wire stops the machine.
+  - With a seal-in, a motor stopped by a power cut stays off until someone presses Start again (three-wire control).
 ---
 
 

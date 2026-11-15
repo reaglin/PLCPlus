@@ -18,6 +18,7 @@ content/plcplus-foundations/
       06-check.md        the module check, last
   reference/
     seal-in.md           a Reference page, shared by every item that lists it
+  glossary.md            the key terms: "## Term", an optional "Also: other, forms" line, then the definition
   labs/
     lab-5-seal-in.md     a lab exercise for the Laboratory tab: settings (title, minutes, equipment), then what to do
   challenges/ programs/ scenes/   the machines (see docs/PLAN.md, the grader)
@@ -79,6 +80,7 @@ The Learn page, in Markdown …
 | (the Markdown after the settings) | **Learn** |
 | `example` (a challenge ID), `example-program` (which of its programs first; the first if left out) | **Example**: the machine running that program; the learner can switch to the common mistake |
 | `exercise` (a challenge ID) | **Exercise**: My program, checked against that challenge. **The item is complete when it passes.** An item with no exercise is complete when the learner presses *I have read this* |
+| `takeaways` (a list), `terms` (glossary terms), `self-test` (a quiz file) | **Review** (2026-11-15): the key takeaways (three to five sentences), the key terms with their definitions and flashcards of them, and a self-test, always practice, that counts for nothing. The `terms` are also shown in the **In this item** band at the top of Learn, and are the terms marked in the item's pages (a dotted underline on first use; an item with no `terms` marks every glossary term). Each must be in `glossary.md`: the validator checks |
 | `lab` (lab names, from `labs/`) | **Laboratory** (Ron, 2026-11-15): the exercises the learner does live, on the real PLC in the lab. Each lab page's settings are `title`, `minutes` (time in the lab) and `equipment` (a list); its Markdown says what to do and what to show the lab instructor. An item without one says the tab is for labs. An instructor's labs come with the course pack later (Learning Core plan 4.6) |
 | `reference` (Reference page names) | **Reference**: those pages, one after another |
 | `objectives` | The module outcomes this item teaches |

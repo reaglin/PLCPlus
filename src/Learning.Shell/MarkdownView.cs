@@ -50,11 +50,13 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
         var here = new MenuItem { Header = "Add a _note to this paragraph…" };
         var page = new MenuItem { Header = "Add a note to this _page…", ToolTip = "Write your own note on this page as a whole. Only you see it." };
         var copy = new MenuItem { Header = "_Copy", Command = ApplicationCommands.Copy, ToolTip = "Copies the words you selected" };
+        var read = new MenuItem { Header = "_Read aloud from here", ToolTip = "Reads the page aloud from this paragraph (View ▸ Read aloud has the voice and speed)" };
+        read.Click += (_, _) => ReadAloudRequested?.Invoke(_menuBlock);
         ToolTipService.SetShowOnDisabled(here, true);
         here.Click += (_, _) => NoteRequested?.Invoke(_menuBlock);
         page.Click += (_, _) => NoteRequested?.Invoke(null);
         ContextMenu = new ContextMenu();
-        foreach (var part in new Control[] { here, page, new Separator(), copy }) ContextMenu.Items.Add(part);
+        foreach (var part in new Control[] { here, page, new Separator(), read, new Separator(), copy }) ContextMenu.Items.Add(part);
         ContextMenuOpening += (_, e) =>
         {
             _menuBlock = BlockAt(e.OriginalSource) ?? BlockAt(Selection?.Start.Paragraph);
@@ -114,6 +116,114 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
         block.BringIntoView();
         Selection?.Select(block.ContentStart, block.ContentEnd);
         Focus();
+    }
+
+    // ---- Key terms (Learning Core plan 3.13) and reading aloud (plan 3.15) ---------------------------------
+
+    /// <summary>The book's glossary: the first use of each key term on the page is marked, with its definition as a tooltip.</summary>
+    public Glossary? Glossary { get; set; }
+
+    /// <summary>Which terms to mark (an item's own key terms, as a textbook marks a chapter's new terms); null marks every one.</summary>
+    public Func<GlossaryEntry, bool>? MarkOnly { get; set; }
+
+    /// <summary>A marked key term was clicked: the window shows it in the Glossary.</summary>
+    public event Action<GlossaryEntry>? TermClicked;
+
+    /// <summary>The learner asked to hear the page read, from a block (its index in <see cref="BlockSources"/>) or the start.</summary>
+    public event Action<int?>? ReadAloudRequested;
+
+    private static readonly TextDecorationCollection Dotted = MakeDotted();
+
+    private static TextDecorationCollection MakeDotted()
+    {
+        var pen = new Pen(Brushes.Gray, 1) { DashStyle = DashStyles.Dot };
+        pen.Freeze();
+        var decorations = new TextDecorationCollection { new TextDecoration(TextDecorationLocation.Underline, pen, 1, TextDecorationUnit.FontRecommended, TextDecorationUnit.FontRecommended) };
+        decorations.Freeze();
+        return decorations;
+    }
+
+    /// <summary>
+    /// Marks the first use of each key term on the page, as a printed book puts it in bold with a definition in the margin:
+    /// a dotted underline (a shape, not colour alone), the definition as its tooltip, and a click to the Glossary. Words in
+    /// code, links and headings are left alone.
+    /// </summary>
+    private void MarkTerms(FlowDocument document)
+    {
+        if (Glossary is not { Entries.Count: > 0 } glossary) return;
+        var done = new HashSet<GlossaryEntry>();
+        foreach (var (block, _) in _blocks)
+        {
+            if (block.FontSize > 14.5) continue; // a heading
+            foreach (var run in RunsIn(block.Inlines).ToList())
+            {
+                var matches = glossary.Matches(run.Text).Where(m => (MarkOnly?.Invoke(m.Entry) ?? true) && done.Add(m.Entry)).ToList();
+                if (matches.Count == 0) continue;
+                var parent = (run.Parent as Span)?.Inlines ?? (run.Parent as Paragraph)?.Inlines;
+                if (parent is null) continue;
+                var text = run.Text;
+                var at = 0;
+                foreach (var m in matches)
+                {
+                    if (m.Start > at) parent.InsertBefore(run, Copy(run, text[at..m.Start]));
+                    var term = new Hyperlink(Copy(run, text.Substring(m.Start, m.Length)))
+                    {
+                        TextDecorations = Dotted, Cursor = Cursors.Help,
+                        ToolTip = $"Key term · {m.Entry.Term}: {m.Entry.Definition}{Environment.NewLine}Click to see it in the Glossary.",
+                    };
+                    term.SetResourceReference(TextElement.ForegroundProperty, "InkBrush");
+                    System.Windows.Automation.AutomationProperties.SetName(term, $"Key term {m.Entry.Term}: {m.Entry.Definition}");
+                    var entry = m.Entry;
+                    term.Click += (_, _) => TermClicked?.Invoke(entry);
+                    parent.InsertBefore(run, term);
+                    at = m.Start + m.Length;
+                }
+                if (at < text.Length) parent.InsertBefore(run, Copy(run, text[at..]));
+                parent.Remove(run);
+            }
+        }
+    }
+
+    private static Run Copy(Run like, string text) =>
+        new(text) { FontWeight = like.FontWeight, FontStyle = like.FontStyle };
+
+    /// <summary>The plain runs of a block, not those in a link or set as code.</summary>
+    private static IEnumerable<Run> RunsIn(InlineCollection inlines)
+    {
+        foreach (var inline in inlines)
+        {
+            if (inline is Run run && run.FontFamily.Source != "Consolas") yield return run;
+            else if (inline is Span span and not Hyperlink)
+                foreach (var inner in RunsIn(span.Inlines)) yield return inner;
+        }
+    }
+
+    /// <summary>The page's blocks as words to read aloud, in order: the text a learner sees, without the ✎ marks.</summary>
+    public IReadOnlyList<string> ReadableBlocks =>
+        [.. _blocks.Select(b => NoteMark().Replace(new TextRange(b.Block.ContentStart, b.Block.ContentEnd).Text, "").Trim())];
+
+    [GeneratedRegex(@"\u00A0✎(\u00A0\d+)?")]
+    private static partial Regex NoteMark();
+
+    private Paragraph? _reading;
+    private static readonly Brush ReadingBrush = MakeReadingBrush();
+
+    private static Brush MakeReadingBrush()
+    {
+        var brush = new SolidColorBrush(Color.FromArgb(0x55, 0xFF, 0xC1, 0x07));
+        brush.Freeze();
+        return brush;
+    }
+
+    /// <summary>Marks the block being read with a light amber background and scrolls it into view, without taking the keyboard.</summary>
+    public void ShowReading(int? index)
+    {
+        if (_reading is not null) _reading.ClearValue(TextElement.BackgroundProperty);
+        _reading = null;
+        if (index is not int i || i < 0 || i >= _blocks.Count) return;
+        _reading = _blocks[i].Block;
+        _reading.Background = ReadingBrush;
+        _reading.BringIntoView();
     }
 
     /// <summary>Makes the live part for a widget line, or returns null to show the line as a problem.</summary>
@@ -315,6 +425,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
         FlushTable();
 
         Document = document;
+        MarkTerms(document);
     }
 
     /// <summary>A table row's cells. A | inside `code` belongs to the code: ladder symbols such as -| |- are written that way.</summary>

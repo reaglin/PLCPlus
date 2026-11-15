@@ -125,6 +125,53 @@ public sealed class PlcAi
         }
     }
 
+    // ---- Voices for the Reader (Learning Core plan 3.15): Google text-to-speech through AI Manager, optional ----------
+
+    /// <summary>A Google voice key is set up in AI settings (the section "Voices — Google text-to-speech").</summary>
+    public bool CanSpeak => Hub() is { } h && h.CanSpeak;
+
+    /// <summary>The English Google voices, or none when no voice key is set up or they cannot be listed.</summary>
+    public async Task<IReadOnlyList<ReaderVoice>> GoogleVoicesAsync()
+    {
+        GoogleVoicesProblem = null;
+        if (Hub() is not { CanSpeak: true } hub) return [];
+        try
+        {
+            var voices = await hub.ListVoicesAsync("en", false, CancellationToken.None).ConfigureAwait(true);
+            return [.. voices.Select(v => new ReaderVoice("google:" + v.Name,
+                $"{v.Label} (Google{(AiHub.SpeechPricePerMillion(v.Name) is { } price ? $", about ${price:0.##} a million characters" : "")})", true))];
+        }
+        catch (Exception ex) when (ex is AiException or HttpRequestException or IOException or OperationCanceledException)
+        {
+            GoogleVoicesProblem = ex.Message;
+            return [];
+        }
+    }
+
+    /// <summary>Why the last list of Google voices came back empty although a key is set up (offline, refused), or null.</summary>
+    public string? GoogleVoicesProblem { get; private set; }
+
+    /// <summary>
+    /// AI Manager's voice chooser (languages, kinds of voice with their prices, Hear it), for a Google voice. Returns the chosen
+    /// voice's name, or null when cancelled or no Google voice key is set up.
+    /// </summary>
+    public string? ChooseGoogleVoice(Window owner, string? current)
+    {
+        if (Hub() is not { CanSpeak: true } hub) return null;
+        var w = new VoiceChooserWindow(hub, current, "en-US", "A seal-in keeps the motor running after the Start button is released.") { Owner = owner };
+        return w.ShowDialog() == true ? w.SelectedVoice?.Name : null;
+    }
+
+    /// <summary>What reading <paramref name="characters"/> with a Google voice costs, in dollars, or null if not known.</summary>
+    public double? EstimateSpeech(string voice, int characters) => Hub()?.EstimateSpeech(voice, characters);
+
+    /// <summary>Speaks text with a Google voice. Throws <see cref="AiException"/> with words the learner can act on.</summary>
+    public async Task<AiSpeech> SpeakAsync(string text, string voice, double rate, CancellationToken ct)
+    {
+        if (Hub() is not { } hub) throw new InvalidOperationException("The AI could not be opened: " + _openProblem);
+        return await hub.SpeakAsync(new AiSpeechRequest { Text = text, Voice = voice, SpeakingRate = rate, Purpose = "PLC+ Reader" }, null, ct).ConfigureAwait(true);
+    }
+
     /// <summary>The answer as plain text for a note: Markdown's bold and heading marks taken out, if the AI used them anyway.</summary>
     public static string Plain(string text)
     {

@@ -5,6 +5,7 @@ kind: assess
 covers: [plc.m5.contacts-coils, plc.m5.seal-in, plc.m5.interlocks, plc.m5.set-reset, plc.m5.edges]
 minutes: 15
 quiz: quizzes/m5-check.json
+terms: [Contact, Coil, Seal-in, Interlock, Set coil, Reset coil, Rising edge]
 ---
 
 

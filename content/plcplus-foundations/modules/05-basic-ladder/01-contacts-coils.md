@@ -6,6 +6,13 @@ objectives: [plc.m5.o1]
 example: u5.press-guard
 exercise: u5.pilot-lights
 reference: [contacts, coils, series-parallel]
+terms: [Contact, Normally open, Normally closed, Coil, Series, Parallel, Truth table]
+self-test: quizzes/m5-contacts-coils-review.json
+takeaways:
+  - A rung reads tags with contacts on the left and writes one tag with a coil on the right.
+  - A normally open contact passes power while its tag is TRUE; a normally closed contact passes power while its tag is FALSE.
+  - Contacts in series make AND: power passes only through all of them. Contacts in parallel make OR: any one is enough.
+  - A coil is TRUE only while its rung passes power, so it follows the contacts scan by scan.
 ---
 
 

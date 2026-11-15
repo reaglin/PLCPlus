@@ -13,6 +13,30 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 14 — Review, In this item, the Glossary and the Reader (plan 13.9), 2026-11-15
+
+**On the branch `my-notes`**, `manual-test-notes\PLCPlus.exe`, with test learners as in hand-test 12. The content is an example:
+module 5 has takeaways and key terms, 5.1 and 5.2 have self-tests, and the glossary has 34 terms for modules 1–5.
+
+1. **In this item.** Open 5.2: above the lesson, the objective, about 40 minutes, and the key terms as buttons. Point at one: its
+   meaning. Click it: the Glossary opens at that term (marked ▶).
+2. **Key terms in the lesson.** The first "seal-in circuit" and "normally closed" have a dotted underline; point at them, click one.
+   Is the underline enough, or too much? (Items without a `terms` list mark every glossary term: open 2.2 to compare.)
+3. **Review** (Ctrl+5): the takeaways, the key terms, the flashcards (click a card to turn it; Next, Shuffle), the self-test (answer,
+   Check my answers: each answer says why; it does not change your progress). 5.3 has takeaways but no self-test: it says so.
+4. **The Glossary** (Go ▸ Glossary, Ctrl+Shift+G, or the path): A to Z, Find a term, a "Used in" button opens that item.
+5. **Read aloud** on Learn: 🔊 Read aloud. The paragraph being read turns amber; ⏸ Pause, ▶ Go on, ■ Stop. Right-click a paragraph ▸
+   Read aloud from here. Change tab or item: it stops. On the Example tab it says which tabs it reads.
+6. **Voices.** Under the reading buttons: "Reader voice: … · Change voice…". Click Change voice… (or View ▸ Reader voice and speed…):
+   the Windows voices on this computer, Hear it, a speed. **Choose a Google voice…** opens AI Manager's voice chooser (by language
+   and kind, with prices, Hear it); pick one, Save, and read a page: it asks first, with the cost. (Without a Google voice key the
+   button says Set up Google voices… and opens AI settings.) Is a Windows voice good enough for students? Note: tables are not read yet.
+
+Tell me: should the Reader also read the takeaways on Review aloud by default when a student opens it? And should "In this item" be
+on every tab, or only on Learn?
+
+---
+
 ## Hand-test 13 — the notes tab, Ask the AI, the Laboratory tab, my course's links (plan 13.3–13.6), 2026-11-15
 
 **On the branch `my-notes`.** The build is **`manual-test-notes\PLCPlus.exe`**; use a test folder of learners as in hand-test 12:

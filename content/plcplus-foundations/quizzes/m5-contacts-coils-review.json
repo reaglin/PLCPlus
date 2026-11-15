@@ -1,0 +1,43 @@
+{
+  "id": "plc.m5.contacts-coils.review",
+  "title": "Self-test: contacts and coils",
+  "passThreshold": 0.8,
+  "practice": true,
+  "questions": [
+    {
+      "id": "q1",
+      "kind": "choice",
+      "prompt": "Which contact passes power while its tag is **FALSE**?",
+      "options": [
+        "-| |-  normally open",
+        "-|/|-  normally closed",
+        "-( )-  coil"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A normally closed contact passes power until its tag becomes TRUE."
+    },
+    {
+      "id": "q2",
+      "kind": "truthTable",
+      "prompt": "A and B are in parallel before the coil. Fill in when the coil is on.",
+      "expression": "A OR B",
+      "explanation": "Parallel contacts make OR: either branch is enough."
+    },
+    {
+      "id": "q3",
+      "kind": "choice",
+      "prompt": "A coil's rung stops passing power. What does the coil's tag do?",
+      "options": [
+        "Stays TRUE until it is reset",
+        "Becomes FALSE in that scan",
+        "Keeps the value it had at power-up"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A plain coil follows its rung every scan; only a set coil keeps its value."
+    }
+  ]
+}

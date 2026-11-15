@@ -7,6 +7,11 @@ builds-on: plc.m5.interlocks
 example: u5.overheat-alarm
 exercise: u5.tank
 reference: [set-reset, sensors]
+terms: [Set coil, Reset coil, Limit switch]
+takeaways:
+  - A set coil makes its tag TRUE and leaves it TRUE; only a reset coil makes it FALSE again.
+  - Set and reset remember a state, such as "filling", across many scans without a seal-in.
+  - If the set and the reset rungs are both TRUE in the same scan, the one lower in the program wins.
 ---
 
 

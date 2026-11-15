@@ -40,6 +40,9 @@ public sealed class QuizView : UserControl
     /// <summary>Who is answering (the learner's ID): each learner sees the options in an order of their own (<see cref="OptionOrder"/>).</summary>
     public string ShuffleSeed { get; set; } = "";
 
+    /// <summary>A self-test on the Review tab: nothing is recorded, so it says nothing about passing.</summary>
+    public bool SelfTest { get; set; }
+
     public QuizView() => Content = _panel;
 
     private static Brush Res(string key) => (Brush)Application.Current.FindResource(key);
@@ -55,7 +58,7 @@ public sealed class QuizView : UserControl
         foreach (var line in intro) _panel.Children.Add(Para(line, 0, 2));
         _panel.Children.Add(Para(
             $"{quiz.Questions.Count} question{(quiz.Questions.Count == 1 ? "" : "s")}. Answer them all, then press Check my answers at the bottom. " +
-            $"You need {quiz.PassThreshold:P0} to pass, and you can check as often as you like. " +
+            (SelfTest ? "Check your answers as often as you like; nothing is recorded. " : $"You need {quiz.PassThreshold:P0} to pass, and you can check as often as you like. ") +
             (quiz.Practice ? "Each answer says why, and shows the right one when yours is wrong." : "A right answer says why; a wrong one says where to look again, not what the answer is.")
             + " Your answers stay while PLC+ is open, so you can go and read again.", 6, 10, muted: true));
 

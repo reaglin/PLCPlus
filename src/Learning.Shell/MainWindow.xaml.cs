@@ -86,6 +86,7 @@ public partial class MainWindow : Window
         {
             if (ReportsPage.IsVisible) ReportsPanel.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
             else if (NotesPage.IsVisible) AllNotesPanel.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+            else if (GlossaryPage.IsVisible) GlossaryView.FocusSearch();
             else DashboardView.Focus();
         });
 
@@ -155,6 +156,7 @@ public partial class MainWindow : Window
             {
                 NoteTabs.Reference => ReferenceMarkdown(item),
                 NoteTabs.Laboratory => LabMarkdown(item),
+                ReviewTabName => ReviewMarkdown(item),
                 _ => item.Learn,
             };
         }
@@ -163,13 +165,37 @@ public partial class MainWindow : Window
         ItemNotes.AiStatus = () => PlcAi.Shared.Status;
         ItemNotes.AiSettings = AiSettingsDone;
         ItemNotes.AskAi = (item, question, ct) => PlcAi.Shared.AskAsync(PlcAi.TutorInstructions("PLC+"), PlcAi.Prompt(item, item.Learn, question), ct);
-        foreach (var (view, tab) in new[] { (LearnView, NoteTabs.Learn), (LabView, NoteTabs.Laboratory), (ReferenceView, NoteTabs.Reference) })
+        foreach (var (view, tab) in NotedPages)
         {
             view.EnableNotes();
             view.NoteRequested += i => RequestNote(view, tab, i);
             view.NoteMarkClicked += i => ShowNotesOn(view, tab, i);
+            view.ReadAloudRequested += i => _ = ReadPage(i);
         }
         LabView.WidgetFactory = w => LessonWidgets.Create(_plc, w);
+        ReviewView.WidgetFactory = ReviewWidget;
+
+        // Key terms (Learning Core plan 3.13): marked in every page of the book; a click opens the Glossary.
+        foreach (var view in new[] { LearnView, LabView, ReferenceView, ModuleView })
+        {
+            view.Glossary = _package.Glossary;
+            view.TermClicked += ShowGlossaryPage;
+        }
+        GlossaryView.Load(_package);
+        GlossaryView.Back = BackFromGlossary;
+        GlossaryView.Open = (item, entry) =>
+        {
+            _vm.Select(item);
+            SetStatus($"{item}: the key term “{entry.Term}” is marked with a dotted underline where it is first used.");
+        };
+
+        // The Reader (Learning Core plan 3.15).
+        _reader.Reading += i =>
+        {
+            _readView?.ShowReading(i);
+            ShowReaderButtons();
+        };
+        Closed += (_, _) => _reader.Dispose();
 
         Loaded += (_, _) => SignInScreen.Show();
     }
@@ -188,7 +214,11 @@ public partial class MainWindow : Window
     }
 
     /// <summary>The pages a learner can note, with the tab each is on.</summary>
-    private IEnumerable<(MarkdownView View, string Tab)> NotedPages => [(LearnView, NoteTabs.Learn), (LabView, NoteTabs.Laboratory), (ReferenceView, NoteTabs.Reference)];
+    private IEnumerable<(MarkdownView View, string Tab)> NotedPages =>
+        [(LearnView, NoteTabs.Learn), (LabView, NoteTabs.Laboratory), (ReviewView, ReviewTabName), (ReferenceView, NoteTabs.Reference)];
+
+    /// <summary>The Review tab, as a note's anchor names it (Learning Core has no constant for it yet).</summary>
+    private const string ReviewTabName = "review";
 
     /// <summary>The item's notes: a ✎ after each paragraph that has one, the list on the My notes tab, and the count on the tab.</summary>
     private void RefreshNotes()
@@ -226,6 +256,7 @@ public partial class MainWindow : Window
     private static string TabWord(string tab) => tab switch
     {
         NoteTabs.Laboratory => "Laboratory",
+        ReviewTabName => "Review",
         NoteTabs.Reference => "Reference",
         NoteTabs.Example => "Example",
         NoteTabs.Exercise => "Exercise",
@@ -253,6 +284,7 @@ public partial class MainWindow : Window
         {
             NoteTabs.Learn => (LearnTab, LearnView),
             NoteTabs.Laboratory => (LabTab, LabView),
+            ReviewTabName => (ReviewTab, ReviewView),
             NoteTabs.Reference => (ReferenceTab, ReferenceView),
             NoteTabs.Example => (ExampleTab, (MarkdownView?)null),
             NoteTabs.Exercise => (ExerciseTab, null),
@@ -287,14 +319,16 @@ public partial class MainWindow : Window
 
     private void ShowNotesPage()
     {
+        StopReading();
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        _selfTest?.Remember();
         var kept = KeepNoteDraft();
         _item = null;
         _module = null;
         _vm.CurrentItem = null;
         _vm.CurrentModule = null;
-        ItemPage.Visibility = ModulePage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = Visibility.Collapsed;
+        ItemPage.Visibility = ModulePage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = GlossaryPage.Visibility = Visibility.Collapsed;
         NotesPage.Visibility = Visibility.Visible;
         _vm.Refresh();
         AllNotesPanel.ShowAll();
@@ -310,6 +344,7 @@ public partial class MainWindow : Window
         _lastInput = DateTime.Now;
         var same = _vm.SignIn(file, DateTimeOffset.Now);
         ShowCourseLinks();
+        ShowVoice();
         SignInScreen.Visibility = Visibility.Collapsed;
         AppContent.Visibility = Visibility.Visible;
         if (same && (_item is not null || _module is not null || DashboardPage.Visibility == Visibility.Visible))
@@ -335,9 +370,11 @@ public partial class MainWindow : Window
     private void Lock(string banner, bool switching = false)
     {
         if (_session is null) return;
+        StopReading();
         _popOut?.Close();   // nothing of the learner's stays on screen
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        _selfTest?.Remember();
         KeepNoteDraft();
         ItemNotes.Forget();      // before the lock: it keeps an unasked question for this learner
         AllNotesPanel.Forget();
@@ -470,6 +507,7 @@ public partial class MainWindow : Window
         if (node.IsDashboard) ShowDashboard();
         else if (node.IsReports) ShowReports();
         else if (node.IsNotes) ShowNotesPage();
+        else if (node.IsGlossary) ShowGlossaryPage(null);
         else if (node.Item is { } item) ShowItem(item);
         else ShowModule(node.Module!);
     }
@@ -478,14 +516,16 @@ public partial class MainWindow : Window
 
     private void ShowDashboard()
     {
+        StopReading();
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        _selfTest?.Remember();
         KeepNoteDraft();
         _item = null;
         _module = null;
         _vm.CurrentItem = null;
         _vm.CurrentModule = null;
-        ItemPage.Visibility = ModulePage.Visibility = ReportsPage.Visibility = NotesPage.Visibility = Visibility.Collapsed;
+        ItemPage.Visibility = ModulePage.Visibility = ReportsPage.Visibility = NotesPage.Visibility = GlossaryPage.Visibility = Visibility.Collapsed;
         DashboardPage.Visibility = Visibility.Visible;
         _vm.Refresh();
         DashboardTitle.Text = $"My progress · {_session?.Data.Profile.DisplayName}";
@@ -504,14 +544,16 @@ public partial class MainWindow : Window
 
     private void ShowReports()
     {
+        StopReading();
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        _selfTest?.Remember();
         KeepNoteDraft();
         _item = null;
         _module = null;
         _vm.CurrentItem = null;
         _vm.CurrentModule = null;
-        ItemPage.Visibility = ModulePage.Visibility = DashboardPage.Visibility = NotesPage.Visibility = Visibility.Collapsed;
+        ItemPage.Visibility = ModulePage.Visibility = DashboardPage.Visibility = NotesPage.Visibility = GlossaryPage.Visibility = Visibility.Collapsed;
         ReportsPage.Visibility = Visibility.Visible;
         _vm.Refresh();
         ReportsPanel.Show(_reportPoint);
@@ -533,15 +575,17 @@ public partial class MainWindow : Window
 
     private void ShowModule(LearningModule m)
     {
+        StopReading();
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        _selfTest?.Remember();
         KeepNoteDraft();
         _module = m;
         _item = null;
         _vm.CurrentItem = null;
         _vm.CurrentModule = m;
         ShowScreenHelp();
-        ItemPage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = NotesPage.Visibility = Visibility.Collapsed;
+        ItemPage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = NotesPage.Visibility = GlossaryPage.Visibility = Visibility.Collapsed;
         ModulePage.Visibility = Visibility.Visible;
 
         var p = _progress.Of(m);
@@ -627,15 +671,20 @@ public partial class MainWindow : Window
 
     private void ShowItem(LearningItem item)
     {
+        StopReading();
+        // The item's own key terms are marked on its pages; an item that lists none marks every term in the glossary.
+        var ownTerms = item.Terms.Select(_package.Glossary.Find).OfType<GlossaryEntry>().ToHashSet();
+        foreach (var view in new[] { LearnView, LabView, ReferenceView }) view.MarkOnly = ownTerms.Count == 0 ? null : ownTerms.Contains;
         ExerciseWorkspace.CommitPendingEdit();
         QuizPanel.Remember();
+        _selfTest?.Remember();
         var keptNote = _item != item ? KeepNoteDraft() : null;
         var tabBefore = _item is not null && _item != item ? ItemTabs.SelectedItem : null;
         _item = item;
         _module = item.Module;
         _vm.CurrentItem = item;
         _vm.CurrentModule = item.Module;
-        ModulePage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = NotesPage.Visibility = Visibility.Collapsed;
+        ModulePage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = NotesPage.Visibility = GlossaryPage.Visibility = Visibility.Collapsed;
         ItemPage.Visibility = Visibility.Visible;
         HandInButton.Visibility = item.Kind == ItemKind.Assess ? Visibility.Visible : Visibility.Collapsed;
 
@@ -701,6 +750,11 @@ public partial class MainWindow : Window
         LabView.Markdown = LabMarkdown(item);
         LabTab.Header = item.Labs.Count == 0 ? "Lab_oratory (none)" : "Lab_oratory";
         LabTab.ToolTip = item.Labs.Count == 0 ? "No lab exercise for this item yet; the tab says how one can be added (Ctrl+4)" : "The lab exercise you do live, on the real equipment in the lab (Ctrl+4)";
+
+        // Review, and In this item at the top of Learn (Learning Core plan 3.11–3.12)
+        ReviewView.Markdown = ReviewMarkdown(item);
+        ReviewTab.Header = item.Takeaways.Count == 0 && item.Terms.Count == 0 && item.SelfTest is null ? "Revie_w (none)" : "Revie_w";
+        ShowInThisItem(item);
 
         // My notes: the ✎ after noted paragraphs, the My notes tab.
         RefreshNotes();
@@ -899,6 +953,7 @@ public partial class MainWindow : Window
     {
         if (!ReferenceEquals(e.OriginalSource, ItemTabs)) return; // a ComboBox inside a tab
         ExerciseWorkspace.CommitPendingEdit();
+        StopReading("Reading stopped because you changed tabs. Press 🔊 Read aloud to read this page.");
         var machine = (ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible)
                       || (ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible)
                       || (ItemTabs.SelectedItem == ExerciseTab && QuizScroll.Visibility == Visibility.Visible
@@ -1064,7 +1119,9 @@ public partial class MainWindow : Window
     /// <summary>The help panel's first part says what the screen showing now is for (checklist: local help).</summary>
     private void ShowScreenHelp()
     {
-        (HelpScreenTitle.Text, HelpScreenText.Text) = NotesPage.Visibility == Visibility.Visible
+        (HelpScreenTitle.Text, HelpScreenText.Text) = GlossaryPage.Visibility == Visibility.Visible
+            ? ("This screen: Glossary", "The book's key terms, A to Z: what each means, its other names, and the items that use it. Type in Find a term to look one up; press an item number under Used in to open that item. In a lesson, the item's key terms have a dotted underline the first time they are used on a page: point at it to read its meaning, click it to come here.")
+            : NotesPage.Visibility == Visibility.Visible
             ? ("This screen: My notes", "Every note you have written on the lessons, newest first. Type words in Find in my notes to search your notes and the paragraphs they are on. Open goes to the note in its lesson; Edit changes it; Delete asks first. Only you see your notes: they are kept in your progress file, locked with your PIN and backed up with it, and never go in a report.")
             : ReportsPage.Visibility == Visibility.Visible
             ? ("This screen: Hand in a report", "1. Choose a module check, or everything so far. 2. Check what the report will say; My details for reports adds your student ID, course and class code to the cover. 3. Save the PDF report, and hand in that file as it is, the way your instructor asks; do not save it again in another program. The result line is a one-line summary of the report your instructor can check: copy it if they ask for it. A report made before the check is complete is marked Incomplete. Every report you make is listed at the bottom.")
@@ -1078,6 +1135,8 @@ public partial class MainWindow : Window
                 ? ("This screen: Exercise", "Write your own program. Click a part and type its tag in the Tag box, then press Enter. The tools above the rungs add contacts (key O), coils (Q), branches (B) and boxes (I). Check my program runs the tests: when they all pass, the item is complete. In a find-and-fix exercise My program starts with a fault: work the machine, find it, fix it; Start again ▾ gives the program back. Pop out gives it a window of its own.")
             : ItemTabs.SelectedItem == ReferenceTab
                 ? ("This screen: Reference", "The symbols and rules this item uses, with the Allen-Bradley names, to look up while you work. Right-click a paragraph to keep a note on it.")
+            : ItemTabs.SelectedItem == ReviewTab
+                ? ("This screen: Review", "What to remember from this item, like the end of a textbook chapter: the key takeaways, the key terms and what they mean, flashcards to practise the terms (click a card to turn it over), and a self-test. The self-test counts for nothing: each answer shows whether it is right and why. Read it before a module check. 🔊 Read aloud reads it to you.")
             : ItemTabs.SelectedItem == LabTab
                 ? ("This screen: Laboratory", "The lab exercise for this item: what you do live, on the real PLC and equipment in the lab, what to bring and what to show your lab instructor. Read it before the lab session. Not every item has one; your instructor may add more for your class. Right-click a paragraph to keep a note on it.")
             : ItemTabs.SelectedItem == NotesTab
@@ -1086,7 +1145,7 @@ public partial class MainWindow : Window
                 ? QuizScroll.Visibility == Visibility.Visible
                     ? ("This screen: Questions", "Answer every question, then press Check my answers at the bottom. Each answer is marked ✓ or ✗. In practice questions every answer says why, and a wrong one shows the right answer. In a module check, a wrong one says where to read again. Change the wrong ones and check again; your answers stay while PLC+ is open. For a machine with a fault, work its buttons and watch which contact or device never changes; right-click a contact or coil to force it.")
                     : ("This screen: Exercise", "What this item asks you to do. A reading has no exercise; a module check lists the items it covers.")
-                : ("This screen: Learn", "The lesson. Read it, then try the Example and Exercise tabs if the item has them. A reading is complete when you press I have read this. To keep a note on a paragraph, right-click it and choose Add a note to this paragraph: a ✎ after it shows the note. The My notes tab has your notes on this item, and Ask the AI.");
+                : ("This screen: Learn", "The lesson. Read it, then try the Example and Exercise tabs if the item has them. A reading is complete when you press I have read this. To keep a note on a paragraph, right-click it and choose Add a note to this paragraph: a ✎ after it shows the note. The My notes tab has your notes on this item, and Ask the AI. In this item, at the top, says what you will be able to do and lists the key terms; a key term in the lesson has a dotted underline (point at it for its meaning). 🔊 Read aloud reads the page to you, or right-click a paragraph ▸ Read aloud from here.");
     }
 
     // ---- The rest --------------------------------------------------------------------------------------
@@ -1099,6 +1158,257 @@ public partial class MainWindow : Window
     private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
 
     private void WebHelp_Click(object sender, RoutedEventArgs e) => WebLinks.Open(this, WebLinks.Help, "Help on the web");
+
+    // ---- Review, In this item, Glossary (Learning Core plan 3.11–3.13) ------------------------------------
+
+    /// <summary>The Review tab's page: takeaways, key terms, then the flashcards and the self-test as widgets.</summary>
+    private string ReviewMarkdown(LearningItem item)
+    {
+        var md = new StringBuilder($"# Review: {item.Title}\n\n");
+        md.Append("## Key takeaways\n\n");
+        if (item.Takeaways.Count == 0) md.Append("*The key takeaways for this item are still to be written.*\n\n");
+        foreach (var t in item.Takeaways) md.Append("- ").Append(t).Append('\n');
+        var terms = item.Terms.Select(_package.Glossary.Find).OfType<GlossaryEntry>().ToList();
+        md.Append("\n## Key terms\n\n");
+        if (terms.Count == 0) md.Append("*No key terms are listed for this item yet. Go ▸ Glossary has every term in the book.*\n\n");
+        foreach (var t in terms) md.Append("**").Append(t.Term).Append("**: ").Append(t.Definition).Append("\n\n");
+        if (terms.Count > 0) md.Append("## Flashcards\n\nPractise the key terms: say what each means, then turn the card over to check.\n\n[[flashcards: ").Append(item.Id).Append("]]\n\n");
+        md.Append("## Self-test\n\n");
+        if (item.SelfTest is null) md.Append("*There is no self-test for this item yet.*");
+        else md.Append("Questions to check yourself before you move on. They count for nothing: each answer shows whether it is right, and why.\n\n[[self-test: ").Append(item.Id).Append("]]");
+        return md.ToString();
+    }
+
+    /// <summary>The self-test on the Review tab, so answers not yet checked are kept like the Exercise's.</summary>
+    private QuizView? _selfTest;
+
+    private UIElement? ReviewWidget(WidgetTag w)
+    {
+        if (_package.FindItem(w.Argument) is not { } item) return null;
+        if (w.Name == "flashcards") return new FlashcardsView(item.Terms.Select(_package.Glossary.Find).OfType<GlossaryEntry>());
+        if (w.Name == "self-test" && item.SelfTest is { } quiz)
+        {
+            _selfTest?.Remember();
+            var view = new QuizView { ShuffleSeed = _session?.Data.Profile.ProfileId ?? "", SelfTest = true };
+            _selfTest = view;
+            view.Load(quiz, quiz.Title, []);
+            view.Graded += r => SetStatus(r.Passed
+                ? $"Self-test: {r.Score:0.#} of {r.MaxScore:0.#}. Well done; it counts for nothing, so move on when you are ready."
+                : $"Self-test: {r.Score:0.#} of {r.MaxScore:0.#}. Each answer says why; read those parts of the lesson again, then try again.");
+            return view;
+        }
+        return null;
+    }
+
+    /// <summary>In this item (Learning Core plan 3.12): the objectives, the key terms and the time, at the top of the lesson.</summary>
+    private void ShowInThisItem(LearningItem item)
+    {
+        InThisItemPanel.Children.Clear();
+        var objectives = item.Objectives.Select(o => item.Module.Outcomes.FirstOrDefault(x => x.Id.Equals(o, StringComparison.OrdinalIgnoreCase))?.Text).OfType<string>().ToList();
+        var terms = item.Terms.Select(_package.Glossary.Find).OfType<GlossaryEntry>().ToList();
+        if (objectives.Count == 0 && terms.Count == 0 && item.Minutes == 0) { InThisItemBand.Visibility = Visibility.Collapsed; return; }
+        InThisItemBand.Visibility = Visibility.Visible;
+        var head = new TextBlock { Text = item.Minutes > 0 ? $"In this item · about {item.Minutes} minutes" : "In this item", FontWeight = FontWeights.SemiBold };
+        System.Windows.Automation.AutomationProperties.SetHeadingLevel(head, System.Windows.Automation.AutomationHeadingLevel.Level2);
+        InThisItemPanel.Children.Add(head);
+        foreach (var o in objectives)
+            InThisItemPanel.Children.Add(new TextBlock { Text = "You will be able to: " + o, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
+        if (terms.Count == 0) return;
+        var row = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
+        row.Children.Add(new TextBlock { Text = "Key terms:", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) });
+        foreach (var t in terms)
+        {
+            var b = new Button
+            {
+                Content = t.Term, Padding = new Thickness(8, 0, 8, 1), Margin = new Thickness(0, 0, 4, 2),
+                ToolTip = $"{t.Term}: {t.Definition}{Environment.NewLine}Click to see it in the Glossary.",
+            };
+            System.Windows.Automation.AutomationProperties.SetName(b, $"Key term {t.Term}: {t.Definition}");
+            var entry = t;
+            b.Click += (_, _) => ShowGlossaryPage(entry);
+            row.Children.Add(b);
+        }
+        InThisItemPanel.Children.Add(row);
+    }
+
+    /// <summary>The Glossary page, at one term (from a key term in a lesson) or at the top.</summary>
+    private void ShowGlossaryPage(GlossaryEntry? entry)
+    {
+        if (entry is not null && !_vm.Glossary.IsSelected)
+        {
+            _glossaryTerm = entry;
+            _glossaryFrom = _item is { } from ? (from, ItemTabs.SelectedItem as TabItem) : null;
+            _vm.Glossary.IsSelected = true;   // the path's selection opens the page (and remembers where the learner was)
+            return;
+        }
+        StopReading();
+        ExerciseWorkspace.CommitPendingEdit();
+        QuizPanel.Remember();
+        _selfTest?.Remember();
+        var kept = KeepNoteDraft();
+        _item = null;
+        _module = null;
+        _vm.CurrentItem = null;
+        _vm.CurrentModule = null;
+        ItemPage.Visibility = ModulePage.Visibility = DashboardPage.Visibility = ReportsPage.Visibility = NotesPage.Visibility = Visibility.Collapsed;
+        GlossaryPage.Visibility = Visibility.Visible;
+        _vm.Refresh();
+        var term = entry ?? _glossaryTerm;
+        _glossaryTerm = null;
+        GlossaryView.SetBack(_glossaryFrom is var (fromItem, fromTab) ? $"◂ Back to {fromItem.Number} ({(fromTab?.Header as string ?? "Learn").Replace("_", "", StringComparison.Ordinal)})" : null);
+        if (term is not null) GlossaryView.ShowTerm(term);
+        ShowScreenHelp();
+        SetStatus((kept is null ? "" : kept + " ") + (term is not null
+            ? $"Glossary: “{term.Term}” is marked. Press an item number under Used in to open that item" + (_glossaryFrom is null ? "." : ", or ◂ Back to go back where you were.")
+            : "Glossary: every key term, A to Z. Type in Find a term to look one up."));
+    }
+
+    private GlossaryEntry? _glossaryTerm;
+    /// <summary>The item and tab the learner left for the Glossary, to go back to.</summary>
+    private (LearningItem Item, TabItem? Tab)? _glossaryFrom;
+
+    private void BackFromGlossary()
+    {
+        if (_glossaryFrom is not var (item, tab)) return;
+        _glossaryFrom = null;
+        _vm.Select(item);
+        if (tab is not null && _item == item) ItemTabs.SelectedItem = tab;
+        SetStatus($"Back on {item}.");
+    }
+
+    // ---- The Reader (Learning Core plan 3.15) -----------------------------------------------------------
+
+    public static readonly RoutedUICommand ReadAloud = new("Read aloud", nameof(ReadAloud), typeof(MainWindow));
+
+    private readonly Reader _reader = new();
+    private int _readRun;
+    /// <summary>Why reading stopped, for the status line (a tab change, another page).</summary>
+    private string? _stopReason;
+    private MarkdownView? _readView;
+
+    /// <summary>The page on the tab showing, if it is one the Reader reads.</summary>
+    private MarkdownView? ReadablePage =>
+        ItemTabs.SelectedItem == LearnTab ? LearnView : ItemTabs.SelectedItem == LabTab ? LabView
+        : ItemTabs.SelectedItem == ReviewTab ? ReviewView : ItemTabs.SelectedItem == ReferenceTab ? ReferenceView : null;
+
+    private void ReadAloud_Executed(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (_reader.IsReading && !_reader.IsPaused) { _reader.Pause(); ShowReaderButtons(); SetStatus("Paused. Press ▶ Go on to carry on, or ■ Stop."); }
+        else if (_reader.IsReading) { _reader.Resume(); ShowReaderButtons(); SetStatus("Reading aloud."); }
+        else _ = ReadPage(null);
+    }
+
+    protected override void OnPreviewKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && _reader.IsReading && Keyboard.FocusedElement is not TextBox)
+        {
+            StopReading("Stopped reading.");
+            e.Handled = true;
+        }
+        base.OnPreviewKeyDown(e);
+    }
+
+    private void StopReading_Click(object sender, RoutedEventArgs e)
+    {
+        StopReading("Stopped reading.");
+    }
+
+    private void StopReading(string? why = null)
+    {
+        if (!_reader.IsReading) return;
+        _stopReason = why ?? "Reading stopped because you left the page. Press 🔊 Read aloud to read again.";
+        _reader.Stop();
+        _readView?.ShowReading(null);
+        _readView = null;
+        ShowReaderButtons();
+    }
+
+    /// <summary>The voice line under the reading buttons: which voice reads, and a link to change it.</summary>
+    private void ShowVoice()
+    {
+        var (voice, rate) = ReaderSettingsWindow.Chosen(_session?.Data);
+        VoiceName.Text = voice.Name + (Math.Abs(rate - 1.0) > 0.01 ? $", {rate:0.##}× speed" : "");
+    }
+
+    private void ShowReaderButtons()
+    {
+        ReadAloudButton.Content = !_reader.IsReading ? "🔊 Read aloud" : _reader.IsPaused ? "▶ Go on" : "⏸ Pause";
+        ReadAloudButton.ToolTip = !_reader.IsReading ? "Reads this page aloud, the paragraph being read marked in amber (Ctrl+Shift+A)"
+            : _reader.IsPaused ? "Goes on reading from where it paused (Ctrl+Shift+A)" : "Pauses reading (Ctrl+Shift+A); ■ Stop or Esc stops";
+        StopReadingButton.Visibility = _reader.IsReading ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>Reads the page showing aloud, from a block or the start.</summary>
+    private async Task ReadPage(int? from)
+    {
+        if (_item is null || _session is null) return;
+        if (ReadablePage is not { } view)
+        {
+            SetStatus("The Reader reads the Learn, Laboratory, Review and Reference tabs. Open one of them, then press 🔊 Read aloud.");
+            return;
+        }
+        var blocks = view.ReadableBlocks;
+        var (voice, rate) = ReaderSettingsWindow.Chosen(_session.Data);
+        if (voice.Google)
+        {
+            var characters = blocks.Skip(from ?? 0).Sum(b => b.Length);
+            var cost = PlcAi.Shared.EstimateSpeech(voice.Id, characters);
+            if (!ChoiceWindow.Ask(this, "PLC+ — Read aloud", "Read this page with a Google voice?",
+                    $"{characters:N0} characters with {voice.Name}" + (cost is { } c ? $": about ${c:0.000}, charged to the Google account in AI settings." : ".") +
+                    " A part already heard in this session costs nothing again. A Windows voice is free: View ▸ Reader voice and speed….",
+                    "Read it", "Reads the page aloud", "Not now", "Nothing is read or charged"))
+            {
+                SetStatus("Nothing was read or charged.");
+                return;
+            }
+        }
+        StopReading();
+        _readView = view;
+        ShowReaderButtons();
+        SetStatus($"Reading aloud with {voice.Name}. The paragraph being read has an amber background. ⏸ Pause or ■ Stop above the tabs (Ctrl+Shift+A pauses).");
+        var run = ++_readRun;
+        string? problem;
+        try
+        {
+            problem = await _reader.ReadAsync(blocks, from ?? 0, voice, rate);
+        }
+        catch (Exception ex)
+        {
+            problem = "The page could not be read aloud: " + ex.Message + " Choose another voice in View ▸ Reader voice and speed….";
+        }
+        if (run != _readRun) return; // a newer reading took over
+        view.ShowReading(null);
+        var stoppedByLearner = _readView is null;
+        _readView = null;
+        ShowReaderButtons();
+        SetStatus(problem ?? (stoppedByLearner ? _stopReason ?? "Stopped reading." : "Finished reading the page."));
+        _stopReason = null;
+    }
+
+    private async void ReaderSettings_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session is null) return;
+        SetStatus("Finding the voices…");
+        bool saved;
+        try
+        {
+            saved = await ReaderSettingsWindow.EditAsync(this, _session.Data);
+        }
+        catch (Exception ex)
+        {
+            SetStatus("The voices could not be listed: " + ex.Message + " The Windows voice keeps reading.");
+            return;
+        }
+        if (saved)
+        {
+            SaveProgress();
+            StopReading();
+            var (voice, rate) = ReaderSettingsWindow.Chosen(_session.Data);
+            ShowVoice();
+            SetStatus($"The Reader will use {voice.Name} at {rate:0.##}× speed. Press 🔊 Read aloud on a page.");
+        }
+        else SetStatus("The Reader's voice and speed are as they were.");
+    }
 
     // ---- My course's links (Learning Core plan 3.10) and the AI (plan 3.8) --------------------------------
 

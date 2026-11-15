@@ -7,6 +7,11 @@ builds-on: plc.m5.seal-in
 example: u5.reversing-conveyor
 exercise: u5.garage-door
 reference: [interlocks, seal-in, sensors]
+terms: [Interlock, Limit switch, Seal-in, Normally closed]
+takeaways:
+  - An interlock puts a normally closed contact of one output in the other's rung, so the two can never be on together.
+  - A limit switch at the end of travel breaks the rung of the motion that reaches it.
+  - Every rule that keeps people and the machine safe is one more contact in series on the rung it must stop.
 ---
 
 

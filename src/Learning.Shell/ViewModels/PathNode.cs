@@ -15,6 +15,8 @@ public sealed partial class PathNode : ObservableObject
     public bool IsReports { get; init; }
     /// <summary>The "My notes" row, under Hand in a report (Learning Core plan 3.2).</summary>
     public bool IsNotes { get; init; }
+    /// <summary>The "Glossary" row, under My notes (Learning Core plan 3.13).</summary>
+    public bool IsGlossary { get; init; }
     public LearningModule? Module { get; init; }
     public LearningItem? Item { get; init; }
     public PathNode? Parent { get; init; }

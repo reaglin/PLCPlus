@@ -35,6 +35,14 @@ public sealed partial class ShellViewModel : ObservableObject
         Roots.Add(Reports);
         Notes = new PathNode { IsNotes = true, Weight = FontWeights.SemiBold };
         Roots.Add(Notes);
+        Glossary = new PathNode
+        {
+            IsGlossary = true, Weight = FontWeights.SemiBold, Header = "Glossary", Mark = "Aa",
+            Detail = $"{package.Glossary.Entries.Count} key terms, A to Z",
+            SpokenName = $"Glossary: {package.Glossary.Entries.Count} key terms",
+            Tip = "The book's key terms and what they mean, with the items that use them (Ctrl+Shift+G)",
+        };
+        Roots.Add(Glossary);
         foreach (var m in package.Modules)
         {
             var node = new PathNode { Module = m };
@@ -55,6 +63,7 @@ public sealed partial class ShellViewModel : ObservableObject
     public PathNode Dashboard { get; }
     public PathNode Reports { get; }
     public PathNode Notes { get; }
+    public PathNode Glossary { get; }
 
     /// <summary>The item on screen (the window sets it), so time on task goes to the right item.</summary>
     [ObservableProperty]
@@ -129,6 +138,7 @@ public sealed partial class ShellViewModel : ObservableObject
         ShowDashboardCommand.NotifyCanExecuteChanged();
         ShowReportsCommand.NotifyCanExecuteChanged();
         ShowNotesCommand.NotifyCanExecuteChanged();
+        ShowGlossaryCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>Saves the learner's file. A problem goes on the status line, in words.</summary>
@@ -380,6 +390,14 @@ public sealed partial class ShellViewModel : ObservableObject
     {
         Notes.IsSelected = false;
         Notes.IsSelected = true;
+        PageFocusRequested?.Invoke();
+    }
+
+    [RelayCommand(CanExecute = nameof(SignedIn))]
+    private void ShowGlossary()
+    {
+        Glossary.IsSelected = false;
+        Glossary.IsSelected = true;
         PageFocusRequested?.Invoke();
     }
 

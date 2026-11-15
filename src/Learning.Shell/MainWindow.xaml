@@ -13,6 +13,9 @@
         <KeyBinding Key="D4" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="3" />
         <KeyBinding Key="D5" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="4" />
         <KeyBinding Key="D6" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="5" />
+        <KeyBinding Key="D7" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="6" />
+        <KeyBinding Key="G" Modifiers="Ctrl+Shift" Command="{Binding ShowGlossaryCommand}" />
+        <KeyBinding Key="A" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.ReadAloud}" />
         <KeyBinding Key="PageDown" Modifiers="Ctrl+Shift" Command="{Binding NextCommand}" />
         <KeyBinding Key="PageUp" Modifiers="Ctrl+Shift" Command="{Binding PreviousCommand}" />
         <KeyBinding Key="Home" Modifiers="Ctrl+Shift" Command="{Binding ShowDashboardCommand}" />
@@ -29,6 +32,7 @@
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.Help" Executed="Help_Executed" />
         <CommandBinding Command="{x:Static local:MainWindow.ShowTab}" Executed="ShowTab_Executed" CanExecute="ItemShown_CanExecute" />
+        <CommandBinding Command="{x:Static local:MainWindow.ReadAloud}" Executed="ReadAloud_Executed" CanExecute="ItemShown_CanExecute" />
         <CommandBinding Command="{x:Static local:MainWindow.TextLarger}" Executed="TextSize_Executed" CanExecute="SignedIn_CanExecute" />
         <CommandBinding Command="{x:Static local:MainWindow.TextSmaller}" Executed="TextSize_Executed" CanExecute="SignedIn_CanExecute" />
         <CommandBinding Command="{x:Static local:MainWindow.TextNormal}" Executed="TextSize_Executed" CanExecute="SignedIn_CanExecute" />
@@ -79,6 +83,8 @@
                           ToolTip="Your progress through the whole path: each module, the module checks, outcomes to review, and your time in PLC+" />
                 <MenuItem Header="_Hand in a report" InputGestureText="Ctrl+Shift+R" Command="{Binding ShowReportsCommand}"
                           ToolTip="Make a progress report (a PDF) for a module check, or of everything so far, and hand it in to your instructor" />
+                <MenuItem Header="_Glossary" InputGestureText="Ctrl+Shift+G" Command="{Binding ShowGlossaryCommand}"
+                          ToolTip="The book's key terms and what they mean, A to Z, with the items that use each one" />
                 <MenuItem Header="My n_otes" InputGestureText="Ctrl+Shift+N" Command="{Binding ShowNotesCommand}"
                           ToolTip="Every note you have written on the lessons, with a search box. Only you see them" />
                 <MenuItem Header="_Continue where I left off" Command="{Binding ContinueWhereILeftOffCommand}"
@@ -92,8 +98,9 @@
                 <MenuItem Header="_Example tab" InputGestureText="Ctrl+2" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="1" />
                 <MenuItem Header="E_xercise tab" InputGestureText="Ctrl+3" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="2" />
                 <MenuItem Header="L_aboratory tab" InputGestureText="Ctrl+4" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="3" />
-                <MenuItem Header="_Reference tab" InputGestureText="Ctrl+5" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="4" />
-                <MenuItem Header="My notes _tab" InputGestureText="Ctrl+6" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="5" />
+                <MenuItem Header="Re_view tab" InputGestureText="Ctrl+5" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="4" />
+                <MenuItem Header="_Reference tab" InputGestureText="Ctrl+6" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="5" />
+                <MenuItem Header="My notes _tab" InputGestureText="Ctrl+7" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="6" />
                 <Separator />
                 <MenuItem x:Name="CourseTextItem" Header="My course _website" Click="CourseText_Click"
                           ToolTip="Opens your course's website in your web browser (or, if its address is not set yet, asks for it)" />
@@ -105,6 +112,11 @@
                           ToolTip="Makes everything in the window bigger. Kept for you, in your progress file" />
                 <MenuItem Header="_Smaller text" InputGestureText="Ctrl+−" Command="{x:Static local:MainWindow.TextSmaller}" ToolTip="Makes everything in the window smaller" />
                 <MenuItem Header="_Normal size" InputGestureText="Ctrl+0" Command="{x:Static local:MainWindow.TextNormal}" ToolTip="Back to the usual size" />
+                <Separator />
+                <MenuItem Header="_Read aloud" InputGestureText="Ctrl+Shift+A" Command="{x:Static local:MainWindow.ReadAloud}" ToolTipService.ShowOnDisabled="True"
+                          ToolTip="Reads an item's Learn, Laboratory, Review or Reference tab aloud; again to pause. Open an item to use it" />
+                <MenuItem Header="Reader _voice and speed…" Click="ReaderSettings_Click"
+                          ToolTip="Choose the Reader's voice (Windows voices are free and work offline; Google's natural voices cost a little) and how fast it reads" />
             </MenuItem>
             <!-- The AI, optional (Ron, 2026-11-15; Learning Core plan 3.8): through the shared AI Manager. -->
             <MenuItem Header="_AI" SubmenuOpened="AiMenu_Opened">
@@ -158,7 +170,7 @@
                     </TextBlock>
                     <TextBlock Text="An item's tabs" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Learn: read the lesson. Example: a working program on a machine like the exercise's (not the same one): run it, and see a common mistake. Exercise: write your own program and check it, or answer practice questions. Laboratory: the lab exercise you do live on the real PLC, when the item has one. Reference: the symbols and rules the item uses, on one page. My notes: your own notes on the item, and Ask the AI (optional). Pop out gives a program and its machine a window of their own.
+                        Learn: read the lesson. Example: a working program on a machine like the exercise's (not the same one): run it, and see a common mistake. Exercise: write your own program and check it, or answer practice questions. Laboratory: the lab exercise you do live on the real PLC, when the item has one. Review: the key takeaways, key terms, flashcards and a self-test that counts for nothing. Reference: the symbols and rules the item uses, on one page. My notes: your own notes on the item, and Ask the AI (optional). Pop out gives a program and its machine a window of their own.
                     </TextBlock>
                     <TextBlock Text="Completing an item" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
@@ -174,7 +186,7 @@
                     </TextBlock>
                     <TextBlock Text="My notes" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Write your own notes as you learn: on an item's My notes tab (Ctrl+6), or right-click a paragraph of a lesson and choose Add a note to this paragraph (a ✎ after it shows the note). Only you see them; they are kept in your progress file. My notes in the path (Ctrl+Shift+N) has them all, with a search box. The My notes tab can also ask the AI a question about the item (optional: AI ▸ AI settings…); you choose whether to keep its answer. If your class gives you its course website and LMS address, My course's links… (top of the path) keeps them, with buttons that open them.
+                        Key terms have a dotted underline: point at one to read its meaning; Go ▸ Glossary has them all. Review (Ctrl+5) sums up an item: takeaways, key terms, flashcards and a self-test. 🔊 Read aloud (Ctrl+Shift+A) reads a page to you. Write your own notes as you learn: on an item's My notes tab (Ctrl+7), or right-click a paragraph of a lesson and choose Add a note to this paragraph (a ✎ after it shows the note). Only you see them; they are kept in your progress file. My notes in the path (Ctrl+Shift+N) has them all, with a search box. The My notes tab can also ask the AI a question about the item (optional: AI ▸ AI settings…); you choose whether to keep its answer. If your class gives you its course website and LMS address, My course's links… (top of the path) keeps them, with buttons that open them.
                     </TextBlock>
                     <TextBlock Text="Your progress" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
@@ -280,6 +292,11 @@
                 <local:NotesPanel x:Name="AllNotesPanel" AllNotes="True" />
             </DockPanel>
 
+            <!-- The Glossary: every key term (Learning Core plan 3.13) -->
+            <DockPanel x:Name="GlossaryPage" Grid.Column="2" Margin="18,12,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
+                <local:GlossaryPanel x:Name="GlossaryView" />
+            </DockPanel>
+
             <!-- A module's first page -->
             <DockPanel x:Name="ModulePage" Grid.Column="2" Margin="18,12,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
                 <StackPanel DockPanel.Dock="Top">
@@ -296,12 +313,24 @@
             <!-- An item: Learn, Example, Exercise, Reference -->
             <DockPanel x:Name="ItemPage" Grid.Column="2" Margin="18,10,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
                 <DockPanel DockPanel.Dock="Top">
-                    <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Top">
+                    <StackPanel DockPanel.Dock="Right" VerticalAlignment="Top">
+                    <WrapPanel HorizontalAlignment="Right">
+                        <Button x:Name="ReadAloudButton" Content="🔊 Read aloud" Margin="0,0,8,0" Command="{x:Static local:MainWindow.ReadAloud}"
+                                ToolTipService.ShowOnDisabled="True" ToolTip="Reads this page aloud, the paragraph being read marked (Ctrl+Shift+A). View ▸ Reader voice and speed… chooses the voice" />
+                        <Button x:Name="StopReadingButton" Content="■ Stop" Margin="0,0,8,0" Click="StopReading_Click" Visibility="Collapsed"
+                                ToolTip="Stops reading aloud" />
                         <Button x:Name="HandInButton" Content="Hand in a _report…" Click="HandIn_Click" Visibility="Collapsed"
                                 ToolTip="Make a progress report for this module check, to hand in to your instructor (you can make one before the check is complete: it is marked Incomplete)" />
                         <Button x:Name="PreviousButton" Content="◂ Previous" Command="{Binding PreviousCommand}" ToolTipService.ShowOnDisabled="True" ToolTip="The item before this one (Ctrl+Shift+PgUp)" />
                         <Button x:Name="NextButton" Content="Next ▸" Command="{Binding NextCommand}" ToolTipService.ShowOnDisabled="True" Margin="0" ToolTip="The next item in the path (Ctrl+Shift+PgDn)" />
                     </WrapPanel>
+                    <!-- The Reader's voice, always in sight, with the way to change it (Ron, 2026-11-15). -->
+                    <TextBlock x:Name="VoiceLine" HorizontalAlignment="Left" Margin="0,4,0,0" FontSize="12" Foreground="{DynamicResource MutedTextBrush}">
+                        <Run Text="Reader voice: " /><Run x:Name="VoiceName" /><Run Text=" · " />
+                        <Hyperlink x:Name="VoiceLink" Click="ReaderSettings_Click" ToolTip="Choose the Reader's voice and speed: Windows voices (free, offline) or Google's natural voices (through AI Manager)"
+                                   AutomationProperties.Name="Change the Reader's voice">Change voice…</Hyperlink>
+                    </TextBlock>
+                    </StackPanel>
                     <StackPanel>
                         <TextBlock x:Name="ItemModuleText" Foreground="{DynamicResource MutedTextBrush}" />
                         <TextBlock x:Name="ItemTitle" Style="{StaticResource SectionTitle}" AutomationProperties.HeadingLevel="Level1" TextWrapping="Wrap" />
@@ -317,6 +346,11 @@
                     </TabControl.Resources>
                     <TabItem x:Name="LearnTab" Header="L_earn" ToolTip="Read the lesson (Ctrl+1)">
                         <DockPanel>
+                            <!-- In this item (Learning Core plan 3.12): the opener a printed chapter has. -->
+                            <Border x:Name="InThisItemBand" DockPanel.Dock="Top" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}"
+                                    BorderThickness="0,0,0,1" Padding="14,8,14,8" AutomationProperties.Name="In this item">
+                                <StackPanel x:Name="InThisItemPanel" />
+                            </Border>
                             <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="10,8">
                                 <DockPanel>
                                     <Button x:Name="ReadButton" DockPanel.Dock="Left" Content="I have _read this" Click="Read_Click" ToolTipService.ShowOnDisabled="True"
@@ -350,11 +384,15 @@
                     <TabItem x:Name="LabTab" Header="Lab_oratory" ToolTip="The lab exercise you do live, on the real equipment in the lab (Ctrl+4)">
                         <local:MarkdownView x:Name="LabView" AutomationProperties.Name="Laboratory: the lab exercise for this item" />
                     </TabItem>
-                    <TabItem x:Name="ReferenceTab" Header="Refere_nce" ToolTip="The symbols and rules this item uses (Ctrl+5)">
+                    <!-- Review (Learning Core plan 3.11): the closer of a printed chapter. -->
+                    <TabItem x:Name="ReviewTab" Header="Revie_w" ToolTip="Key takeaways, key terms, flashcards and a self-test that counts for nothing (Ctrl+5)">
+                        <local:MarkdownView x:Name="ReviewView" AutomationProperties.Name="Review: key takeaways, key terms, flashcards and a self-test" />
+                    </TabItem>
+                    <TabItem x:Name="ReferenceTab" Header="Refere_nce" ToolTip="The symbols and rules this item uses (Ctrl+6)">
                         <local:MarkdownView x:Name="ReferenceView" AutomationProperties.Name="Reference" />
                     </TabItem>
                     <!-- My notes (Ron, 2026-11-15: a tab, in place of the pane beside the tabs; Learning Core plan 3.2, 3.8). -->
-                    <TabItem x:Name="NotesTab" Header="My no_tes" ToolTip="Your own notes on this item, a box to write one, and Ask the AI (Ctrl+6)">
+                    <TabItem x:Name="NotesTab" Header="My no_tes" ToolTip="Your own notes on this item, a box to write one, and Ask the AI (Ctrl+7)">
                         <local:NotesPanel x:Name="ItemNotes" />
                     </TabItem>
                 </TabControl>
