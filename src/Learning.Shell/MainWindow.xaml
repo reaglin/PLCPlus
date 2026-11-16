@@ -16,6 +16,7 @@
         <KeyBinding Key="D7" Modifiers="Ctrl" Command="{x:Static local:MainWindow.ShowTab}" CommandParameter="6" />
         <KeyBinding Key="G" Modifiers="Ctrl+Shift" Command="{Binding ShowGlossaryCommand}" />
         <KeyBinding Key="A" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.ReadAloud}" />
+        <KeyBinding Key="O" Modifiers="Ctrl+Shift" Command="{x:Static local:MainWindow.PopOutTab}" />
         <KeyBinding Key="PageDown" Modifiers="Ctrl+Shift" Command="{Binding NextCommand}" />
         <KeyBinding Key="PageUp" Modifiers="Ctrl+Shift" Command="{Binding PreviousCommand}" />
         <KeyBinding Key="Home" Modifiers="Ctrl+Shift" Command="{Binding ShowDashboardCommand}" />
@@ -33,6 +34,7 @@
         <CommandBinding Command="ApplicationCommands.Help" Executed="Help_Executed" />
         <CommandBinding Command="{x:Static local:MainWindow.ShowTab}" Executed="ShowTab_Executed" CanExecute="ItemShown_CanExecute" />
         <CommandBinding Command="{x:Static local:MainWindow.ReadAloud}" Executed="ReadAloud_Executed" CanExecute="ItemShown_CanExecute" />
+        <CommandBinding Command="{x:Static local:MainWindow.PopOutTab}" Executed="PopOutTab_Executed" CanExecute="PopOutTab_CanExecute" />
         <CommandBinding Command="{x:Static local:MainWindow.TextLarger}" Executed="TextSize_Executed" CanExecute="SignedIn_CanExecute" />
         <CommandBinding Command="{x:Static local:MainWindow.TextSmaller}" Executed="TextSize_Executed" CanExecute="SignedIn_CanExecute" />
         <CommandBinding Command="{x:Static local:MainWindow.TextNormal}" Executed="TextSize_Executed" CanExecute="SignedIn_CanExecute" />
@@ -112,6 +114,9 @@
                           ToolTip="Makes everything in the window bigger. Kept for you, in your progress file" />
                 <MenuItem Header="_Smaller text" InputGestureText="Ctrl+−" Command="{x:Static local:MainWindow.TextSmaller}" ToolTip="Makes everything in the window smaller" />
                 <MenuItem Header="_Normal size" InputGestureText="Ctrl+0" Command="{x:Static local:MainWindow.TextNormal}" ToolTip="Back to the usual size" />
+                <Separator />
+                <MenuItem Header="_Pop out this tab" InputGestureText="Ctrl+Shift+O" Command="{x:Static local:MainWindow.PopOutTab}" ToolTipService.ShowOnDisabled="True"
+                          ToolTip="Opens the tab you are on (Learn, Example, Exercise, Laboratory, Review, Reference or My notes) in a window that fills the screen. Open an item to use it" />
                 <Separator />
                 <MenuItem Header="_Read aloud" InputGestureText="Ctrl+Shift+A" Command="{x:Static local:MainWindow.ReadAloud}" ToolTipService.ShowOnDisabled="True"
                           ToolTip="Reads an item's Learn, Laboratory, Review or Reference tab aloud; again to pause. Open an item to use it" />
@@ -315,6 +320,9 @@
                 <DockPanel DockPanel.Dock="Top">
                     <StackPanel DockPanel.Dock="Right" VerticalAlignment="Top">
                     <WrapPanel HorizontalAlignment="Right">
+                        <!-- Pop out (Ron, 2026-11-15): any tab in a full-size window of its own, for the tabs that need room. -->
+                        <Button x:Name="PopOutTabButton" Content="⤢ Pop out" Margin="0,0,8,0" Command="{x:Static local:MainWindow.PopOutTab}" ToolTipService.ShowOnDisabled="True"
+                                ToolTip="Opens this tab in a window that fills the screen, for more room (Ctrl+Shift+O). The path, the menus, Previous and Next wait in the main window: Put it back (Esc, or Ctrl+Shift+O again) returns to them" />
                         <Button x:Name="ReadAloudButton" Content="🔊 Read aloud" Margin="0,0,8,0" Command="{x:Static local:MainWindow.ReadAloud}"
                                 ToolTipService.ShowOnDisabled="True" ToolTip="Reads this page aloud, the paragraph being read marked (Ctrl+Shift+A). View ▸ Reader voice and speed… chooses the voice" />
                         <Button x:Name="StopReadingButton" Content="■ Stop" Margin="0,0,8,0" Click="StopReading_Click" Visibility="Collapsed"

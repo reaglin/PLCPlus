@@ -245,7 +245,7 @@ public partial class MainWindow : Window
         var sources = view.BlockSources;
         var anchor = block is int i && i < sources.Count ? NoteAnchor.OnBlock(item.Id, tab, sources[i]) : NoteAnchor.OnItem(item.Id, tab);
         var page = $"{item.Number}'s {TabWord(tab)} page";
-        if (NoteWindow.Ask(this, anchor, page) is not { } text) { SetStatus("No note was added."); return; }
+        if (NoteWindow.Ask(DialogOwner, anchor, page) is not { } text) { SetStatus("No note was added."); return; }
         if (_session.Data.Notes.Add(anchor, text, DateTimeOffset.Now) is null) return;
         NotesChanged();
         SetStatus(anchor.Block is null
@@ -267,6 +267,7 @@ public partial class MainWindow : Window
     private void ShowNotesOn(MarkdownView view, string tab, int block)
     {
         if (_item is not { } item || _session is null) return;
+        _popOut?.Close();   // the My notes tab is in the main window: a popped-out tab goes back first
         var note = _session.Data.Notes.Place(item.Id, tab, view.BlockSources).Where(p => p.BlockIndex == block).Select(p => p.Note)
             .OrderByDescending(n => n.Created).FirstOrDefault();
         ItemTabs.SelectedItem = NotesTab;
@@ -278,6 +279,7 @@ public partial class MainWindow : Window
     private void GoToNote(LearnerNote note)
     {
         if (_package.FindItem(note.Anchor.ItemId) is not { } item) return;
+        _popOut?.Close();
         if (_item != item) _vm.Select(item);
         if (_item != item) return;
         var (tab, view) = note.Anchor.Tab switch
@@ -388,7 +390,7 @@ public partial class MainWindow : Window
         if (_session is null) return;
         ExerciseWorkspace.CommitPendingEdit();
         SaveProgress();
-        var where = Backups.Run(this, _session, out var combined);
+        var where = Backups.Run(DialogOwner, _session, out var combined);
         _backupMade = where is not null;
         if (_backupMade) SetStatus($"Backed up: a copy of your progress is now at {where}. {combined}{(combined is null ? "" : " ")}On another computer, Add learner from file brings it in.");
         else if (_session is not null) SetStatus("No backup was made.");
@@ -408,12 +410,12 @@ public partial class MainWindow : Window
                    "If this computer's copy is lost, Add learner from file brings you back to where you were.";
         if (!leaving)
         {
-            if (ChoiceWindow.Ask(this, "PLC+ — Back up your progress", $"{when}: back up your progress?", text,
+            if (ChoiceWindow.Ask(DialogOwner, "PLC+ — Back up your progress", $"{when}: back up your progress?", text,
                     "Back up now…", "Choose where to save a copy of your progress file.", "Not now", "Carries on; the backup button (top right) is there when you want it."))
                 Backup_Click(this, new RoutedEventArgs());
             return true;
         }
-        var choice = ChoiceWindow.Choose(this, "PLC+ — Back up your progress", $"{when}: back up your progress first?", text,
+        var choice = ChoiceWindow.Choose(DialogOwner, "PLC+ — Back up your progress", $"{when}: back up your progress first?", text,
             "Back up now…", "Choose where to save a copy, then carry on leaving.", "Not now", "Leaves without a backup; your work is saved on this computer.");
         if (choice is null) return false;
         if (choice == true)
@@ -1011,6 +1013,8 @@ public partial class MainWindow : Window
         System.Windows.Automation.AutomationProperties.SetLiveSetting(status, System.Windows.Automation.AutomationLiveSetting.Polite);
         void Show(string text) => status.Text = text;
         ws.StatusChanged += Show;
+        void MainStatus(object? o, System.ComponentModel.PropertyChangedEventArgs e) { if (e.PropertyName == nameof(ShellViewModel.Status)) Show(_vm.Status); }
+        _vm.PropertyChanged += MainStatus;   // what the main window says (passed, complete) shows here too
         status.Text = "The program and the machine, in a window of their own. Make it as big as you like. The main window waits until you come back: " +
                       "press Put it back (or close this window, or press Esc) to return to the lesson, the menus and Next.";
 
@@ -1033,12 +1037,12 @@ public partial class MainWindow : Window
             Owner = this, Content = dock, ShowInTaskbar = false, ResizeMode = ResizeMode.CanResize,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             Width = Math.Max(900, ActualWidth * 0.96), Height = Math.Max(640, ActualHeight * 0.96),
-            MinWidth = 640, MinHeight = 480, Icon = Icon,
+            MinWidth = 640, MinHeight = 480, Icon = Icon, FontFamily = FontFamily, FontSize = FontSize, Foreground = Foreground, Background = Background,
         };
-        if (WindowState == WindowState.Maximized) win.WindowState = WindowState.Maximized;
+        win.WindowState = WindowState.Maximized;   // full size (Ron, 2026-11-15); the learner can make it smaller
         win.PreviewMouseMove += (_, _) => _lastInput = DateTime.Now;   // moving the mouse here is using PLC+ too (auto-lock)
         // Esc closes it, unless a box or a menu used the key first.
-        win.KeyDown += (_, e) => { if (e.Key == Key.Escape && !e.Handled) { e.Handled = true; win.Close(); } };
+        win.KeyDown += (_, e) => ClosePopOutKey(win, e);
         win.Loaded += (_, _) => ws.PopOutButton.Focus();
 
         var me = new System.Windows.Interop.WindowInteropHelper(this).Handle;
@@ -1051,6 +1055,7 @@ public partial class MainWindow : Window
         {
             _popOut = null;
             ws.StatusChanged -= Show;
+            _vm.PropertyChanged -= MainStatus;
             ws.PoppedOut = false;
             scroll.SizeChanged -= Fit;
             scroll.Content = null;
@@ -1069,6 +1074,134 @@ public partial class MainWindow : Window
         _popOut = win;
         EnableWindow(me, false);         // modal: the main window cannot be used or focused while the pop-out is open
         win.Show();
+    }
+
+    // ---- Pop out any tab (Ron, 2026-11-15) ---------------------------------------------------------------
+
+    public static readonly RoutedUICommand PopOutTab = new("Pop out this tab", nameof(PopOutTab), typeof(MainWindow));
+
+    /// <summary>Dialogs go over the popped-out tab while it is open (the main window waits behind it), or over the main window.</summary>
+    private Window DialogOwner => _popOut ?? this;
+
+    private Button? _popRead, _popStop;
+
+    private void PopOutTab_CanExecute(object sender, CanExecuteRoutedEventArgs e) =>
+        e.CanExecute = _item is not null && _popOut is null && ItemPage.Visibility == Visibility.Visible;
+
+    private void PopOutTab_Executed(object sender, ExecutedRoutedEventArgs e) => PopOutCurrentTab();
+
+    /// <summary>The tab's name as a person reads it: "My notes", not "My no_tes (3)".</summary>
+    private static string TabName(TabItem tab)
+    {
+        var text = (tab.Header as string ?? "").Replace("_", "");
+        var paren = text.IndexOf(" (", StringComparison.Ordinal);
+        return paren > 0 ? text[..paren] : text;
+    }
+
+    /// <summary>
+    /// Pop out (Ron, 2026-11-15: "a Pop Out that can be used for all the tabs, that pops out the screen in the tab to a full size
+    /// modal window"): the tab showing moves, as it is, into a window that fills the screen; Put it back, Esc or closing it returns
+    /// it. The Example and Exercise machines use their own pop-out (<see cref="PopOut"/>); every other tab, and an Exercise tab of
+    /// questions, moves whole. Modal the same way: the main window waits, and the auto-lock and time on task carry on. The Reader
+    /// works in it (its buttons are in the window's bar); a key term, a ✎ or Show it in the lesson puts the tab back first, since
+    /// they open another page of the main window.
+    /// </summary>
+    private void PopOutCurrentTab()
+    {
+        if (_popOut is not null || _item is not { } item || ItemTabs.SelectedItem is not TabItem tab) return;
+        if (tab == ExampleTab && ExampleScroll.Visibility == Visibility.Visible && ExampleWorkspace.PopOutRequested is not null) { PopOut(ExampleWorkspace); return; }
+        if (tab == ExerciseTab && ExerciseScroll.Visibility == Visibility.Visible && ExerciseWorkspace.PopOutRequested is not null) { PopOut(ExerciseWorkspace); return; }
+        if (tab.Content is not FrameworkElement content) return;
+
+        var name = TabName(tab);
+        tab.Content = new TextBlock
+        {
+            Style = (Style)FindResource("Lead"), Margin = new Thickness(12),
+            Text = $"The {name} tab is in its own window. Press Put it back there (or Esc) to bring it back here.",
+        };
+
+        var win = new Window
+        {
+            Title = $"{item.Number} {item.Title} — {name} — PLC+",
+            Owner = this, ShowInTaskbar = false, ResizeMode = ResizeMode.CanResize,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Width = Math.Max(900, ActualWidth * 0.96), Height = Math.Max(640, ActualHeight * 0.96),
+            MinWidth = 640, MinHeight = 480, Icon = Icon, FontFamily = FontFamily, FontSize = FontSize, Foreground = Foreground, Background = Background, WindowState = WindowState.Maximized,
+        };
+
+        // The bar at the top: what this is, the Reader on a page it reads, and the way back.
+        var heading = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        heading.Children.Add(new TextBlock { Text = $"{item.Number} {item.Title}", Foreground = (Brush)FindResource("MutedTextBrush"), TextWrapping = TextWrapping.Wrap });
+        var title = new TextBlock { Text = name, Style = (Style)FindResource("SectionTitle"), TextWrapping = TextWrapping.Wrap };
+        System.Windows.Automation.AutomationProperties.SetHeadingLevel(title, System.Windows.Automation.AutomationHeadingLevel.Level1);
+        heading.Children.Add(title);
+        var buttons = new WrapPanel { VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = HorizontalAlignment.Right };
+        DockPanel.SetDock(buttons, Dock.Right);
+        if (ReadablePage is not null)
+        {
+            _popRead = new Button { Command = ReadAloud, Margin = new Thickness(0, 0, 8, 0), Content = ReadAloudButton.Content, ToolTip = ReadAloudButton.ToolTip };
+            ToolTipService.SetShowOnDisabled(_popRead, true);
+            _popStop = new Button { Content = "■ Stop", Margin = new Thickness(0, 0, 8, 0), ToolTip = "Stops reading aloud (Esc)", Visibility = StopReadingButton.Visibility };
+            _popStop.Click += (_, _) => StopReading("Stopped reading.");
+            buttons.Children.Add(_popRead);
+            buttons.Children.Add(_popStop);
+        }
+        var back = new Button
+        {
+            Content = "Put it _back", Margin = new Thickness(0),
+            ToolTip = $"Puts the {name} tab back in the main window, as it is now (Esc, or close this window)",
+        };
+        back.Click += (_, _) => win.Close();
+        buttons.Children.Add(back);
+        var top = new DockPanel { Margin = new Thickness(18, 10, 16, 6) };
+        top.Children.Add(buttons);
+        top.Children.Add(heading);
+        DockPanel.SetDock(top, Dock.Top);
+
+        // The status line at the bottom: the same words as the main window's.
+        var status = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(16, 6, 16, 6) };
+        status.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(ShellViewModel.Status)) { Source = _vm });
+        System.Windows.Automation.AutomationProperties.SetLiveSetting(status, System.Windows.Automation.AutomationLiveSetting.Polite);
+        var bar = new Border { Child = status, BorderBrush = (Brush)FindResource("LineBrush"), BorderThickness = new Thickness(0, 1, 0, 0), Background = (Brush)FindResource("PanelBrush") };
+        DockPanel.SetDock(bar, Dock.Bottom);
+
+        var holder = new Border { Margin = new Thickness(18, 0, 16, 10), Child = content };
+        var dock = new DockPanel { LastChildFill = true, Background = (Brush)FindResource("PageBrush") };
+        dock.Children.Add(top);
+        dock.Children.Add(bar);
+        dock.Children.Add(holder);
+        dock.LayoutTransform = new ScaleTransform(_vm.TextScale, _vm.TextScale);
+        win.Content = dock;
+
+        // The Reader's keys work here as in the main window: Ctrl+Shift+A reads or pauses; Esc stops reading, or puts the tab back.
+        win.CommandBindings.Add(new CommandBinding(ReadAloud, ReadAloud_Executed, ItemShown_CanExecute));
+        win.InputBindings.Add(new KeyBinding(ReadAloud, Key.A, ModifierKeys.Control | ModifierKeys.Shift));
+        win.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape && _reader.IsReading && Keyboard.FocusedElement is not TextBox) { StopReading("Stopped reading."); e.Handled = true; }
+        };
+        win.KeyDown += (_, e) => ClosePopOutKey(win, e);
+        win.PreviewMouseMove += (_, _) => _lastInput = DateTime.Now;   // using the pop-out is using PLC+ (auto-lock)
+        win.Loaded += (_, _) => back.Focus();
+
+        var me = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        win.Closing += (_, _) => EnableWindow(me, true);   // before it goes, so Windows hands the focus back to the main window
+        win.Closed += (_, _) =>
+        {
+            _popOut = null;
+            _popRead = _popStop = null;
+            System.Windows.Data.BindingOperations.ClearBinding(status, TextBlock.TextProperty);
+            holder.Child = null;
+            tab.Content = content;
+            Activate();
+            PopOutTabButton.Focus();
+            CommandManager.InvalidateRequerySuggested();
+        };
+
+        _popOut = win;
+        EnableWindow(me, false);         // modal: the main window cannot be used or focused while the pop-out is open
+        win.Show();
+        SetStatus($"The {name} tab fills the screen. Put it back (or Esc) returns it to the main window, with the path, the menus and Next.");
     }
 
     // ---- Moving around ---------------------------------------------------------------------------------
@@ -1150,7 +1283,27 @@ public partial class MainWindow : Window
 
     // ---- The rest --------------------------------------------------------------------------------------
 
-    private void SetStatus(string text) => _vm.Status = text;
+    /// <summary>
+    /// The status line. While a tab is popped out, words that point at the main window (Next ▸, a menu) say to put the tab back
+    /// first, since the main window waits behind it (UX review 2026-11-15).
+    /// </summary>
+    private void SetStatus(string text) =>
+        _vm.Status = _popOut is not null && MainWindowWords.Any(w => text.Contains(w, StringComparison.Ordinal))
+            ? text + " (Those are in the main window: press Put it back first.)"
+            : text;
+
+    private static readonly string[] MainWindowWords = ["Next ▸", "Previous", "Go ▸", "File ▸", "View ▸", "Learner ▸", "Help ▸", "AI ▸", "Ctrl+Shift+R", "top right"];
+
+    /// <summary>The keys that close a pop-out: Esc (not while typing in a box: Esc there is not "go back"), and Ctrl+Shift+O, which opened it.</summary>
+    private static void ClosePopOutKey(Window win, KeyEventArgs e)
+    {
+        if (e.Handled) return;
+        var esc = e.Key == Key.Escape && Keyboard.FocusedElement is not TextBox;
+        var toggle = e.Key == Key.O && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift);
+        if (!esc && !toggle) return;
+        e.Handled = true;
+        win.Close();
+    }
 
     private void Help_Executed(object sender, RoutedEventArgs e) =>
         HelpPanel.Visibility = HelpPanel.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
@@ -1234,6 +1387,7 @@ public partial class MainWindow : Window
     /// <summary>The Glossary page, at one term (from a key term in a lesson) or at the top.</summary>
     private void ShowGlossaryPage(GlossaryEntry? entry)
     {
+        _popOut?.Close();   // a key term clicked in a popped-out tab: the tab goes back, then the Glossary opens
         if (entry is not null && !_vm.Glossary.IsSelected)
         {
             _glossaryTerm = entry;
@@ -1336,6 +1490,8 @@ public partial class MainWindow : Window
         ReadAloudButton.ToolTip = !_reader.IsReading ? "Reads this page aloud, the paragraph being read marked in amber (Ctrl+Shift+A)"
             : _reader.IsPaused ? "Goes on reading from where it paused (Ctrl+Shift+A)" : "Pauses reading (Ctrl+Shift+A); ■ Stop or Esc stops";
         StopReadingButton.Visibility = _reader.IsReading ? Visibility.Visible : Visibility.Collapsed;
+        if (_popRead is not null) { _popRead.Content = ReadAloudButton.Content; _popRead.ToolTip = ReadAloudButton.ToolTip; }
+        if (_popStop is not null) _popStop.Visibility = StopReadingButton.Visibility;
     }
 
     /// <summary>Reads the page showing aloud, from a block or the start.</summary>
@@ -1353,7 +1509,7 @@ public partial class MainWindow : Window
         {
             var characters = blocks.Skip(from ?? 0).Sum(b => b.Length);
             var cost = PlcAi.Shared.EstimateSpeech(voice.Id, characters);
-            if (!ChoiceWindow.Ask(this, "PLC+ — Read aloud", "Read this page with a Google voice?",
+            if (!ChoiceWindow.Ask(DialogOwner, "PLC+ — Read aloud", "Read this page with a Google voice?",
                     $"{characters:N0} characters with {voice.Name}" + (cost is { } c ? $": about ${c:0.000}, charged to the Google account in AI settings." : ".") +
                     " A part already heard in this session costs nothing again. A Windows voice is free: View ▸ Reader voice and speed….",
                     "Read it", "Reads the page aloud", "Not now", "Nothing is read or charged"))
@@ -1365,7 +1521,7 @@ public partial class MainWindow : Window
         StopReading();
         _readView = view;
         ShowReaderButtons();
-        SetStatus($"Reading aloud with {voice.Name}. The part being read (a paragraph, or a row of a table) has an amber background. ⏸ Pause or ■ Stop above the tabs (Ctrl+Shift+A pauses).");
+        SetStatus($"Reading aloud with {voice.Name}. The part being read (a paragraph, or a row of a table) has an amber background. ⏸ Pause or ■ Stop {(_popOut is null ? "above the tabs" : "at the top")} (Ctrl+Shift+A pauses).");
         var run = ++_readRun;
         string? problem;
         try
@@ -1476,7 +1632,7 @@ public partial class MainWindow : Window
     /// <summary>AI settings, then a word on what changed.</summary>
     private void AiSettingsDone()
     {
-        var saved = PlcAi.Shared.ShowSettings(this);
+        var saved = PlcAi.Shared.ShowSettings(DialogOwner);
         ItemNotes.AiSettingsChanged();
         SetStatus(!saved ? "AI settings were not changed."
             : PlcAi.Shared.IsReady ? "The AI is set up. Ask it on any item's My notes tab (AI ▸ Ask the AI about this item)."

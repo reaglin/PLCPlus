@@ -13,6 +13,22 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 15 — Pop out for every tab (plan 13.11), 2026-11-15
+
+**On the branch `my-notes`**, `manual-test-notes\PLCPlus.exe`.
+
+1. Open 5.2, Learn. Press **⤢ Pop out** (above the tabs, beside Read aloud): the lesson fills the screen, with 5.2's name, "Learn",
+   🔊 Read aloud and Put it back at the top. Read aloud works there (the amber mark follows); Esc stops reading, Esc again puts it back.
+2. Pop out Review: flashcards and the self-test work full size. Laboratory, Reference and My notes the same (type a note, press Esc in
+   the box: the window stays; Put it back).
+3. On the Example and Exercise tabs, ⤢ Pop out (or the machine's own Pop out) gives the program and machine full size.
+4. In a popped-out Learn, click a key term: the tab goes back and the Glossary opens. Click a ✎: back, on My notes.
+5. View ▸ Pop out this tab, and Ctrl+Shift+O (press it again in the pop-out to put it back).
+
+Tell me: should the pop-out open full screen (as now) or at nearly the size of the main window?
+
+---
+
 ## Hand-test 14 — Review, In this item, the Glossary and the Reader (plan 13.9), 2026-11-15
 
 **On the branch `my-notes`**, `manual-test-notes\PLCPlus.exe`, with test learners as in hand-test 12. The content is an example:
