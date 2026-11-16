@@ -1039,7 +1039,7 @@ public partial class MainWindow : Window
             Width = Math.Max(900, ActualWidth * 0.96), Height = Math.Max(640, ActualHeight * 0.96),
             MinWidth = 640, MinHeight = 480, Icon = Icon, FontFamily = FontFamily, FontSize = FontSize, Foreground = Foreground, Background = Background,
         };
-        win.WindowState = WindowState.Maximized;   // full size (Ron, 2026-11-15); the learner can make it smaller
+        SizePopOut(win);   // the size of the last pop-out, or full screen the first time (Ron, 2026-11-15)
         win.PreviewMouseMove += (_, _) => _lastInput = DateTime.Now;   // moving the mouse here is using PLC+ too (auto-lock)
         // Esc closes it, unless a box or a menu used the key first.
         win.KeyDown += (_, e) => ClosePopOutKey(win, e);
@@ -1049,6 +1049,7 @@ public partial class MainWindow : Window
         win.Closing += (_, _) =>
         {
             ws.CommitPendingEdit();      // a half-typed tag or PT is kept, as leaving the box would keep it
+            RememberPopOut(win);
             EnableWindow(me, true);      // before the pop-out goes, so Windows hands the focus back to the main window
         };
         win.Closed += (_, _) =>
@@ -1077,6 +1078,50 @@ public partial class MainWindow : Window
     }
 
     // ---- Pop out any tab (Ron, 2026-11-15) ---------------------------------------------------------------
+
+    /// <summary>The last pop-out's size and place, kept for the learner: "max" or "normal", then left, top, width, height.</summary>
+    private const string PopOutPreference = "popOutWindow";
+
+    /// <summary>
+    /// A pop-out opens the size the last one was left at (Ron, 2026-11-15: "If it could remember the windows size of the last pop
+    /// out, it should open to that size for all the following pop out windows"), for every tab and the machines alike; full screen
+    /// the first time. A place no longer on any screen (a monitor unplugged) is not used: the window is centred on PLC+ instead.
+    /// </summary>
+    private void SizePopOut(Window win)
+    {
+        var parts = _session?.Data.Preferences.GetValueOrDefault(PopOutPreference)?.Split(',');
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        var n = new double[4];
+        if (parts is not { Length: 5 } || !Enumerable.Range(0, 4).All(i => double.TryParse(parts[i + 1], System.Globalization.NumberStyles.Float, inv, out n[i])))
+        {
+            win.WindowState = WindowState.Maximized;
+            return;
+        }
+        var (left, top, width, height) = (n[0], n[1], Math.Max(win.MinWidth, n[2]), Math.Max(win.MinHeight, n[3]));
+        win.Width = width;
+        win.Height = height;
+        var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop, SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
+        if (screen.Contains(new Point(left + 40, top + 20)) && screen.Contains(new Point(left + Math.Min(width, 200), top + 20)))
+        {
+            win.WindowStartupLocation = WindowStartupLocation.Manual;
+            win.Left = left;
+            win.Top = top;
+        }
+        win.WindowState = parts[0] == "max" ? WindowState.Maximized : WindowState.Normal;
+    }
+
+    /// <summary>Keeps the pop-out's size and place for the next one, in the learner's preferences (saved with their progress).</summary>
+    private void RememberPopOut(Window win)
+    {
+        if (_session is null) return;
+        var b = win.WindowState == WindowState.Normal ? new Rect(win.Left, win.Top, win.ActualWidth, win.ActualHeight) : win.RestoreBounds;
+        if (b.IsEmpty || b.Width < 100 || b.Height < 100) return;
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        _session.Data.Preferences[PopOutPreference] = string.Join(",",
+            win.WindowState == WindowState.Maximized ? "max" : "normal",
+            b.Left.ToString("0", inv), b.Top.ToString("0", inv), b.Width.ToString("0", inv), b.Height.ToString("0", inv));
+        SaveProgress();
+    }
 
     public static readonly RoutedUICommand PopOutTab = new("Pop out this tab", nameof(PopOutTab), typeof(MainWindow));
 
@@ -1126,8 +1171,9 @@ public partial class MainWindow : Window
             Owner = this, ShowInTaskbar = false, ResizeMode = ResizeMode.CanResize,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             Width = Math.Max(900, ActualWidth * 0.96), Height = Math.Max(640, ActualHeight * 0.96),
-            MinWidth = 640, MinHeight = 480, Icon = Icon, FontFamily = FontFamily, FontSize = FontSize, Foreground = Foreground, Background = Background, WindowState = WindowState.Maximized,
+            MinWidth = 640, MinHeight = 480, Icon = Icon, FontFamily = FontFamily, FontSize = FontSize, Foreground = Foreground, Background = Background,
         };
+        SizePopOut(win);
 
         // The bar at the top: what this is, the Reader on a page it reads, and the way back.
         var heading = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
@@ -1185,7 +1231,11 @@ public partial class MainWindow : Window
         win.Loaded += (_, _) => back.Focus();
 
         var me = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-        win.Closing += (_, _) => EnableWindow(me, true);   // before it goes, so Windows hands the focus back to the main window
+        win.Closing += (_, _) =>
+        {
+            RememberPopOut(win);
+            EnableWindow(me, true);   // before it goes, so Windows hands the focus back to the main window
+        };
         win.Closed += (_, _) =>
         {
             _popOut = null;

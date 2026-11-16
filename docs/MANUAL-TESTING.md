@@ -25,7 +25,9 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 4. In a popped-out Learn, click a key term: the tab goes back and the Glossary opens. Click a ✎: back, on My notes.
 5. View ▸ Pop out this tab, and Ctrl+Shift+O (press it again in the pop-out to put it back).
 
-Tell me: should the pop-out open full screen (as now) or at nearly the size of the main window?
+6. **The size is remembered.** The first pop-out fills the screen. Restore it (the middle button at the top right), make it the size
+   you like, put it back, and pop out another tab, or the Example's machine: it opens at that size and place. Close PLC+, open it
+   again, pop out: the same size. Maximize one: the next one is maximized.
 
 ---
 

@@ -14,7 +14,8 @@ param(
     [int]$SettleMs = 300,
     # Steps run in order after -Select/-Toggle: "value:Name=Text" types into a box (then focus moves on, which
     # commits it), "press:Name" invokes a button, "pick:Name" selects a tree item or tab (name starts with),
-    # "expand:Name" opens a tree item. Through UI Automation only.
+    # "expand:Name" opens a tree item, "size:L,T,W,H" restores and sizes the window, "main" returns to the main window.
+    # Through UI Automation only.
     [string[]]$Steps = @()
 )
 
@@ -194,6 +195,20 @@ foreach ($step in $Steps) {
         $h = $d; $title = $rest
         $root = [System.Windows.Automation.AutomationElement]::FromHandle($h)
         Write-Output "window '$rest'"
+    } elseif ($kind -eq 'size') {
+        # size:Left,Top,Width,Height restores the current window (not maximized) and moves and sizes it, through UI Automation.
+        $l, $t, $sw, $sh = ($rest -split ',') | ForEach-Object { [double]$_ }
+        $root.GetCurrentPattern([System.Windows.Automation.WindowPattern]::Pattern).SetWindowVisualState([System.Windows.Automation.WindowVisualState]::Normal)
+        Start-Sleep -Milliseconds 300
+        $tp = $root.GetCurrentPattern([System.Windows.Automation.TransformPattern]::Pattern)
+        $tp.Move($l, $t); $tp.Resize($sw, $sh)
+        Write-Output "sized to $rest"
+    } elseif ($kind -eq 'main') {
+        # main switches the steps and the picture back to the process's biggest window (after a dialog or pop-out closes).
+        Start-Sleep -Milliseconds 500
+        $h = [Win]::MainWindow([uint]$proc.Id, [ref]$title)
+        $root = [System.Windows.Automation.AutomationElement]::FromHandle($h)
+        Write-Output "window '$title'"
     } elseif ($kind -eq 'wait') {
         # wait:ms lets the program work (an answer from the AI, a long check) before the next step.
         Start-Sleep -Milliseconds ([int]$rest)
