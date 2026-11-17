@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "name": "A seal-in on the wrong tag (the bug): a heater and a lamp",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "HeatOn",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: starts the heater"
+    },
+    {
+      "name": "HeatOff",
+      "type": "BOOL",
+      "io": "input",
+      "initial": "TRUE",
+      "comment": "Stop button for the heater, wired normally closed"
+    },
+    {
+      "name": "LampOn",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: turns the lamp on"
+    },
+    {
+      "name": "Heater",
+      "type": "BOOL",
+      "io": "output"
+    },
+    {
+      "name": "Lamp",
+      "type": "BOOL",
+      "io": "output"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The heater: HeatOn starts it, its own contact holds it, HeatOff stops it. This rung is right.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "HeatOn",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Heater",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "HeatOff",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Heater",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The lamp, copied from rung 1: its seal-in contact still reads Heater. That is the bug.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "LampOn",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Heater",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "Lamp",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

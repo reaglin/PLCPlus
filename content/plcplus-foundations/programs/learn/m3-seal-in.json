@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "name": "Without and with a seal-in",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Go",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "a momentary push button"
+    },
+    {
+      "name": "Halt",
+      "type": "BOOL",
+      "io": "input",
+      "initial": "TRUE",
+      "comment": "a stop button wired normally closed: TRUE until pressed"
+    },
+    {
+      "name": "LampPlain",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "no seal-in: on only while Go is held"
+    },
+    {
+      "name": "LampSealed",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "sealed in: stays on after Go is let go"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "No seal-in: LampPlain is on only while Go is held (and Halt is not pressed).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Go",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Halt",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "LampPlain",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Seal-in: LampSealed's own contact, in parallel with Go, keeps it on until Halt is pressed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "contact",
+                    "tag": "Go",
+                    "contact": "normallyOpen"
+                  },
+                  {
+                    "kind": "contact",
+                    "tag": "LampSealed",
+                    "contact": "normallyOpen"
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "Halt",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "LampSealed",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

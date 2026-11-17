@@ -36,6 +36,10 @@ Every machine in PLC+ has these tools; the Reference tab lists their twins on a 
 - **Reset** starts again from power-up: every tag off, the machine as it began. It also removes every force.
 - **Forcing.** Right-click a contact or coil of a wired tag and choose **Force *Tag* ON** or **Force *Tag* OFF**. The PLC then uses that value whatever the machine does, and the rung shows FORCED in place of the value. Choose **Remove the force** to let the tag follow the machine again. Forcing an input asks "does the program work if this input does?"; forcing an output asks "does the device work if the PLC turns it on?"
 
+Practise steps 3 and 4 of the method on one rung, a belt. Press **BeltOn**: the belt starts and holds itself on. Then press **⏸ Pause**, tick **keep pressed** under **Halt** (the Stop button), and press **Step one scan**: Halt turns FALSE and Belt drops in that one scan. Untick it and press **▶ Run** to start the clock again. Now start the belt and press **OverloadOK**, as if the overload tripped: the belt stops. Read the rung contact by contact: which one is no longer green? That contact names the cause.
+
+[[try-ladder: programs/learn/m11-belt-method.json]]
+
 On an exercise there are two more. **Check my program** runs the task's tests; when one fails, **Replay the failed test** runs it again on the machine, pressing the buttons itself, and stops just after the moment it failed; the results say *What happened in the test*, step by step. And the **Problems** list under My program names anything the PLC cannot run, such as a contact with no tag. The Problems list cannot see a program that runs but does the wrong thing: only you and the tests can.
 
 ## A word about forcing a real machine

@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "name": "Rungs run top to bottom, once per scan",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Button",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "a push button"
+    },
+    {
+      "name": "Flag",
+      "type": "BOOL",
+      "comment": "a memory tag, set by rung 2"
+    },
+    {
+      "name": "LampAbove",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "reads Flag on rung 1, before rung 2 sets it"
+    },
+    {
+      "name": "LampBelow",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "reads Flag on rung 3, after rung 2 sets it"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Rung 1 reads Flag before rung 2 has run in this scan, so it sees last scan's value.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Flag",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "LampAbove",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Rung 2: Button sets Flag.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Button",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Flag",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Rung 3 reads Flag after rung 2, so it sees this scan's value.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Flag",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "LampBelow",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

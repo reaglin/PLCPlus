@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "name": "An interlock: a hoist that can only go one way at a time",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "RaisePB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "hold to raise the hoist"
+    },
+    {
+      "name": "LowerPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "hold to lower the hoist"
+    },
+    {
+      "name": "HoistUp",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the contactor that runs the hoist up"
+    },
+    {
+      "name": "HoistDown",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the contactor that runs the hoist down"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Up while RaisePB is held AND HoistDown is NOT on (the interlock).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "RaisePB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "HoistDown",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "HoistUp",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Down while LowerPB is held AND HoistUp is NOT on (the interlock).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "LowerPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "HoistUp",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "HoistDown",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

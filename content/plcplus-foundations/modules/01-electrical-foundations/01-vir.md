@@ -51,6 +51,10 @@ I = V / R = 24 V / 480 Ω = 0.05 A = **50 mA**.
 
 A PLC output can supply only so much current (the data sheet says how much; 0.5 A per point is common for a 24 V DC output). 50 mA is well inside that, so the PLC can drive this coil directly.
 
+Try the coil's numbers yourself. Set the **voltage** to 24 V and the **resistance** to 480 Ω: the current reads 50 mA and the power 1.2 W. Then double the voltage and watch the current double; double the resistance instead and watch it halve. Turn the resistance down to 10 Ω, nearly a short circuit, and see how large the current gets.
+
+[[try-circuit: ohms-law]]
+
 ## Power
 
 **Power** is how fast energy is used, in **watts** (W): **P = V × I**. The coil above uses 24 V × 0.05 A = **1.2 W**. A 24 V DC pilot light that draws 25 mA uses 24 V × 0.025 A = 0.6 W. Adding up the watts of everything on a power supply tells you whether the supply is big enough.

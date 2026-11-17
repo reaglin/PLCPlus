@@ -37,6 +37,10 @@ For the transfer arm on the Example tab, step 2 (arm out) starts when step 1 (gr
 
 The first step starts from Start, but only when no step is on. The last step ends when its own sensor says it has finished (the arm is fully in), and the machine is idle again.
 
+Try it on a coffee machine with two steps: fill the cup, then heat it. There is no machine here, so you play the sensors with the buttons **CupFull** and **HotEnough**. Press **Go** and let go: Step1 holds itself on and the fill valve opens. Press **CupFull**: Step2 starts and, one scan later, Step1 ends. Press **CupFull** again now: nothing, because step 1 is over. Press **HotEnough** to finish the last step. To see the scan in which both steps are on, press **Go** again, press **Pause**, tick **keep pressed** under CupFull, and press **Step one scan** twice, reading the rungs after each.
+
+[[try-ladder: programs/learn/m8-step-bits.json]]
+
 ## The outputs come last
 
 Write the outputs in rungs of their own, after the steps, **one rung per output**. Where an output is on in more than one step, put those steps side by side in a branch (OR). The gripper holds the part in steps 1 and 2: *Step1 OR Step2* drives GripClose.

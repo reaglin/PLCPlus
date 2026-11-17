@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "name": "Series is AND, parallel is OR",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "SwitchA",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "a push button"
+    },
+    {
+      "name": "SwitchB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "another push button"
+    },
+    {
+      "name": "SeriesLamp",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "lit when power gets through A and then B"
+    },
+    {
+      "name": "ParallelLamp",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "lit when power gets through A or B"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "In series: power must pass through SwitchA AND SwitchB.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "SwitchA",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "SwitchB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "SeriesLamp",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "In parallel: power can pass through SwitchA OR SwitchB.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "contact",
+                    "tag": "SwitchA",
+                    "contact": "normallyOpen"
+                  },
+                  {
+                    "kind": "contact",
+                    "tag": "SwitchB",
+                    "contact": "normallyOpen"
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "ParallelLamp",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

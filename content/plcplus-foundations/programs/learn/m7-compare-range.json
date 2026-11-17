@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "name": "Compares: too fast, and a range of speeds",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Speed", "type": "INT", "io": "input", "comment": "a fan's speed, a whole number: type it, or use − and +" },
+    { "name": "TooFast", "type": "BOOL", "io": "output", "comment": "a lamp: Speed is over 100" },
+    { "name": "InRange", "type": "BOOL", "io": "output", "comment": "a lamp: Speed is 40 to 60" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "GT: TooFast lights while Speed is greater than 100 (101 and up; 100 is not greater than 100).",
+          "logic": { "kind": "series", "items": [
+            { "kind": "box", "instruction": "GT", "operands": { "IN1": "Speed", "IN2": "100" } },
+            { "kind": "coil", "tag": "TooFast", "coil": "normal" } ] }
+        },
+        {
+          "comment": "Two compares in series (AND) test a range: InRange lights while Speed is 40 or more and 60 or less.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "box", "instruction": "GE", "operands": { "IN1": "Speed", "IN2": "40" } },
+            { "kind": "box", "instruction": "LE", "operands": { "IN1": "Speed", "IN2": "60" } },
+            { "kind": "coil", "tag": "InRange", "coil": "normal" } ] }
+        }
+      ]
+    }
+  ]
+}

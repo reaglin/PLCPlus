@@ -31,6 +31,10 @@ Each move to the next step is a rung of three parts: an EQ box for the step it *
 
 There is nothing to end: when Step changes, the step before is over, because Step can hold only one number. The rungs below see the new number in the same scan.
 
+Try it on a car wash with two steps, soap and rinse. You play the sensors with **Soaped** and **Rinsed**. Press **Go** and watch **Step** change from 0 to 1, and the EQ box for step 1 pass power. Press **Soaped**, then **Rinsed**, and watch Step go 2, then 0. Then see the same scan at work: start again with **Go**, tick **keep pressed** under **Rinsed**, and press **Soaped**. Step jumps straight from 1 to 0: rung 2 moved it to 2, and rung 3, below it, saw the 2 in the same scan.
+
+[[try-ladder: programs/learn/m8-step-number.json]]
+
 - **A step that waits for a time:** a TON on a rung of its own, powered by *EQ Step 2*. The next rung moves on when its **.Q** turns on. When the step ends, the timer's input goes off and it resets, ready for the next batch.
 - **Start** belongs to step 0 only: *EQ Step 0*, *StartPB*, *MOVE 1*.
 - **Stop** works in every step, so its rung has **no** EQ box: *NOT StopPB*, *MOVE 0*. Put it after the other moves, so it has the last word.

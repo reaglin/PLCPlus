@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "name": "From an input point to an output point",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "PartSensor",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "input point 0: a sensor that sees a part"
+    },
+    {
+      "name": "PartLamp",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "output point 0: a lamp on the panel"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The program reads the input's tag and sets the output's tag. The output point follows at the end of the scan.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "PartSensor",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "PartLamp",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

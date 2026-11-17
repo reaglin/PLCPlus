@@ -34,6 +34,14 @@ In PLC+, one scan is **10 ms** of simulated time, so the program runs 100 times 
 
 When Start is pressed and Jog is not, rung 1 turns Motor on, then rung 5 turns it off again, in the same scan. The motor never runs from Start. The fix is one coil per output: put Start and Jog in parallel on one rung. (Set and reset coils, in module 5, are the exception: they are meant to be used in pairs.)
 
+See the order of the rungs for yourself. In this program, rung 2 sets a memory tag, Flag; rung 1 reads it *above*, and rung 3 reads it *below*. Press **Pause**, tick **keep pressed** under **Button**, and press **Step one scan**: LampBelow comes on in that scan, but LampAbove does not, because rung 1 ran before rung 2 set Flag. Press **Step one scan** again: now LampAbove comes on too, one scan late. Press **Pause** again to let it run.
+
+[[try-ladder: programs/learn/m4-rung-order.json]]
+
+Now the double coil mistake. Hold **RunPB**: Conveyor stays off, because rung 2 writes it FALSE again later in the same scan. Hold **JogPB**: Conveyor runs. Only the last rung's word counts.
+
+[[try-ladder: programs/learn/m4-double-coil.json]]
+
 **A very short pulse can be missed.** The inputs are read once per scan. If a sensor turns on and off again between two reads, the program never sees it. With a 10 ms scan, a pulse of 3 ms can fall between two reads. Slow scans and fast parts need care: a faster task, or a special input module that catches pulses.
 
 **Outputs change at the end.** Nothing reaches the machine until the scan's outputs are written, so a coil that is turned on and off within one scan never moves anything.

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "name": "MOVE with a contact: take a snapshot",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Dial", "type": "INT", "io": "input", "initial": "7", "comment": "a number to copy: type it, or use − and +" },
+    { "name": "Take", "type": "BOOL", "io": "input", "comment": "a push button: copies Dial while held" },
+    { "name": "Kept", "type": "INT", "io": "output", "comment": "the copy: keeps the last value taken" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "While Take is held, MOVE copies Dial into Kept on every scan. Let go and Kept keeps the last value copied.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Take", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "MOVE", "operands": { "IN": "Dial", "OUT": "Kept" } } ] }
+        }
+      ]
+    }
+  ]
+}

@@ -41,6 +41,10 @@ A TONR with PT T#10s. The pump runs from 0 to 4 s, stops, runs again from 6 s, a
 
 4 s plus 6 s make 10 s, so Q turns on at 12 s. A TON in the same place would have started again from 0 at 6 s, and finished at 16 s, *if* the pump were still running.
 
+Try it: the same button, **Run**, drives a TON (T1) and a TONR (T2), both with PT 5 s. Hold **Run** for about 2 s and let go: T1's ET goes back to 0, but T2's ET stays at 2 s. Hold it again for 3 s more: **TonrDone** lights, because T2 has 5 s in all, while **TonDone** stays off. Let go: TonrDone stays lit until you press **Clear**. To light TonDone, hold Run for 5 s in one go.
+
+[[try-ladder: programs/learn/m6-ton-vs-tonr.json]]
+
 ## Worked example: an oven that pauses
 
 An oven must bake for 8 s in all. Opening the door turns the heat off, and shutting it carries on where it left off:

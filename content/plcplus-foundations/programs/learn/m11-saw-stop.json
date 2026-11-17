@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "name": "A Stop wired normally closed fails safe: a saw",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "SawStart",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: starts the saw"
+    },
+    {
+      "name": "SawStop",
+      "type": "BOOL",
+      "io": "input",
+      "initial": "TRUE",
+      "comment": "Stop button, wired normally closed: TRUE while NOT pressed; a broken wire makes it FALSE"
+    },
+    {
+      "name": "Saw",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the saw motor"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The saw: SawStart starts it, Saw holds it, and SawStop must be TRUE (not pressed, wire whole) for it to run.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "SawStart",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Saw",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "SawStop",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Saw",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

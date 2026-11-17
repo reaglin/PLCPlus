@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "name": "The double coil mistake",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "RunPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "run the conveyor"
+    },
+    {
+      "name": "JogPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "jog the conveyor"
+    },
+    {
+      "name": "Conveyor",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the conveyor's contactor: two coils write it"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Rung 1: RunPB turns Conveyor on, for the moment.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "RunPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Conveyor",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Rung 2 runs later in the same scan and writes Conveyor again. The last rung decides.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "JogPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Conveyor",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

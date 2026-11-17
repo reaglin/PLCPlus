@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "name": "A mistake: Stop inside the branch",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "FanOn",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "the fan's start button"
+    },
+    {
+      "name": "FanOff",
+      "type": "BOOL",
+      "io": "input",
+      "initial": "TRUE",
+      "comment": "the fan's stop button, wired normally closed: TRUE until pressed"
+    },
+    {
+      "name": "Fan",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the fan"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Wrong: FanOff is in series with FanOn only, inside the branch. Once Fan is on, its own contact goes round FanOff.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "FanOn",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "FanOff",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "contact",
+                    "tag": "Fan",
+                    "contact": "normallyOpen"
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "Fan",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

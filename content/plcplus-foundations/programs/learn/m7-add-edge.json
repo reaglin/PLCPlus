@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "name": "Counting with ADD: every scan, or once per press",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Click", "type": "BOOL", "io": "input", "comment": "a push button" },
+    { "name": "EveryScan", "type": "INT", "io": "output", "comment": "adds 1 on every scan Click is held" },
+    { "name": "PerPress", "type": "INT", "io": "output", "comment": "adds 1 once per press of Click" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "A normally open contact: ADD runs on every scan Click is held, 100 times a second.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Click", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "ADD", "operands": { "IN1": "EveryScan", "IN2": "1", "OUT": "EveryScan" } } ] }
+        },
+        {
+          "comment": "A rising-edge contact -|P|-: ADD runs only in the one scan when Click turns on, so one press adds 1.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Click", "contact": "positiveEdge" },
+            { "kind": "box", "instruction": "ADD", "operands": { "IN1": "PerPress", "IN2": "1", "OUT": "PerPress" } } ] }
+        }
+      ]
+    }
+  ]
+}

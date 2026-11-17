@@ -20,6 +20,10 @@ An output fault is the other half of the machine: the PLC turns an output on, an
 
 So when an output's coil is TRUE and the machine does not respond, stop looking at the program and the inputs: they have done their job.
 
+Some machines let the PLC check for itself: the motor's contactor has a spare **feedback contact**, wired to an input, that closes when the contactor really pulls in. Tick **keep pressed** under **Run**: the Motor coil turns TRUE. Leave **Running** alone, as if the contactor had failed: the timer counts, and after 2 s the **NoRun** alarm lights, though the coil is still TRUE. Now hold **Running** (the feedback arrives): the alarm goes out. The coil only says what the PLC asks for; the feedback says what happened.
+
+[[try-ladder: programs/learn/m11-motor-feedback.json]]
+
 ## What fails on the output side
 
 - **A blown fuse** on the output module or the output circuit.

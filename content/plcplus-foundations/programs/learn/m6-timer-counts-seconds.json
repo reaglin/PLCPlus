@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "name": "A timer drives a counter: count 5 seconds",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Run", "type": "BOOL", "io": "input", "comment": "a push button: runs the 1-second timer while held" },
+    { "name": "Reset", "type": "BOOL", "io": "input", "comment": "a push button: clears the count (R)" },
+    { "name": "FiveSeconds", "type": "BOOL", "io": "output", "comment": "a lamp: on when 5 seconds have been counted" },
+    { "name": "T1", "type": "TON", "comment": "a 1-second timer that restarts itself" },
+    { "name": "C1", "type": "CTU", "comment": "counts T1's ticks, preset 5" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "T1 times 1 s while Run is on. Its own normally closed Q contact resets it the scan after it is done, so it starts again.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Run", "contact": "normallyOpen" },
+            { "kind": "contact", "tag": "T1.Q", "contact": "normallyClosed" },
+            { "kind": "box", "instruction": "TON", "instance": "T1", "operands": { "PT": "T#1s" } } ] }
+        },
+        {
+          "comment": "T1.Q is on for one scan each second, and C1 counts each of those ticks. Reset clears the count.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "T1.Q", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "CTU", "instance": "C1", "operands": { "PV": "5", "R": "Reset" } } ] }
+        },
+        {
+          "comment": "FiveSeconds lights when C1 has counted 5 ticks.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "C1.Q", "contact": "normallyOpen" },
+            { "kind": "coil", "tag": "FiveSeconds", "coil": "normal" } ] }
+        }
+      ]
+    }
+  ]
+}

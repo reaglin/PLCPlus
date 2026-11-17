@@ -35,6 +35,10 @@ A TOF with PT T#4s; IN on at 1 s, off at 3 s:
 
 Q goes off PT after IN goes off: 3 s + 4 s = 7 s.
 
+Try it: this TOF keeps a motor's **CoolingFan** running for 4 s after the motor stops. Hold **Motor** down: the fan comes on at once and ET stays at 0. Let go and watch ET count up in *Inside the PLC*; the fan goes off when it reaches 4 s. Press **Motor** again before then, and the fan simply stays on.
+
+[[try-ladder: programs/learn/m6-tof-run-on.json]]
+
 ## The pulse timer, TP
 
 A **pulse timer** gives one pulse of an exact length each time its input turns on:
@@ -53,6 +57,10 @@ A TP with PT T#5s. The button is pressed at 1 s and **held** until 8 s:
 | 4 s | TRUE | TRUE |
 | 6 s | TRUE | **FALSE**: 5 s are up, even though IN is still on |
 | 8 s | FALSE | FALSE |
+
+Try it: tap **Press** quickly, and the **Beeper** lamp stays on for 3 s. Then tick **keep pressed**: the beeper still goes off after 3 s, though Press is still on. Untick it and press again for the next pulse. (A TON would do the opposite: nothing for 3 s, then on for as long as you hold.)
+
+[[try-ladder: programs/learn/m6-tp-pulse.json]]
 
 ## Choosing the timer
 

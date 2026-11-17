@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "name": "An on-delay timer: hold Go for 3 seconds",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Go", "type": "BOOL", "io": "input", "comment": "a push button: the timer's input (IN)" },
+    { "name": "Done", "type": "BOOL", "io": "output", "comment": "a lamp: on when the timer is done (Q)" },
+    { "name": "T1", "type": "TON", "comment": "the on-delay timer, preset 3 s" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "While Go is held, T1 times. Let go before 3 s and it starts from 0 again.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Go", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "TON", "instance": "T1", "operands": { "PT": "T#3s" } } ] }
+        },
+        {
+          "comment": "Done lights when T1 has timed 3 s.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "T1.Q", "contact": "normallyOpen" },
+            { "kind": "coil", "tag": "Done", "coil": "normal" } ] }
+        }
+      ]
+    }
+  ]
+}

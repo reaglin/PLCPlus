@@ -176,6 +176,19 @@ A `|` inside `` `code` `` in a table stays in the cell, so ladder symbols such a
 | `[[ladder: programs/motor-seal-in.json]]` | The program's rungs, drawn as on the Example tab but not running |
 | `[[truth-table: (Start OR Motor) AND Stop]]` | Every row of the expression: AND, OR, XOR, NOT and brackets; up to four inputs |
 
+**Interactive examples** (Ron, 2026-11-17: "wherever possible add interactive examples of the concepts in the Learn section"). Each is
+framed "▶ Try it:" with what to do; put one or two sentences before it saying what to try and what to watch for.
+
+| Line | Shows |
+|---|---|
+| `[[try-ladder: programs/learn/m6-ton-delay.json]]` | A small program **running live**: each `"io": "input"` tag is a button to hold down (or "keep pressed"); a BOOL input with `"initial": "TRUE"` is normally closed (pressing makes it FALSE); a number input has a box with − and +. Outputs are lamps or values; tags with no io (bits, numbers, arrays, timers and counters with every member) under "Inside the PLC". Power flow on the rungs, Pause, Step one scan, Reset. It runs only while on screen. The program's `name` is its title; every rung needs a `comment`. Keep it small (1–4 rungs), in `programs/learn/m<module>-<what>.json` |
+| `[[try-logic: (A AND B) OR NOT C]]` | Switch each input; the result lamp and the marked row of the truth table |
+| `[[try-number: 8 bits]]`, `16 bits`, `bcd` | Click bits or type a number: decimal (with the sum of the weights), binary in fours, hex; BCD's four digits, or why a group is not BCD |
+| `[[try-circuit: ohms-law]]`, `series`, `parallel`, `ac-dc` | Sliders for voltage and resistance (or AC peak and frequency): current, voltages, power, in words and a bar |
+
+A live ladder never runs an exercise's working program, and should not solve the item's exercise or a later one (D21): another task,
+other tags. The validator checks that it loads, has no errors and has an input.
+
 ## Before publishing: the validator
 
 ```

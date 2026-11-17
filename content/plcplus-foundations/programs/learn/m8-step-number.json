@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "name": "A step number with EQ and MOVE: a car wash",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Go",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: starts a wash"
+    },
+    {
+      "name": "Soaped",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "sensor: TRUE when the soap is done (you play it)"
+    },
+    {
+      "name": "Rinsed",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "sensor: TRUE when the rinse is done (you play it)"
+    },
+    {
+      "name": "Soap",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the soap spray, on in step 1"
+    },
+    {
+      "name": "Rinse",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the rinse spray, on in step 2"
+    },
+    {
+      "name": "Step",
+      "type": "INT",
+      "io": "output",
+      "comment": "the step number: 0 idle, 1 soap, 2 rinse"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "In step 0 (idle), Go moves to step 1.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "Go",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "1",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "In step 1 (soap), when Soaped says it has finished, move to step 2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "Soaped",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "2",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "In step 2 (rinse), when Rinsed says it has finished, back to step 0.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "Rinsed",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "Step"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Output: the soap spray is on in step 1.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "Soap",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Output: the rinse spray is on in step 2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "Step",
+                  "IN2": "2"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "Rinse",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

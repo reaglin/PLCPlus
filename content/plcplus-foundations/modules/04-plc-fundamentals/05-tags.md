@@ -38,6 +38,10 @@ Each tag has a **data type**: what kind of value it holds and how much memory it
 
 Every discrete input and output is a BOOL. Allen-Bradley's Logix controllers use DINT for most whole numbers, and their timers keep the preset as a DINT number of milliseconds instead of a TIME.
 
+See the kinds and the types in one small program. Hold **CallPB** (an input tag): Called, a memory tag listed under *Inside the PLC* because it is wired to nothing, turns TRUE, and then CallLamp (an output tag) lights. **Setting** is an INT input: type a whole number in its box and press Enter, or use − and +, and the INT output Shown takes the same number.
+
+[[try-ladder: programs/learn/m4-tag-kinds.json]]
+
 ## Addresses on different PLCs
 
 The same input point is written differently on different PLCs. These are examples of the forms you will meet:

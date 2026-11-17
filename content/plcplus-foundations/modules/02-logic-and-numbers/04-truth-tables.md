@@ -49,6 +49,10 @@ Here 1 means TRUE and 0 means FALSE. PLC+ draws the same table with the words:
 
 [[truth-table: (A OR B) AND NOT C]]
 
+Now switch the inputs yourself. Turn **A** on: the result is TRUE. Turn **C** on as well: it goes FALSE, whatever A and B are, because of `AND NOT C`. The marked row of the table moves as you switch.
+
+[[try-logic: (A OR B) AND NOT C]]
+
 ## Order of operations
 
 In arithmetic, 2 + 3 × 4 is 14, because multiplying comes before adding. Logic has the same kind of rule:
@@ -73,6 +77,10 @@ The first is TRUE on that row; the second is FALSE. When in doubt, **write the b
 [[truth-table: A XOR B]]
 
 A PLC use: a tank has two level sensors at the same height, so they should always agree. `Level1 XOR Level2` is TRUE only when they disagree, which means one sensor has failed. That can raise an alarm. PLC+ works XOR after AND and before OR; brackets make it plain.
+
+Try the two sensors. Turn **Level1** and **Level2** both off, then both on: no alarm, they agree. Turn just one on: the result goes TRUE, a sensor has failed.
+
+[[try-logic: Level1 XOR Level2]]
 
 ## From a sentence to an expression
 

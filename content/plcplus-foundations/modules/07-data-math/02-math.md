@@ -35,6 +35,10 @@ This changes how you write a percentage. Rejects as a percentage of the total is
 
 With whole numbers, multiply first, then divide.
 
+Try DIV and MOD: **Seconds** starts at 150, which is 2 minutes and 30 seconds: DIV gives 2 (the .5 is dropped) and MOD gives the 30 left over. Use − and + or type other numbers, such as 59, 60 and 61, and watch **Minutes** and **Secs**.
+
+[[try-ladder: programs/learn/m7-div-mod-time.json]]
+
 ## Dividing by zero
 
 Nothing can be divided by 0. In PLC+, a DIV or MOD by 0 stops the PLC with a **math fault**: the program stops, every output goes off, and only Reset starts it again. PLCs differ here: some stop, and others set an overflow flag and go on with a wrong answer. Either way it is a bug, so **check before you divide**: put a compare in front, such as *GT PerBox 0*, so DIV runs only when there is something to divide by.
@@ -46,6 +50,10 @@ An INT holds −32,768 to 32,767. A result bigger than that does not fit, and PL
 ## Counting with ADD
 
 ADD can count: *ADD GoodCount 1* into GoodCount adds one. But it adds one on **every scan** that power reaches it, and a press lasts many scans (one scan is 10 ms). Put a **rising-edge** contact in front (item 5.5), and it adds one per press.
+
+Try it: press **Click** once, quickly. **PerPress** goes up by 1; **EveryScan** jumps by many, one for every 10 ms scan you held it. Hold Click down and EveryScan keeps climbing while PerPress does not move.
+
+[[try-ladder: programs/learn/m7-add-edge.json]]
 
 ## A worked example: packing
 

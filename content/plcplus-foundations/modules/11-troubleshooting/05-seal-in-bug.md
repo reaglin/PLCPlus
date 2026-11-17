@@ -30,6 +30,10 @@ Read rung 2 as the PLC does:
 1. **The light does not stay on.** Press Light on: WorkLight turns on. Let go: LightOn is FALSE, and the seal-in contact reads Fan, which is off. Nothing holds the light, so it goes out. It behaves like a light with no seal-in at all.
 2. **The light comes on by itself.** Start the fan: Fan is TRUE, so rung 2's seal-in contact passes power, and the light comes on though nobody pressed Light on. Light off turns it off only while held.
 
+See both symptoms on a heater and a lamp, where the lamp's rung was copied from the heater's. Press **LampOn** and let go: the lamp goes out at once. Then press **HeatOn**: the heater starts, and the lamp comes on by itself. Watch the contact under LampOn on rung 2 as you do it: it reads Heater. Press **HeatOff** to stop the heater, and the lamp goes out with it.
+
+[[try-ladder: programs/learn/m11-heater-lamp-seal-bug.json]]
+
 Neither symptom says "wrong tag" by itself. Together, and with the rung's live values in front of you, they do: the contact beside LightOn turns green when the fan starts, and that is the clue.
 
 ## Reading a rung contact by contact

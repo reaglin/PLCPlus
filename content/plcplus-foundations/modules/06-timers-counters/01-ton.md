@@ -25,6 +25,10 @@ The most used timer is the **on-delay timer**, **TON**. It waits: when power rea
 
 The most important rule: **when IN goes FALSE, a TON resets at once.** Q goes FALSE and ET goes back to 0, however far it had got. A TON only says "done" if IN stays on for the whole time.
 
+Try it on a running PLC: hold **Go** down and watch ET count up in *Inside the PLC*. Let go before 3 seconds and ET goes straight back to 0; hold it the whole 3 seconds and Q, and the **Done** lamp, turn on.
+
+[[try-ladder: programs/learn/m6-ton-delay.json]]
+
 ## A timing diagram, in a table
 
 A TON with PT T#3s. IN turns on at 1 s, off at 6 s, on again at 7 s and off at 8 s:

@@ -25,6 +25,10 @@ A garage door opener is two seal-in circuits, one per direction (MotorUp and Mot
 
 Stop (StopPB) stops either direction. Like the motor station's Stop, it is wired normally closed.
 
+Try a limit switch on its own, on a barrier arm that rises while its button is held. Tick **keep pressed** under **RaisePB**: ArmUp comes on. Now press **TopLimit**, as the arm would when it reaches the top: ArmUp goes off although RaisePB is still pressed, and AtTop lights. The normally closed TopLimit contact has broken the rung.
+
+[[try-ladder: programs/learn/m5-limit-switch.json]]
+
 ## How to build it
 
 Start from your seal-in. The Up rung is:

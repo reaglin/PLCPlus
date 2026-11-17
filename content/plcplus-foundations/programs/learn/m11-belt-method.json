@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "name": "Read the rung contact by contact: a belt",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "BeltOn",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: starts the belt"
+    },
+    {
+      "name": "Halt",
+      "type": "BOOL",
+      "io": "input",
+      "initial": "TRUE",
+      "comment": "Stop button, wired normally closed: TRUE while NOT pressed"
+    },
+    {
+      "name": "OverloadOK",
+      "type": "BOOL",
+      "io": "input",
+      "initial": "TRUE",
+      "comment": "the motor's overload: TRUE while it is OK; press it to trip it"
+    },
+    {
+      "name": "Belt",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the belt motor"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The belt: BeltOn starts it, Belt's own contact holds it, and Halt or a tripped overload stops it.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "BeltOn",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Belt",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "Halt",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "OverloadOK",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Belt",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

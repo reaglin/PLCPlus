@@ -28,6 +28,10 @@ Read a rung from left to right and say it in words. This is a program for a smal
 
 Contacts side by side (in **parallel**) make OR: power can pass along either path. You will see that in the seal-in, next.
 
+Try both on two buttons. Hold **SwitchA** alone: only ParallelLamp lights, because one path is enough for OR. Tick **keep pressed** under SwitchA and then hold **SwitchB** as well: now SeriesLamp lights too, because power can pass through both contacts in series (AND).
+
+[[try-ladder: programs/learn/m3-series-parallel.json]]
+
 ## Try it
 
 Open the **Example** tab. The rungs run live beside the press: press the hand buttons (hold the mouse down on them) and turn the Guard switch, and watch which rungs pass power. A rung that passes power is drawn green and thick, and its parts say TRUE. Then choose *A common mistake* in Program: its two hand buttons are side by side (OR). Try one hand alone to see why that is dangerous.

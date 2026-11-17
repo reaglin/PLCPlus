@@ -173,6 +173,9 @@ public partial class MainWindow : Window
             view.ReadAloudRequested += i => _ = ReadPage(i);
         }
         LabView.WidgetFactory = w => LessonWidgets.Create(_plc, w);
+        // The 🔊 Read link beside the Learn page's title (Ron, 2026-11-17).
+        LearnView.ShowReadLink = true;
+        LearnView.ReadLinkClicked += () => { if (_item is not null) ReadAloud_Executed(this, null!); };
         ReviewView.WidgetFactory = ReviewWidget;
 
         // Key terms (Learning Core plan 3.13): marked in every page of the book; a click opens the Glossary.
@@ -1537,9 +1540,10 @@ public partial class MainWindow : Window
     private void ShowReaderButtons()
     {
         ReadAloudButton.Content = !_reader.IsReading ? "🔊 Read aloud" : _reader.IsPaused ? "▶ Go on" : "⏸ Pause";
-        ReadAloudButton.ToolTip = !_reader.IsReading ? "Reads this page aloud, the paragraph being read marked in amber (Ctrl+Shift+A)"
+        ReadAloudButton.ToolTip = !_reader.IsReading ? MarkdownView.ReadTip
             : _reader.IsPaused ? "Goes on reading from where it paused (Ctrl+Shift+A)" : "Pauses reading (Ctrl+Shift+A); ■ Stop or Esc stops";
         StopReadingButton.Visibility = _reader.IsReading ? Visibility.Visible : Visibility.Collapsed;
+        LearnView.SetReadLink(!_reader.IsReading ? "🔊 Read" : _reader.IsPaused ? "▶ Go on" : "⏸ Pause", (string)ReadAloudButton.ToolTip);
         if (_popRead is not null) { _popRead.Content = ReadAloudButton.Content; _popRead.ToolTip = ReadAloudButton.ToolTip; }
         if (_popStop is not null) _popStop.Visibility = StopReadingButton.Visibility;
     }

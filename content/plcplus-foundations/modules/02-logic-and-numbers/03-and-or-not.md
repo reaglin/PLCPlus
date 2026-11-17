@@ -58,6 +58,10 @@ Real rungs mix all three. *The fill valve opens if Auto is on AND the tank is NO
 
 NOT is worked first. It applies only to the input just after it, here TankFull. The next item covers this order in full.
 
+Here are AND, OR and NOT as a small ladder program, running live. Rung 1 is the fill valve, `Auto AND NOT TankFull`; rung 2 is a horn, `TankFull OR Test`. Hold **Auto** (or tick "keep pressed"): FillValve lights, because power passes Auto's normally open contact and TankFull's normally closed one. Now also press **TankFull**: the normally closed contact opens, FillValve goes off, and the Horn sounds through the top branch of rung 2. Let go of everything and press **Test**: the Horn sounds through the other branch. Watch the green power flow through the contacts as you press.
+
+[[try-ladder: programs/learn/m2-fill-and-horn.json]]
+
 ## How it is written
 
 Different books and programs write the same three operations in different ways. They all mean the same thing.

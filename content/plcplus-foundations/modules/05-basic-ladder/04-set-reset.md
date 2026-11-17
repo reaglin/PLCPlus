@@ -24,6 +24,10 @@ A seal-in remembers that Start was pressed. A **set** coil and a **reset** coil 
 
 When power stops reaching a set coil, its tag stays on, unlike a normal coil. On the Allen-Bradley PLC these are **OTL** (latch) and **OTU** (unlatch).
 
+Try set and reset beside a normal coil. Press **SetPB** and let go: Latched stays on, but Follows, a normal coil on the same button, goes out. Press **ResetPB**: Latched goes out. Then tick **keep pressed** under both buttons: Latched stays off, because the reset rung is lower in the program and has the last word.
+
+[[try-ladder: programs/learn/m5-set-reset.json]]
+
 ## The task
 
 In Auto, fill the tank until the high float, then drain it until the liquid is below the low float, then fill again, over and over. The two valves are never open together. Off closes both.

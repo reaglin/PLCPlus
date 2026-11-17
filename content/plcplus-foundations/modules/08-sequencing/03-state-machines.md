@@ -51,6 +51,10 @@ Keep the state as a number in an INT tag, State, as in item 8.2. Write the numbe
 - **One rung per output**, an EQ for each state that turns it on.
 - A state machine starts in state 0 when the PLC starts, because an INT starts at 0: make 0 the safe, idle state.
 
+Try a small one: a toaster with three states, 0 Idle, 1 Toasting (3 s) and 8 Smoke alarm. Press **Go** and watch **State** go to 1 and back to 0 after 3 s. Press **Go** again, and while it toasts press **Smoke** (you play the smoke detector): State goes to 8 from Toasting. Let go of Smoke: the alarm **stays**, because it is a state, not just a light. Press **Ack** while holding Smoke: nothing; let go of Smoke, then press **Ack**: back to 0. Press **Smoke** while Idle too: "from any state" means any.
+
+[[try-ladder: programs/learn/m8-toaster-states.json]]
+
 ## The worked example: a rinse tank with a leak alarm
 
 | From | To | When |

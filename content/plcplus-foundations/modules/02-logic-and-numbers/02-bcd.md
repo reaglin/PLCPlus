@@ -56,6 +56,10 @@ A handy check: if you look at a BCD word in hex, the hex digits are the decimal 
 
 If a program reads a BCD word as if it were plain binary, it gets the wrong number. BCD 0010 0101 means 25, but as plain binary it is 32 + 4 + 1 = **37**. A recipe dialed in as 25 seconds would run for 37. A PLC therefore converts a BCD input before using it, and converts a number to BCD before sending it to a display. On the lab's Allen-Bradley PLC these instructions are **FRD** (from BCD) and **TOD** (to BCD). IEC 61131-3 names them BCD_TO_INT and INT_TO_BCD.
 
+See the mistake for yourself. Click the bits to **0010 0101**: the BCD line reads 25, but the decimal (the sum of the weights, how plain binary reads it) is 37. The number box works in plain binary, so typing **37** and pressing Enter gives the same bits. Then set **0100 0000 0110** and check that it reads 406 in BCD, while its plain value is 1030. Last, make one group **1010**: the BCD line says that group is not a BCD digit (the part below on wasted codes explains why).
+
+[[try-number: bcd]]
+
 ## Thumbwheels and displays
 
 Each thumbwheel digit has four wires, worth 1, 2, 4 and 8. Each wire goes to one PLC input. So three wheels (000 to 999) take **12 inputs**, and four wheels take 16: one whole input module.

@@ -13,6 +13,22 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 16 — the Read link and interactive examples (plan 13.13, 13.14), 2026-11-17
+
+On `main`, `manual-test\PLCPlus.exe`.
+
+1. **Read link.** Open any item's Learn tab: just right of the title, **🔊 Read**. Click it: the page is read aloud (the part being read in
+   amber) and the link says ⏸ Pause; click to pause (▶ Go on), again to go on. The Reader does not say "Read".
+2. **Live ladder.** 6.1, Learn: "▶ Try it: An on-delay timer". Hold **Go** (or tick keep pressed): ET counts in Inside the PLC, Done lights
+   at 3 s; let go early and ET goes back to 0. Pause, Step one scan, Reset. Keyboard only: Tab to Go and hold the Space bar.
+3. **Numbers, logic, circuits.** 2.1 (bits: click them, type 200 and Enter), 2.2 (BCD: make a group 1010), 2.3 (switch A and B), 1.1
+   (Ohm's law sliders), 1.2 (series and parallel).
+4. Go through a few more items in each module: is each example worth having where it is, and do its words say what to try?
+
+Tell me which examples to keep, move or drop, and any concept that needs one.
+
+---
+
 ## Hand-test 15 — Pop out for every tab (plan 13.11), 2026-11-15
 
 **On `main`** (merged from `my-notes` 2026-11-17), `manual-test\PLCPlus.exe`.

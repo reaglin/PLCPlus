@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "name": "A state machine with an alarm state: a toaster",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Go",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: starts toasting"
+    },
+    {
+      "name": "Smoke",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "smoke detector: TRUE while it senses smoke (you play it)"
+    },
+    {
+      "name": "Ack",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: clears the alarm"
+    },
+    {
+      "name": "Heater",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "on in state 1, Toasting"
+    },
+    {
+      "name": "Alarm",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "on in state 8, Smoke alarm"
+    },
+    {
+      "name": "State",
+      "type": "INT",
+      "io": "output",
+      "comment": "0 Idle, 1 Toasting, 8 Smoke alarm"
+    },
+    {
+      "name": "ToastTime",
+      "type": "TON",
+      "comment": "how long the toast has been toasting"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Idle (0) to Toasting (1): Go pressed.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "0"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "Go",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "1",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Toasting (1): time it, 3 s.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "ToastTime",
+                "operands": {
+                  "PT": "T#3s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Toasting (1) to Idle (0): the toast has had 3 s.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "ToastTime.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Smoke alarm (8) to Idle (0): Ack pressed, and only once the smoke has gone.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "8"
+                }
+              },
+              {
+                "kind": "contact",
+                "tag": "Ack",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Smoke",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "0",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "From ANY state to Smoke alarm (8): no EQ box, and after the other moves, so it has the last word.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Smoke",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "8",
+                  "OUT": "State"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Output: the heater is on in Toasting (1).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "1"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "Heater",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Output: the alarm is on in Smoke alarm (8).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "EQ",
+                "operands": {
+                  "IN1": "State",
+                  "IN2": "8"
+                }
+              },
+              {
+                "kind": "coil",
+                "tag": "Alarm",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

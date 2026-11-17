@@ -25,6 +25,10 @@ You met it in module 4: two rungs with a coil of the same tag. The PLC runs the 
 
 Press the front button and rung 2 turns Bell on; two rungs later, in the same scan, rung 4 turns it off again, because BackPB is not pressed. At the end of the scan Bell is FALSE, and that is what goes to the output. The bell never rings from the front door.
 
+See it misbehave on a vent fan with two coils, one for a hand button and one for a thermostat. Press **TooWarm**: Vent comes on. Press **ManualOn**: rung 1 is green right up to its coil, yet the Vent lamp stays dark, because rung 2, lower down, has turned Vent off again in the same scan. Press **Pause**, tick **keep pressed** under ManualOn, and press **Step one scan** to read both coils' values.
+
+[[try-ladder: programs/learn/m11-vent-double-coil.json]]
+
 How it gets there: a program grows. Someone adds "the back door rings the bell too" months later, on a new rung, without looking for the coil that is already there.
 
 ## How to spot it

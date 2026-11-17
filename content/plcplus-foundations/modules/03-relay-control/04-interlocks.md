@@ -20,6 +20,10 @@ An **interlock** stops that. Each direction's rung has a normally closed contact
 
 So whichever starts first locks the other out. In a relay panel this is often done twice: in the wiring (*electrical interlock*) and with a mechanical bar between the two contactors (*mechanical interlock*), because a welded contact could defeat the first.
 
+Try it on a hoist that runs only while its button is held. Tick **keep pressed** under **RaisePB**: HoistUp comes on. Now hold **LowerPB** as well: HoistDown stays off, because the normally closed HoistUp contact on its rung is open. Keep holding LowerPB and untick **keep pressed** under RaisePB: HoistUp goes off, and HoistDown comes on straight away. The two lamps are never on together.
+
+[[try-ladder: programs/learn/m3-interlock.json]]
+
 Each direction also needs to stop on its own at the end of its travel. A **limit switch** at the top and one at the bottom do that: each is a normally closed contact in its direction's rung, so reaching the limit breaks the rung.
 
 ## Try it

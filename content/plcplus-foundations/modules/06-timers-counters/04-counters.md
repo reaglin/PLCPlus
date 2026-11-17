@@ -28,9 +28,17 @@ Two things surprise beginners:
 - **A counter does not stop at PV.** It keeps counting: 6, 7, 8 … and Q stays on. Something must stop the parts, or reset the count.
 - **A counter does not reset itself, and a stop does not reset it.** Its count stays until R clears it. That is what you want for a batch that is stopped part-way: the count carries on when it starts again.
 
+Try both on a running PLC. Press **Ticket** three times and watch C1.CV count in *Inside the PLC*: the **Three** lamp lights at 3. Hold Ticket down for a while: still one count. Press it again: CV goes to 4, 5 … and the lamp stays lit. Only **Reset** clears it.
+
+[[try-ladder: programs/learn/m6-ctu-reset.json]]
+
 ## The down counter, CTD
 
 A **CTD** counts down. Its **LD** (load) input puts PV into CV; each edge on its input takes 1 off; Q is TRUE when CV is 0 or less. Use it when you think "how many are left": load 12 when a new box arrives, count down as bottles go in, and Q says the box is full.
+
+Try it: **Empty** is lit at the start, because CV is 0. Press **Load**: CV becomes 4 and Empty goes off. Press **Take** four times and watch CV go 3, 2, 1, 0: Empty lights again. Press Take once more: CV goes to −1, and Empty stays lit.
+
+[[try-ladder: programs/learn/m6-ctd-load.json]]
 
 ## The up/down counter, CTUD
 

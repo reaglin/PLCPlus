@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "name": "TON forgets, TONR keeps: 5 seconds of Run",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Run", "type": "BOOL", "io": "input", "comment": "a push button: the input of both timers" },
+    { "name": "Clear", "type": "BOOL", "io": "input", "comment": "a push button: the TONR's reset (R)" },
+    { "name": "TonDone", "type": "BOOL", "io": "output", "comment": "a lamp: the TON is done" },
+    { "name": "TonrDone", "type": "BOOL", "io": "output", "comment": "a lamp: the TONR is done" },
+    { "name": "T1", "type": "TON", "comment": "an on-delay timer, preset 5 s: forgets when Run goes off" },
+    { "name": "T2", "type": "TONR", "comment": "a retentive timer, preset 5 s: keeps its time until Clear" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "T1, a TON: Run must be held 5 s in one go. Let go and its ET goes back to 0.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Run", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "TON", "instance": "T1", "operands": { "PT": "T#5s" } },
+            { "kind": "coil", "tag": "TonDone", "coil": "normal" } ] }
+        },
+        {
+          "comment": "T2, a TONR: the time Run is held is added up over every press. Only Clear (in R) sets it back to 0.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Run", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "TONR", "instance": "T2", "operands": { "PT": "T#5s", "R": "Clear" } } ] }
+        },
+        {
+          "comment": "TonrDone lights when T2 has 5 s in all, and stays lit until Clear.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "T2.Q", "contact": "normallyOpen" },
+            { "kind": "coil", "tag": "TonrDone", "coil": "normal" } ] }
+        }
+      ]
+    }
+  ]
+}

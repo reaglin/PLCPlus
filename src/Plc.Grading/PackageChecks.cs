@@ -12,7 +12,11 @@ namespace Plc.Grading;
 public static class PackageChecks
 {
     /// <summary>The widgets a PLC+ lesson can use.</summary>
-    public static readonly IReadOnlyList<string> WidgetNames = ["ladder", "truth-table"];
+    public static readonly IReadOnlyList<string> WidgetNames = ["ladder", "truth-table", "try-ladder", "try-logic", "try-number", "try-circuit"];
+
+    /// <summary>The kinds of <c>try-number</c> and <c>try-circuit</c> (the shell's TryWidgets draws them).</summary>
+    public static readonly IReadOnlyList<string> TryNumbers = ["8 bits", "16 bits", "bcd"];
+    public static readonly IReadOnlyList<string> TryCircuits = ["ohms-law", "series", "parallel", "ac-dc"];
 
     /// <summary>Every problem in the package folder, Learning Core's and PLC+'s, one sentence each.</summary>
     public static IReadOnlyList<string> Validate(string folder)
@@ -70,10 +74,10 @@ public static class PackageChecks
             var item = items[i];
             if (item.Example is { } ex && exerciseAt.TryGetValue(ex, out var at))
                 yield return $"{item.File}: its Example runs {ex}, the exercise of {items[at].Number} {items[at].Title}, which shows that exercise's answer. Use a similar machine of its own (D21).";
-            foreach (var w in Widgets.In(item.Learn).Where(w => w.Name == "ladder"))
+            foreach (var w in Widgets.In(item.Learn).Where(w => w.Name is "ladder" or "try-ladder"))
                 foreach (var (id, file) in works)
                     if (exerciseAt.TryGetValue(id, out var e) && string.Equals(w.Argument.Trim().Replace("\\", "/", StringComparison.Ordinal), file, StringComparison.OrdinalIgnoreCase))
-                        yield return $"{item.File}: the ladder picture {w.Argument} is the answer to the exercise of {items[e].Number} {items[e].Title}.";
+                        yield return $"{item.File}: the {(w.Name == "ladder" ? "ladder picture" : "live ladder")} {w.Argument} is the answer to the exercise of {items[e].Number} {items[e].Title}.";
             if (item.Quiz is { } quiz)
                 foreach (var q in quiz.Questions.Where(q => q.Machine is not null))
                     if (exerciseAt.TryGetValue(q.Machine!, out var e) && e > i)
@@ -87,17 +91,29 @@ public static class PackageChecks
         switch (w.Name)
         {
             case "ladder":
-                var path = Path.Combine(folder, w.Argument);
-                if (!File.Exists(path)) return $"the ladder widget's program {w.Argument} is not in the package.";
+            case "try-ladder":
+                var path = Path.Combine(folder, w.Argument.Trim());
+                if (!File.Exists(path)) return $"the {w.Name} widget's program {w.Argument} is not in the package.";
                 try
                 {
-                    ProjectJson.Deserialize(File.ReadAllText(path));
+                    var project = ProjectJson.Deserialize(File.ReadAllText(path));
+                    if (w.Name == "try-ladder")
+                    {
+                        var errors = ProjectValidator.Validate(project, Plc.Dialects.Iec.IecDialect.Instance).Where(d => d.Severity == Severity.Error).ToList();
+                        if (errors.Count > 0) return $"the live ladder {w.Argument} has problems: {string.Join(" ", errors.Select(d => d.Message))}";
+                        if (!project.Tags.Any(t => t.Io == IoDirection.Input)) return $"the live ladder {w.Argument} has no input for the learner to work (a tag with \"io\": \"input\").";
+                    }
                     return null;
                 }
                 catch (JsonException ex)
                 {
-                    return $"the ladder widget's program {w.Argument} is not a program PLC+ can read: {ex.Message}";
+                    return $"the {w.Name} widget's program {w.Argument} is not a program PLC+ can read: {ex.Message}";
                 }
+            case "try-number":
+                return TryNumbers.Contains(w.Argument.Trim().ToLowerInvariant()) ? null : $"try-number takes one of: {string.Join(", ", TryNumbers)}.";
+            case "try-circuit":
+                return TryCircuits.Contains(w.Argument.Trim().ToLowerInvariant()) ? null : $"try-circuit takes one of: {string.Join(", ", TryCircuits)}.";
+            case "try-logic":
             case "truth-table":
                 try
                 {

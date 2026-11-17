@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "name": "MOVE between types: a REAL and a DINT into INTs",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Reading", "type": "REAL", "io": "input", "initial": "2.5", "comment": "a REAL, with a decimal point: − and + step by 0.5" },
+    { "name": "Big", "type": "DINT", "io": "input","comment": "a DINT: whole numbers up to about 2.1 billion" },
+    { "name": "Whole", "type": "INT", "io": "output", "comment": "an INT: Reading, rounded" },
+    { "name": "Small", "type": "INT", "io": "output", "comment": "an INT: Big, if it fits; past 32,767 it wraps round" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "A REAL into an INT is rounded: 2.7 gives 3, and exactly .5 goes to the even number, so 2.5 gives 2 and 3.5 gives 4.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "box", "instruction": "MOVE", "operands": { "IN": "Reading", "OUT": "Whole" } } ] }
+        },
+        {
+          "comment": "A DINT into an INT: up to 32,767 it fits. One more and it wraps round to -32,768, with no warning.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "box", "instruction": "MOVE", "operands": { "IN": "Big", "OUT": "Small" } } ] }
+        }
+      ]
+    }
+  ]
+}

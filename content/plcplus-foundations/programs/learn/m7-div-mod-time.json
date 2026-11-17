@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "name": "DIV and MOD: seconds into minutes and seconds",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Seconds", "type": "INT", "io": "input", "initial": "150", "comment": "a time in seconds: type it, or use − and +" },
+    { "name": "Minutes", "type": "INT", "io": "output", "comment": "the whole minutes: Seconds DIV 60" },
+    { "name": "Secs", "type": "INT", "io": "output", "comment": "the seconds left over: Seconds MOD 60" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "DIV drops the remainder: 150 / 60 is 2, not 2.5. MOD gives what was dropped: 150 MOD 60 is 30.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "box", "instruction": "DIV", "operands": { "IN1": "Seconds", "IN2": "60", "OUT": "Minutes" } },
+            { "kind": "box", "instruction": "MOD", "operands": { "IN1": "Seconds", "IN2": "60", "OUT": "Secs" } } ] }
+        }
+      ]
+    }
+  ]
+}

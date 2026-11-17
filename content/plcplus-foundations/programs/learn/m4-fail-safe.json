@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "name": "Wired to fail safe, and not",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "LightCurtain",
+      "type": "BOOL",
+      "io": "input",
+      "initial": "TRUE",
+      "comment": "wired normally closed: TRUE while the opening is clear. Pressing it is someone in the way, or a broken wire"
+    },
+    {
+      "name": "HotSwitch",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "wired normally open: TRUE when it is too hot. A broken wire reads FALSE, the same as cool"
+    },
+    {
+      "name": "MayRun",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the machine may run"
+    },
+    {
+      "name": "HotAlarm",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the too-hot alarm light"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The machine may run only while the light curtain says clear (TRUE). A broken wire reads FALSE, so the machine stops: fail safe.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "LightCurtain",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "MayRun",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The alarm lights when the switch says too hot (TRUE). A broken wire reads FALSE, the same as cool: nobody would know.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "HotSwitch",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "HotAlarm",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

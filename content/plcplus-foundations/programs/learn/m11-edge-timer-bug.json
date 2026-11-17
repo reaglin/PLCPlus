@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "name": "A timer reset every scan: an edge contact on its rung",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Go",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: hold it down"
+    },
+    {
+      "name": "T1",
+      "type": "TON",
+      "comment": "powered through a rising-edge contact: TRUE for one scan only"
+    },
+    {
+      "name": "T2",
+      "type": "TON",
+      "comment": "powered through an ordinary contact"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The bug: a rising-edge contact passes power for ONE scan, so T1's IN goes off the next scan and T1 resets.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Go",
+                "contact": "positiveEdge"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T1",
+                "operands": {
+                  "PT": "T#2s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The same, with an ordinary contact: power stays on while Go is held, so T2 counts to 2 s.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Go",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "T2",
+                "operands": {
+                  "PT": "T#2s"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "name": "An up counter: count presses to 3, then Reset",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Ticket", "type": "BOOL", "io": "input", "comment": "a push button: each press is one count (CU)" },
+    { "name": "Reset", "type": "BOOL", "io": "input", "comment": "a push button: the counter's reset (R)" },
+    { "name": "Three", "type": "BOOL", "io": "output", "comment": "a lamp: on while the count is 3 or more (Q)" },
+    { "name": "C1", "type": "CTU", "comment": "the up counter, preset 3" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Each time Ticket turns on, C1.CV goes up by 1. Holding it down is still one count. Reset sets CV back to 0.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Ticket", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "CTU", "instance": "C1", "operands": { "PV": "3", "R": "Reset" } } ] }
+        },
+        {
+          "comment": "Three lights while C1.CV is at least 3, and stays lit at 4, 5, 6 and on.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "C1.Q", "contact": "normallyOpen" },
+            { "kind": "coil", "tag": "Three", "coil": "normal" } ] }
+        }
+      ]
+    }
+  ]
+}

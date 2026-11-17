@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "name": "A down counter: load 4, then count down to empty",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Take", "type": "BOOL", "io": "input", "comment": "a push button: each press takes one off (CD)" },
+    { "name": "Load", "type": "BOOL", "io": "input", "comment": "a push button: puts PV, 4, into the count (LD)" },
+    { "name": "Empty", "type": "BOOL", "io": "output", "comment": "a lamp: on while the count is 0 or less (Q)" },
+    { "name": "C1", "type": "CTD", "comment": "the down counter, preset 4" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Load puts 4 in C1.CV. Each time Take turns on, CV goes down by 1.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Take", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "CTD", "instance": "C1", "operands": { "PV": "4", "LD": "Load" } } ] }
+        },
+        {
+          "comment": "Empty lights while C1.CV is 0 or less.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "C1.Q", "contact": "normallyOpen" },
+            { "kind": "coil", "tag": "Empty", "coil": "normal" } ] }
+        }
+      ]
+    }
+  ]
+}

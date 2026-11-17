@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "name": "One relay: a normally open and a normally closed contact",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "CoilSwitch",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "the switch that energizes the relay's coil"
+    },
+    {
+      "name": "RelayCoil",
+      "type": "BOOL",
+      "comment": "the relay's coil: TRUE while it is energized"
+    },
+    {
+      "name": "LampNO",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "a lamp wired through the relay's normally open contact"
+    },
+    {
+      "name": "LampNC",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "a lamp wired through the relay's normally closed contact"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The switch energizes the relay's coil.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "CoilSwitch",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "RelayCoil",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "A normally open contact of the relay: closed while the coil is energized.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "RelayCoil",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "LampNO",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "A normally closed contact of the same relay: closed while the coil is off.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "RelayCoil",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "LampNC",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

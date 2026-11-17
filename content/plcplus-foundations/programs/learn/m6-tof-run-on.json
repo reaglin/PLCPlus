@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "name": "An off-delay timer: a cooling fan that runs on for 4 seconds",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Motor", "type": "BOOL", "io": "input", "comment": "the motor's running signal: the timer's input (IN)" },
+    { "name": "CoolingFan", "type": "BOOL", "io": "output", "comment": "a lamp: the cooling fan (Q)" },
+    { "name": "T1", "type": "TOF", "comment": "the off-delay timer, preset 4 s" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "While Motor is on, T1.Q is on at once. When Motor goes off, T1 times 4 s before Q goes off.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Motor", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "TOF", "instance": "T1", "operands": { "PT": "T#4s" } } ] }
+        },
+        {
+          "comment": "The cooling fan runs while T1.Q is on: with the motor, and for 4 s after it.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "T1.Q", "contact": "normallyOpen" },
+            { "kind": "coil", "tag": "CoolingFan", "coil": "normal" } ] }
+        }
+      ]
+    }
+  ]
+}

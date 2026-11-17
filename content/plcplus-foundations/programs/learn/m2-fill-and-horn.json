@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "name": "AND, OR and NOT as contacts: a tank's fill valve and horn",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Auto", "type": "BOOL", "io": "input", "comment": "a switch: TRUE while the tank is in Auto" },
+    { "name": "TankFull", "type": "BOOL", "io": "input", "comment": "a float switch: TRUE while the tank is full" },
+    { "name": "Test", "type": "BOOL", "io": "input", "comment": "a push button: tests the horn" },
+    { "name": "FillValve", "type": "BOOL", "io": "output", "comment": "the fill valve: open while TRUE" },
+    { "name": "Horn", "type": "BOOL", "io": "output", "comment": "the horn: sounds while TRUE" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "AND with NOT: the fill valve opens while Auto is on AND the tank is NOT full. Two contacts in series; the second is normally closed.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Auto", "contact": "normallyOpen" },
+            { "kind": "contact", "tag": "TankFull", "contact": "normallyClosed" },
+            { "kind": "coil", "tag": "FillValve", "coil": "normal" } ] }
+        },
+        {
+          "comment": "OR: the horn sounds if the tank is full OR Test is pressed. Two contacts side by side, in parallel.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "parallel", "branches": [
+              { "kind": "contact", "tag": "TankFull", "contact": "normallyOpen" },
+              { "kind": "contact", "tag": "Test", "contact": "normallyOpen" } ] },
+            { "kind": "coil", "tag": "Horn", "coil": "normal" } ] }
+        }
+      ]
+    }
+  ]
+}

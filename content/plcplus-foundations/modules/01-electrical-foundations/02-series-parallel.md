@@ -30,6 +30,10 @@ Two resistors, 200 Ω and 400 Ω, are in series across a 24 V DC supply.
 2. Current: I = 24 V / 600 Ω = 0.04 A = 40 mA, through both.
 3. Voltage across the 200 Ω: 0.04 A × 200 Ω = 8 V. Across the 400 Ω: 0.04 A × 400 Ω = 16 V. Check: 8 V + 16 V = 24 V.
 
+Check the worked example here. Set **R1** to 200 Ω and **R2** to 400 Ω: the current is 40 mA and the voltages 8 V and 16 V. Now make R2 bigger and watch its share of the 24 V grow while the current through both falls.
+
+[[try-circuit: series]]
+
 ## Parallel: several paths
 
 Parts are in **parallel** when each one is joined straight across the same two points, so each has its own path. This is how a panel is wired: every pilot light, coil and sensor connects between the + and − of the 24 V DC supply (or the two wires of 120 V AC).
@@ -46,6 +50,10 @@ Three 24 V DC pilot lights are wired in parallel. Each draws 25 mA. A relay coil
 1. Each light gets 24 V and draws 25 mA: 3 × 25 mA = 75 mA.
 2. The coil draws 24 V / 480 Ω = 50 mA.
 3. The supply provides 75 mA + 50 mA = **125 mA** in total.
+
+Try two branches. Set **R1** to 480 Ω (the relay coil: 50 mA) and move **R2**: R1's current does not change, because it always has the full supply across it, but the total current is always the two added together. A smaller R2 draws more current.
+
+[[try-circuit: parallel]]
 
 ## Side by side
 

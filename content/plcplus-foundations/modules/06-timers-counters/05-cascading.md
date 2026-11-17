@@ -29,6 +29,10 @@ This is the same trick as the traffic light in 6.1: a chain of timers, the last 
 
 Count the flashes: a CTU on the rung *Beacon* adds one every time the beacon comes on. With PV 3, its Q can sound a horn from the third flash. The same idea makes long times: a timer that restarts itself every minute, counted by a CTU with PV 60, measures an hour.
 
+Try a small one: T1 restarts itself every second, and C1 counts its ticks. Tick **keep pressed** under **Run** and watch T1's ET climb to 1 s and drop back to 0, and C1.CV go up by one each time; **FiveSeconds** lights at 5. Untick it part-way and the count waits. Press **Reset** to clear it. To see the one-scan tick, press **Pause** just before ET reaches 1 s, then **Step one scan** a few times and watch T1.Q.
+
+[[try-ladder: programs/learn/m6-timer-counts-seconds.json]]
+
 ## A counter driving a counter
 
 Bottles go into packs of 6, and packs into cases of 4:

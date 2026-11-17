@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "name": "The coil is TRUE, but does the motor run? A feedback contact",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Run",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "switch: tick keep pressed to ask for the motor"
+    },
+    {
+      "name": "Running",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "the contactor's feedback contact: TRUE when it has really pulled in (you play it)"
+    },
+    {
+      "name": "Motor",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the output that drives the motor's contactor"
+    },
+    {
+      "name": "NoRun",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "an alarm light: the motor was asked to run but did not"
+    },
+    {
+      "name": "Wait",
+      "type": "TON",
+      "comment": "how long the motor has been asked to run without feedback"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The output: Run turns the Motor coil on. This is only what the PLC asks for.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Run",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Motor",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Asked to run, but no feedback: time it.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Motor",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "contact",
+                "tag": "Running",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "box",
+                "instruction": "TON",
+                "instance": "Wait",
+                "operands": {
+                  "PT": "T#2s"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "comment": "After 2 s with no feedback, the NoRun alarm: the fault is on the output side.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Wait.Q",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "NoRun",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

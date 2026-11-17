@@ -23,6 +23,10 @@ So a timer resets every scan when:
 - **its rung loses power every scan**, or flickers: for example, IN comes from a rising-edge contact, TRUE for one scan only; or
 - **the same timer is used by two boxes.** One box, with power, starts it; the other, further down and without power, resets it, in the same scan. Next scan the same again. ET never gets past 0.
 
+See the first on two timers powered by the same button. Hold **Go** down (or tick **keep pressed**) and watch **Inside the PLC**: T2's ET climbs to 2 s and its Q turns TRUE, but T1's ET gets nowhere. T1's rung has a rising-edge contact, green for one scan only; the next scan its box has no power and resets T1. To see the one green scan, let go of Go, press **Pause**, tick **keep pressed** under Go, and press **Step one scan** twice: rung 1 is green after the first, and dark after the second.
+
+[[try-ladder: programs/learn/m11-edge-timer-bug.json]]
+
 The second is the one in this item, and it comes from copy and paste: a rung with a timer box is copied for a second timing job, and the box's timer (T1) is not changed to a new one (T2).
 
 ## A worked example

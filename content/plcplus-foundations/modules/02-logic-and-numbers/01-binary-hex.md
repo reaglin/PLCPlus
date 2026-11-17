@@ -22,6 +22,10 @@ In decimal, each place is worth ten times the place to its right: ones, tens, hu
 
 To read a binary number, add up the places that hold a 1. For example, 1011 0010 has 1s in bits 7, 5, 4 and 1: 128 + 32 + 16 + 2 = **178**.
 
+Try it with the bits below. Click bits **7, 5, 4 and 1** on and check that the decimal reads 178. Then type **37** in the number box and see which bits light: 32 + 4 + 1. Watch the hex line too; the next part explains it.
+
+[[try-number: 8 bits]]
+
 Binary numbers get long, so they are often written in groups of four bits, with a space or an underscore between groups. IEC 61131-3, the PLC programming standard, writes a binary number with `2#` in front: `2#1011_0010`. A textbook may write it as 10110010₂ instead.
 
 ## Decimal to binary, step by step
@@ -81,6 +85,10 @@ IEC writes hex as `16#FF`; you will also see 0xFF (in C and on many drives) and 
 - **An input module as a word.** A 16-point input module reports its inputs as one 16-bit number: input 0 is bit 0, input 15 is bit 15. If inputs 0, 1 and 3 are on, the word is `2#0000_0000_0000_1011`, which is 11, or `16#000B`.
 - **Bits of a tag.** On the lab's Allen-Bradley PLC you can read one bit of an integer tag by its number: `Status.3` is bit 3 of the tag Status.
 - **Status words and fault codes.** A drive or module often reports a word of status bits in hex. `16#0041` is `2#0000_0000_0100_0001`: bits 0 and 6 are on. The manual tells you what each bit means.
+
+Treat these 16 bits as an input module. Turn on bits **0, 1 and 3** (inputs 0, 1 and 3) and check that the word is 11, `16#000B`. Then type **65** and see that it is `16#0041`: bits 0 and 6 on. Turn every bit on to see the largest unsigned 16-bit number, 65,535 or `16#FFFF`.
+
+[[try-number: 16 bits]]
 
 ## Sizes of data
 

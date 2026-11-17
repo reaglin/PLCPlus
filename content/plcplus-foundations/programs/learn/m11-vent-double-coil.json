@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "name": "A double coil: a vent with two coils (the bug)",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "ManualOn",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: run the vent by hand"
+    },
+    {
+      "name": "TooWarm",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "thermostat: TRUE when the room is too warm (you play it)"
+    },
+    {
+      "name": "Vent",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the vent fan"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Rung 1 (the first coil): ManualOn turns Vent on.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "ManualOn",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Vent",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Rung 2 (added later, a SECOND coil of Vent): TooWarm sets Vent too, and, lower down, it has the last word.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "TooWarm",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Vent",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

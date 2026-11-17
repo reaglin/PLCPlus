@@ -29,6 +29,11 @@ On Allen-Bradley, an array is declared with its size, such as a DINT[4], and its
 The number in the brackets is the **index**, and it can be a tag: **FillTime[Recipe]** means "the element whose number is in Recipe". Dial 3 on the Recipe thumbwheel, and FillTime[Recipe] is FillTime[3]. One rung now does the work of four:
 
 *MOVE FillTime[Recipe]* into FillPT, and the fill timer uses FillPT as its preset.
+
+Try an array of three INTs, **Shelf**: its elements Shelf[1], Shelf[2] and Shelf[3] are listed in *Inside the PLC*, all 0 at the start. Set **Slot** (the index) and **Value**, then press **Store**: the number goes into that element only. Fill all three. Then set Slot to 5 and press Store: the compares in front of the MOVE block it, so nothing happens (the section below says why that check matters).
+
+[[try-ladder: programs/learn/m7-array-store.json]]
+
 ## An index outside the array
 
 What is FillTime[7]? It does not exist. Using it is a serious error: on a real PLC it could read or change some other value in memory. So PLC+, like an Allen-Bradley Logix controller, **stops with a fault** (index out of range) the moment the program uses an index outside the array. Every output goes off, and only Reset starts it again.

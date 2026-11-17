@@ -26,6 +26,10 @@ Every rung you write has the same shape: **contacts** on the left that read tags
 
 Put contacts one after the other (**in series**) and power must pass through all of them: that is **AND**. Put them side by side (**in parallel**, a branch) and power can pass through either: that is **OR**.
 
+Try OR on a door chime. Hold **FrontDoor**: the chime sounds. Let go and hold **BackDoor**: it sounds again, because power has a second path through the branch. Rung 2 shows that a contact can read a coil's tag: ChimeLight follows Chime, scan by scan.
+
+[[try-ladder: programs/learn/m5-door-chime.json]]
+
 ## The task
 
 A station has two push buttons (PB1, PB2), a Mode switch and three lights. Light them like this:

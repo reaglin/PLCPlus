@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "name": "Input, output and memory tags",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "CallPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "an input tag (BOOL): a call button, at %IX0.0"
+    },
+    {
+      "name": "Called",
+      "type": "BOOL",
+      "comment": "a memory tag (BOOL): wired to nothing"
+    },
+    {
+      "name": "CallLamp",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "an output tag (BOOL): a lamp, at %QX0.0"
+    },
+    {
+      "name": "Setting",
+      "type": "INT",
+      "io": "input",
+      "comment": "an input tag (INT): a whole number from a thumbwheel"
+    },
+    {
+      "name": "Shown",
+      "type": "INT",
+      "io": "output",
+      "comment": "an output tag (INT): a number display"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "An input tag sets a memory tag.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "CallPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Called",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "The memory tag sets an output tag.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Called",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "CallLamp",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "A whole number (INT) is copied from an input tag to an output tag, every scan.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "box",
+                "instruction": "MOVE",
+                "operands": {
+                  "IN": "Setting",
+                  "OUT": "Shown"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

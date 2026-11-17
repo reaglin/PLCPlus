@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "name": "LT or LE: \"3 or fewer left\"",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Left", "type": "INT", "io": "input", "initial": "6", "comment": "how many cups are left in a stack: type it, or use − and +" },
+    { "name": "WarnLT", "type": "BOOL", "io": "output", "comment": "a lamp driven by LT Left 3" },
+    { "name": "WarnLE", "type": "BOOL", "io": "output", "comment": "a lamp driven by LE Left 3" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "LT (less than): WarnLT lights only at 2 or fewer. At 3 it stays off: one too late for \"3 or fewer\".",
+          "logic": { "kind": "series", "items": [
+            { "kind": "box", "instruction": "LT", "operands": { "IN1": "Left", "IN2": "3" } },
+            { "kind": "coil", "tag": "WarnLT", "coil": "normal" } ] }
+        },
+        {
+          "comment": "LE (less than or equal): WarnLE lights at 3 or fewer, as the rule says.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "box", "instruction": "LE", "operands": { "IN1": "Left", "IN2": "3" } },
+            { "kind": "coil", "tag": "WarnLE", "coil": "normal" } ] }
+        }
+      ]
+    }
+  ]
+}

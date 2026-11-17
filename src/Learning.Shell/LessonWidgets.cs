@@ -26,10 +26,15 @@ internal static class LessonWidgets
                 "ladder" => new ScrollViewer { Content = Ladder(content, w.Argument), HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
                     VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false },
                 "truth-table" => TruthTable(BooleanExpression.Parse(w.Argument)),
+                // Interactive examples (Ron, 2026-11-17).
+                "try-ladder" => TryLadder.Create(content, w.Argument.Trim()),
+                "try-logic" => TryWidgets.Logic(BooleanExpression.Parse(w.Argument)),
+                "try-number" => TryWidgets.Number(w.Argument),
+                "try-circuit" => TryWidgets.Circuit(w.Argument),
                 _ => null,
             };
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or ContentException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or ContentException or ProjectInvalidException or PlcFaultException)
         {
             return null; // shown as "this page asks for … that PLC+ cannot show"
         }

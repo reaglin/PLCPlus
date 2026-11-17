@@ -20,6 +20,10 @@ Open a control panel and you will usually find three kinds of power side by side
 
 How often AC repeats is its **frequency**, measured in **hertz** (Hz): cycles per second. In the United States it is **60 Hz**; in much of the rest of the world it is 50 Hz. A motor or coil made for one may not work properly on the other, which is why the nameplate lists it.
 
+See the difference. The green wave is AC, the blue dashed line is DC. Set the **frequency** to 60 Hz, then 50 Hz, and count how the cycles change in the same tenth of a second. Move the **peak voltage**: 170 V peak is the 120 V AC of a wall socket, because AC's working value is its peak ÷ √2.
+
+[[try-circuit: ac-dc]]
+
 ## The three kinds of power in a panel
 
 | Power | Typical use | Where it comes from |

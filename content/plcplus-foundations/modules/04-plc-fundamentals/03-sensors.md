@@ -37,6 +37,10 @@ A sensor's contacts can be wired **normally open** (the input turns TRUE when it
 
 A broken wire always reads FALSE. So a signal that must stop the machine, such as a Stop button or a safety eye, is wired so that FALSE means "stop". Then a broken wire stops the machine, just as pressing Stop would. That is **failing safe**, and it is why the Stop button and the safety eye in PLC+ are TRUE while all is well. The wiring list under each machine says which way each sensor is wired; read it before you write a contact.
 
+Try the two ways side by side. **LightCurtain** is wired normally closed, so it starts TRUE and MayRun is lit. Press it (someone steps into the opening, or the wire breaks: both make the input FALSE) and MayRun goes out. **HotSwitch** is wired normally open: hold it (too hot) and HotAlarm lights. But if its wire broke, the input would read FALSE, exactly as it does now with nothing pressed, and the alarm could never light.
+
+[[try-ladder: programs/learn/m4-fail-safe.json]]
+
 ## Two-wire and three-wire sensors
 
 A limit switch or float switch is just a contact: two wires, in series with the input. Electronic sensors such as a prox or a photo eye need power to run, so most are **three-wire**: +24 V, 0 V, and an output wire to the input point. The output is either PNP (sourcing) or NPN (sinking), and must match the input module (item 4.2). Some electronic sensors are two-wire, wired in series like a switch; they let a small current through even when off, which can confuse some input modules.

@@ -29,6 +29,10 @@ Each box has two inputs, **IN1** and **IN2**: a tag or a number you type. The bo
 
 Like contacts, compares can be put **in series** (both must be true: AND) or **in parallel** (either one: OR). Two compares in series test a range: *GT Count 0* then *LT Count 10* passes power while the count is 1 to 9.
 
+Try it: type a **Speed** in the box and press Enter, or use − and +. **TooFast** lights from 101 up (at exactly 100 it is not *greater* than 100). **InRange** lights from 40 to 60: both compares must pass, so watch power flow through the first box and stop at the second when Speed is over 60.
+
+[[try-ladder: programs/learn/m7-compare-range.json]]
+
 ## Where the numbers come from
 
 - **A thumbwheel** on the machine: the operator dials a number, and the PLC reads it as an INT tag (a whole number).
@@ -47,6 +51,10 @@ Why LE 0 and not EQ 0? If someone presses Part used once too often, a down count
 ## Choose < or ≤ with care
 
 The most common compare mistake is to pick "less than" where you meant "less than or equal". With Warn at 3, *LT C1.CV 3* waits until only 2 parts are left: the warning comes one part late. Say the rule in words first ("lit when 3 or fewer are left"), and the words choose the box: "or fewer" is LE.
+
+Try it: the rule is "warn when 3 or fewer are left". **Left** starts at 6: press − one at a time. **WarnLE** lights at 3, as the rule says; **WarnLT** waits until 2, one too late.
+
+[[try-ladder: programs/learn/m7-lt-or-le.json]]
 
 The same goes for equal. **EQ** is true at exactly one value, so a count that jumps past it, or keeps going, is missed. When a count reaches a target, use **GE**, not EQ.
 

@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "name": "Set and reset, beside a normal coil",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "SetPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "a push button on the set rung"
+    },
+    {
+      "name": "ResetPB",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "a push button on the reset rung"
+    },
+    {
+      "name": "Latched",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "set and reset: stays on until reset"
+    },
+    {
+      "name": "Follows",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "a normal coil: on only while SetPB is held"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Set: SetPB turns Latched on, and it stays on.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "SetPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Latched",
+                "coil": "set"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Reset: ResetPB turns Latched off. This rung is lower, so if both are pressed it wins.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "ResetPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Latched",
+                "coil": "reset"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "A normal coil, for comparison: Follows is on only while power reaches it.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "SetPB",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Follows",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -280,7 +280,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
     /// <summary>
     /// A table of values: most of its cells are TRUE/FALSE, numbers, binary or hex, times and voltages, or marks, not words.
     /// </summary>
-    private static bool IsTableOfValues(IEnumerable<TableRow> rows)
+    private bool IsTableOfValues(IEnumerable<TableRow> rows)
     {
         var cells = rows.SelectMany(r => r.Cells.Select(CellText)).Where(c => c.Length > 0).ToList();
         if (cells.Count == 0) return false;
@@ -292,10 +292,61 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
 
     private static bool IsValue(string cell) => ValuePattern().IsMatch(cell.Trim());
 
-    private static string CellText(TableCell cell) =>
+    private string CellText(TableCell cell) =>
         string.Join(" ", cell.Blocks.OfType<Paragraph>().Select(PlainText)).Trim();
 
-    private static string PlainText(Paragraph p) => NoteMark().Replace(new TextRange(p.ContentStart, p.ContentEnd).Text, "").Trim();
+    private string PlainText(Paragraph p) =>
+        NoteMark().Replace(new TextRange(p.ContentStart, _readLink?.Parent == p ? _readLink.ElementStart : p.ContentEnd).Text, "").Trim();
+
+    /// <summary>The Read link's and the Read aloud button's tooltip before reading (one wording for both).</summary>
+    public const string ReadTip = "Reads this page aloud, the part being read (a paragraph, or a row of a table) marked in amber (Ctrl+Shift+A)";
+
+    // ---- The Read link beside the page's title (Ron, 2026-11-17) ---------------------------------------------
+
+    /// <summary>
+    /// Whether the page's title (its first heading) has a 🔊 Read link just to its right, which reads the page aloud (Ron,
+    /// 2026-11-17: "in Learn add a Read Link that can read the text out loud. Put it just to the right of the title"). While
+    /// reading it says ⏸ Pause, and when paused ▶ Go on (<see cref="SetReadLink"/>). The Reader does not read the link's words.
+    /// </summary>
+    public bool ShowReadLink { get; set; }
+
+    /// <summary>The Read link was clicked: read, pause or go on, as the 🔊 Read aloud button does.</summary>
+    public event Action? ReadLinkClicked;
+
+    private Hyperlink? _readLink;
+    private Run? _readLinkWords;
+    private (string Text, string Tip) _readLinkState = ("🔊 Read", ReadTip);
+
+    /// <summary>The Read link's words and tooltip: 🔊 Read, ⏸ Pause or ▶ Go on.</summary>
+    public void SetReadLink(string text, string tip)
+    {
+        _readLinkState = (text, tip);
+        if (_readLink is null || _readLinkWords is null) return;
+        _readLinkWords.Text = text;
+        _readLink.ToolTip = tip;
+        System.Windows.Automation.AutomationProperties.SetName(_readLink, (text.Contains("Pause") ? "Pause reading" : text.Contains("Go on") ? "Go on reading" : "Read this page aloud"));
+    }
+
+    private void AddReadLink(FlowDocument document)
+    {
+        _readLink = null;
+        _readLinkWords = null;
+        if (!ShowReadLink) return;
+        if (document.Blocks.OfType<Paragraph>().FirstOrDefault(p => p.FontSize > 14.5) is not { } title) return;
+        _readLinkWords = new Run(_readLinkState.Text);
+        _readLink = new Hyperlink(_readLinkWords)
+        {
+            FontSize = 15, FontWeight = FontWeights.Normal, Cursor = Cursors.Hand,
+            BaselineAlignment = BaselineAlignment.Center,
+        };
+        _readLink.SetResourceReference(TextElement.ForegroundProperty, "AccentBrush");
+        _readLink.Click += (_, _) => ReadLinkClicked?.Invoke();
+        title.Inlines.Add(_readLink);
+        SetReadLink(_readLinkState.Text, _readLinkState.Tip);
+        // A little room between the title and the link, inside the link so the Reader stops before it.
+        // The space is outside the underline: only the words are the link's look.
+        title.Inlines.InsertBefore(_readLink, new Run("\u2003"));
+    }
 
     /// <summary>The page's words to read aloud, in order (see <see cref="_units"/>), with ladder symbols said as words.</summary>
     public IReadOnlyList<string> ReadableBlocks => [.. _units.Select(u => Spoken(u.Text()))];
@@ -542,6 +593,7 @@ public sealed partial class MarkdownView : FlowDocumentScrollViewer
 
         Document = document;
         MarkTerms(document);
+        AddReadLink(document);
         _units.Clear();
         _reading = null;
         (_lastHeading, _justBefore) = (null, null);

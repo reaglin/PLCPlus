@@ -21,6 +21,10 @@ That one idea does a lot of work:
 - **Take a snapshot**: with a push button in front, MOVE copies only while the button is pressed, and the copy then stays put.
 - **Choose between values**: two MOVEs into the same tag, each with its own contact, so only one runs.
 
+Try a snapshot: change **Dial**, then press **Take**: **Kept** copies it. Now change Dial again without pressing Take: Kept keeps the number it was given, because with no power the MOVE does nothing.
+
+[[try-ladder: programs/learn/m7-move-snapshot.json]]
+
 ## Two MOVEs into one tag
 
 Rungs run top to bottom, and a tag holds whatever was written to it last. If two MOVEs with no contacts write to the same tag, both run on every scan and the **lower one always wins**. To choose, give each a condition that cannot be true at the same time as the other's: a normally closed contact of a switch on one rung, and a normally open contact of the same switch on the other.
@@ -45,6 +49,10 @@ When MOVE (or a math box) writes into a tag of another type, PLC+ **converts** t
 
 - a REAL into an INT is **rounded** to the nearest whole number (2.7 becomes 3; exactly .5 goes to the even number, so 2.5 becomes 2);
 - a number too big for an INT **wraps round**, as in item 7.2, without any warning.
+
+Try both: **Reading** is a REAL, starting at 2.5, and **Whole** is an INT: press + and − (they step by 0.5) and watch 2.5 give 2, 3 give 3 and 3.5 give 4. **Big** is a DINT: type 32767 in its box and press Enter, and **Small** (an INT) shows 32767. Press + once: Big is 32768, but Small shows −32768.
+
+[[try-ladder: programs/learn/m7-move-types.json]]
 
 IEC 61131-3 PLCs ask you to write the conversion yourself, such as REAL_TO_INT; Allen-Bradley's MOV converts by itself, as PLC+ does. Either way, check that the number fits where it goes.
 

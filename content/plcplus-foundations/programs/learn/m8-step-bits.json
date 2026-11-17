@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "name": "Two steps, one memory bit each: a coffee machine",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Go",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: starts a cup"
+    },
+    {
+      "name": "CupFull",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "sensor: TRUE when the cup is full (you play the sensor)"
+    },
+    {
+      "name": "HotEnough",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "sensor: TRUE when the coffee is hot (you play the sensor)"
+    },
+    {
+      "name": "FillValve",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "on in step 1"
+    },
+    {
+      "name": "Heater",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "on in step 2"
+    },
+    {
+      "name": "Step1",
+      "type": "BOOL",
+      "comment": "step 1: fill the cup"
+    },
+    {
+      "name": "Step2",
+      "type": "BOOL",
+      "comment": "step 2: heat it"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Step 1, fill: Go starts it, its own contact holds it, and step 2 ends it.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Go",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "Step2",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Step1",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step 2, heat: starts when step 1 is on AND CupFull says step 1 has finished; held by its own contact; ended by HotEnough (the last step).",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step1",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "CupFull",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "Step2",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "HotEnough",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "Step2",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Output: the fill valve is open in step 1.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Step1",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "FillValve",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Output: the heater is on in step 2.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Step2",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "Heater",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

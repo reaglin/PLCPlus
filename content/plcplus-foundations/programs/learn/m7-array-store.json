@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "name": "An array: store a number in the slot you choose",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Slot", "type": "INT", "io": "input", "initial": "1", "comment": "the index: which element of Shelf, 1 to 3" },
+    { "name": "Value", "type": "INT", "io": "input", "initial": "25", "comment": "the number to store" },
+    { "name": "Store", "type": "BOOL", "io": "input", "comment": "a push button: stores Value in Shelf[Slot]" },
+    { "name": "Shelf", "type": "ARRAY[1..3] OF INT", "comment": "three INTs, Shelf[1] to Shelf[3]" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "The compares check the index first: only for Slot 1 to 3 does Store copy Value into Shelf[Slot]. Any other Slot does nothing.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Store", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "GE", "operands": { "IN1": "Slot", "IN2": "1" } },
+            { "kind": "box", "instruction": "LE", "operands": { "IN1": "Slot", "IN2": "3" } },
+            { "kind": "box", "instruction": "MOVE", "operands": { "IN": "Value", "OUT": "Shelf[Slot]" } } ] }
+        }
+      ]
+    }
+  ]
+}

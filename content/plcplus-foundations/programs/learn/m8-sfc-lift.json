@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "name": "A chart's steps as bits: a small lift",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "Call",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "push button: calls the lift"
+    },
+    {
+      "name": "AtTop",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "sensor: TRUE when the lift is at the top (you play it)"
+    },
+    {
+      "name": "AtBottom",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "sensor: TRUE when the lift is at the bottom (you play it)"
+    },
+    {
+      "name": "MotorUp",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the N action of S1"
+    },
+    {
+      "name": "MotorDown",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the N action of S2"
+    },
+    {
+      "name": "S0",
+      "type": "BOOL",
+      "initial": "TRUE",
+      "comment": "the initial step (double box): starts TRUE"
+    },
+    {
+      "name": "S1",
+      "type": "BOOL",
+      "comment": "step S1: going up"
+    },
+    {
+      "name": "S2",
+      "type": "BOOL",
+      "comment": "step S2: going down"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "Step S0, the initial step (its tag starts TRUE): entered by the transition AtBottom after S2; ended when S1 starts.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S2",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "AtBottom",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S0",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "S1",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "S0",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step S1, up. Transition into it: S0 active AND Call.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S0",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "Call",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S1",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "S2",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "S1",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Step S2, down. Transition into it: S1 active AND AtTop.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S1",
+                        "contact": "normallyOpen"
+                      },
+                      {
+                        "kind": "contact",
+                        "tag": "AtTop",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "series",
+                    "items": [
+                      {
+                        "kind": "contact",
+                        "tag": "S2",
+                        "contact": "normallyOpen"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "contact",
+                "tag": "S0",
+                "contact": "normallyClosed"
+              },
+              {
+                "kind": "coil",
+                "tag": "S2",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Action of S1 (qualifier N): the motor up, while S1 is active.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "S1",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "MotorUp",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "Action of S2 (qualifier N): the motor down, while S2 is active.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "S2",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "MotorDown",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

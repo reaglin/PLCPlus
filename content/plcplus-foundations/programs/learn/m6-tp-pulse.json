@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "name": "A pulse timer: one 3-second beep per press",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    { "name": "Press", "type": "BOOL", "io": "input", "comment": "a push button: the timer's input (IN)" },
+    { "name": "Beeper", "type": "BOOL", "io": "output", "comment": "a lamp: the beeper (Q)" },
+    { "name": "T1", "type": "TP", "comment": "the pulse timer, preset 3 s" }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "When Press turns on, T1.Q turns on for exactly 3 s, whatever Press does after that.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "Press", "contact": "normallyOpen" },
+            { "kind": "box", "instruction": "TP", "instance": "T1", "operands": { "PT": "T#3s" } } ] }
+        },
+        {
+          "comment": "The beeper sounds while T1.Q is on.",
+          "logic": { "kind": "series", "items": [
+            { "kind": "contact", "tag": "T1.Q", "contact": "normallyOpen" },
+            { "kind": "coil", "tag": "Beeper", "coil": "normal" } ] }
+        }
+      ]
+    }
+  ]
+}

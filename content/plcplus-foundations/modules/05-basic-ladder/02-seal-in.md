@@ -37,6 +37,10 @@ The motor's coil needs power while *(Start OR Motor) AND Stop*:
 
 A second rung lights RunLight while Motor is on.
 
+Why must Stop come *after* the branch? Here is a fan written the wrong way, with its stop button inside the branch, in series with Start only. Press **FanOn** and let go: the fan runs, sealed in. Now press **FanOff**: the fan keeps running, because the Fan contact on the lower path goes round FanOff. Stop does not win. Press **Reset** to stop it.
+
+[[try-ladder: programs/learn/m5-stop-in-branch.json]]
+
 ## How to do it
 
 **First, the Example tab:** a *different* machine, a pump, running the same idea, with an overload relay in series as well. Its *A common mistake* (choose it in **Program**, above the machine) is the one students make most often: a normally *closed* contact for Stop, because the button is "a stop button". Press Start on it and see what happens; the Reference tab explains why. Then write your own program for the motor:

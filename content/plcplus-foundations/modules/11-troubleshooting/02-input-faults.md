@@ -29,6 +29,10 @@ A stuck sensor and a bad wire look exactly the same from the PLC. You tell them 
 
 A Stop button is wired **normally closed** so that its input is TRUE while all is well. If that wire breaks, the input goes FALSE, and the machine stops or will not start: it **fails safe**. But a short on a Stop input makes it TRUE for ever, and Stop no longer stops anything. That is why emergency stops are wired straight into the power circuit as well, never only through a PLC input.
 
+See it on a saw whose **SawStop** is wired normally closed. Press **SawStart**, then **SawStop**: it stops, as it should. Now tick **keep pressed** under SawStop. To the PLC that is exactly what a broken wire looks like: the input is FALSE for good. Press **SawStart**: the saw will not start. The machine has failed safe, and the clue is on the rung: SawStop reads FALSE though nobody is pressing it.
+
+[[try-ladder: programs/learn/m11-saw-stop.json]]
+
 ## Finding an input fault
 
 1. **Find the output that misbehaves**, and read its rung.

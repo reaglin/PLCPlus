@@ -27,6 +27,10 @@ Follow one signal, from the machine to the program:
 
 An output runs the other way: the program sets a tag, the processor sends it to an output point, and the module switches voltage to the field device on that point's terminal.
 
+Follow one signal yourself. **PartSensor** is wired to input point 0 and PartLamp to output point 0. Hold **PartSensor** down: its tag turns TRUE, the rung passes power, and the PartLamp tag turns TRUE, which lights the lamp on output point 0.
+
+[[try-ladder: programs/learn/m4-input-to-output.json]]
+
 Most modules have a **status LED** for each point. An input LED lit means there is voltage at that terminal. An output LED lit means the program has told the point to turn on. It does not prove the device got power: a blown fuse or a broken wire beyond the terminal still leaves the device off. Checking the LED first, then the wire, is the start of most troubleshooting.
 
 ## Voltages

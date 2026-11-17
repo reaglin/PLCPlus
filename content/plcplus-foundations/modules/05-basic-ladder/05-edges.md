@@ -24,6 +24,10 @@ Sometimes a program must act **once**, at the moment a signal changes, not all t
 
 On the Allen-Bradley PLC a one-shot (**ONS**) after a contact does the same job.
 
+One scan is far too quick to see, so go one scan at a time. Press **Pause**, tick **keep pressed** under **Button**, and press **Step one scan**: RisePulse (under *Inside the PLC*) is TRUE, and Held lights. Press **Step one scan** again: RisePulse is FALSE, though Held stays on. Untick **keep pressed** and step: FallPulse is TRUE for that one scan, then FALSE on the next.
+
+[[try-ladder: programs/learn/m5-edges.json]]
+
 ## The task
 
 A conveyor carries metal and plastic parts. A proximity sensor (Prox) sees metal; further along, a photo eye (Eye) sees every part, and beside it a diverter (Divert) can push a part into Bin A. Metal parts go to Bin A; plastic parts ride on to Bin B. Start and Stop run the belt with a seal-in (from 5.2).

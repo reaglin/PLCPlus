@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "name": "A door chime: two buttons in parallel",
+  "dialect": "iec61131-3",
+  "scanTimeMs": 10,
+  "tags": [
+    {
+      "name": "FrontDoor",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "the front door's bell button"
+    },
+    {
+      "name": "BackDoor",
+      "type": "BOOL",
+      "io": "input",
+      "comment": "the back door's bell button"
+    },
+    {
+      "name": "Chime",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "the chime"
+    },
+    {
+      "name": "ChimeLight",
+      "type": "BOOL",
+      "io": "output",
+      "comment": "a light that shows the chime is sounding"
+    }
+  ],
+  "programs": [
+    {
+      "name": "Main",
+      "rungs": [
+        {
+          "comment": "FrontDoor OR BackDoor: the two contacts are in parallel, so either one sounds the chime.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "parallel",
+                "branches": [
+                  {
+                    "kind": "contact",
+                    "tag": "FrontDoor",
+                    "contact": "normallyOpen"
+                  },
+                  {
+                    "kind": "contact",
+                    "tag": "BackDoor",
+                    "contact": "normallyOpen"
+                  }
+                ]
+              },
+              {
+                "kind": "coil",
+                "tag": "Chime",
+                "coil": "normal"
+              }
+            ]
+          }
+        },
+        {
+          "comment": "A contact can read a coil's tag: the light follows Chime.",
+          "logic": {
+            "kind": "series",
+            "items": [
+              {
+                "kind": "contact",
+                "tag": "Chime",
+                "contact": "normallyOpen"
+              },
+              {
+                "kind": "coil",
+                "tag": "ChimeLight",
+                "coil": "normal"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

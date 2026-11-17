@@ -52,6 +52,10 @@ The chart maps straight onto what you wrote in this module:
 
 The Example tab runs the parts washer written this way: one BOOL per step, S0 to S4, S0 starting TRUE. (My program cannot give a tag a starting value yet; the Example's program has one.)
 
+Try a chart of three steps first, a small lift: S0 (initial) → *Call* → S1 Up (N: MotorUp) → *AtTop* → S2 Down (N: MotorDown) → *AtBottom* → back to S0. You play the sensors with **AtTop** and **AtBottom**. Under **Inside the PLC**, S0 is TRUE before you press anything: it is the initial step. Press **Call**: the transition fires, S1 becomes active and S0 inactive, and the MotorUp lamp is its N action. Press **AtBottom** now: nothing, because a transition fires only when the step before it is active. Then **AtTop**, then **AtBottom**, and S0 is active again.
+
+[[try-ladder: programs/learn/m8-sfc-lift.json]]
+
 [[ladder: programs/m8-parts-washer-sfc.json]]
 
 ## Try it

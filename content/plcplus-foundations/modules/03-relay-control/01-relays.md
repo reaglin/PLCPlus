@@ -16,6 +16,10 @@ A **relay** is a switch worked by electricity. It has two parts:
 
 When the coil is energized, every contact it owns changes over at once. A **normally open** (NO) contact is open while the coil is off and closes when it is energized. A **normally closed** (NC) contact is the other way round: closed while the coil is off, open when it is energized. "Normally" means *with the coil off*.
 
+Try it on a relay with one of each. Hold **CoilSwitch** down to energize the coil and watch both lamps change at the same moment: LampNO comes on and LampNC goes out. Let go and they change back.
+
+[[try-ladder: programs/learn/m3-relay-contacts.json]]
+
 A **contactor** is a heavy-duty relay. Its coil is worked by a small control voltage (often 24 V DC or 120 V AC), and its main contacts switch the large current a motor needs. One small signal controls a big load, safely away from the operator's hands.
 
 | Part | What it does | Drawn as |
