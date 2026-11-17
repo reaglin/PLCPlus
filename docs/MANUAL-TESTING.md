@@ -15,7 +15,7 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ## Hand-test 15 — Pop out for every tab (plan 13.11), 2026-11-15
 
-**On the branch `my-notes`**, `manual-test-notes\PLCPlus.exe`.
+**On `main`** (merged from `my-notes` 2026-11-17), `manual-test\PLCPlus.exe`.
 
 1. Open 5.2, Learn. Press **⤢ Pop out** (above the tabs, beside Read aloud): the lesson fills the screen, with 5.2's name, "Learn",
    🔊 Read aloud and Put it back at the top. Read aloud works there (the amber mark follows); Esc stops reading, Esc again puts it back.
@@ -33,7 +33,7 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ## Hand-test 14 — Review, In this item, the Glossary and the Reader (plan 13.9), 2026-11-15
 
-**On the branch `my-notes`**, `manual-test-notes\PLCPlus.exe`, with test learners as in hand-test 12. The content is an example:
+**On `main`** (merged from `my-notes` 2026-11-17), `manual-test\PLCPlus.exe`, with test learners as in hand-test 12. The content is an example:
 module 5 has takeaways and key terms, 5.1 and 5.2 have self-tests, and the glossary has 34 terms for modules 1–5.
 
 1. **In this item.** Open 5.2: above the lesson, the objective, about 40 minutes, and the key terms as buttons. Point at one: its
@@ -56,8 +56,8 @@ Answered 2026-11-15: the Windows voice first, with the choice to change (Google 
 
 ## Hand-test 13 — the notes tab, Ask the AI, the Laboratory tab, my course's links (plan 13.3–13.6), 2026-11-15
 
-**On the branch `my-notes`.** The build is **`manual-test-notes\PLCPlus.exe`**; use a test folder of learners as in hand-test 12:
-`$env:PLCPLUS_DATA = "$env:TEMP\plcplus-notes-test"; .\manual-test-notes\PLCPlus.exe`.
+**On `main`** (merged from `my-notes` 2026-11-17). The build is **`manual-test\PLCPlus.exe`**; use a test folder of learners as in hand-test 12:
+`$env:PLCPLUS_DATA = "$env:TEMP\plcplus-notes-test"; .\manual-test\PLCPlus.exe`.
 
 1. **The ✎ after a paragraph.** Open 5.2. Right-click the paragraph "The motor station has a Start button…" ▸ Add a note to this
    paragraph…: a small window shows the paragraph's words. Type a note, Add note (or Ctrl+Enter). The paragraph ends with a ✎;
@@ -85,11 +85,10 @@ Tell me what to change, and whether the AI should be on or off by default for a 
 
 ## Hand-test 12 — My notes, and PLC+ on the shared Learning Core (plan 13.1, 13.2), 2026-11-15
 
-**On the branch `my-notes`, not the 1.0 release.** Its build is in **`manual-test-notes\PLCPlus.exe`** (the 1.0 build in
-`manual-test\` is untouched). Rebuild it with the command above and `-o manual-test-notes`.
+**On `main`** (the branch `my-notes` was merged 2026-11-17). Its build is in **`manual-test\PLCPlus.exe`**, rebuilt with the command above.
 
 **Use a test folder of learners**, so your real learners are not opened by a version that is not released:
-in PowerShell, `$env:PLCPLUS_DATA = "$env:TEMP\plcplus-notes-test"; .\manual-test-notes\PLCPlus.exe`, then press New learner.
+in PowerShell, `$env:PLCPLUS_DATA = "$env:TEMP\plcplus-notes-test"; .\manual-test\PLCPlus.exe`, then press New learner.
 (A learner's file with notes, opened later in PLC+ 1.0, would lose the notes when 1.0 saves it: 1.0 does not know them. From
 Learning Core 1.3.0 on, a version keeps what a newer one wrote.)
 
