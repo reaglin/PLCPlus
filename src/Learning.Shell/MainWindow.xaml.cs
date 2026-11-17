@@ -1298,7 +1298,7 @@ public partial class MainWindow : Window
         }
         var back = new Button
         {
-            Content = "Close", Margin = new Thickness(0),
+            Content = "C_lose", Margin = new Thickness(0),
             ToolTip = $"Closes this window and puts the {name} tab back in the main window, as it is now (or press Esc)",
         };
         back.Click += (_, _) => win.Close();

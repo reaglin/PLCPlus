@@ -93,7 +93,7 @@ public partial class MachineWorkspace : UserControl
         {
             _poppedOut = value;
             // A question page can hold two machines: no access keys there, so Alt+O does not jump between them.
-            PopOutButton.Content = _fault is not null ? (value ? "Close" : "Pop out") : value ? "Close" : "Pop _out";
+            PopOutButton.Content = _fault is not null ? (value ? "Close" : "Pop out") : value ? "C_lose" : "Pop _out";
             PopOutButton.ToolTip = value
                 ? "Closes this window and puts the program and the machine back in the main window, as they are now (or press Esc)."
                 : "Opens the program and the machine in a window of their own, which you can make as big as you like. Close it (or press Esc) to return here.";
