@@ -94,6 +94,13 @@ def widgets(md_text, up):
                        f'<figcaption>Drawn by PLC+ as on the Example tab (not running).</figcaption></figure>\n')
         elif m.group(1) == 'truth-table':
             out.append('\n' + truth_table(m.group(2)) + '\n')
+        elif m.group(1).startswith('try-'):
+            # The interactive examples (plan 13.14) run only in PLC+: say what is there.
+            what = {'try-ladder': 'a small program running live (hold its buttons, watch power flow, timers and counters)',
+                    'try-logic': f'switch the inputs of {m.group(2)} and watch the result and its truth-table row',
+                    'try-number': f'click bits on and off ({m.group(2)}): decimal, binary, hex and BCD',
+                    'try-circuit': f'move the sliders ({m.group(2)}): current, voltages and power'}.get(m.group(1), 'an interactive example')
+            out.append(f'\n<aside class="note"><strong>▶ Try it in PLC+:</strong> {html.escape(what)}.</aside>\n')
     return '\n'.join(out)
 
 
