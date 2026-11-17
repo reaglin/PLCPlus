@@ -41,9 +41,7 @@ A TONR with PT T#10s. The pump runs from 0 to 4 s, stops, runs again from 6 s, a
 
 4 s plus 6 s make 10 s, so Q turns on at 12 s. A TON in the same place would have started again from 0 at 6 s, and finished at 16 s, *if* the pump were still running.
 
-Try it: the same button, **Run**, drives a TON (T1) and a TONR (T2), both with PT 5 s. Hold **Run** for about 2 s and let go: T1's ET goes back to 0, but T2's ET stays at 2 s. Hold it again for 3 s more: **TonrDone** lights, because T2 has 5 s in all, while **TonDone** stays off. Let go: TonrDone stays lit until you press **Clear**. To light TonDone, hold Run for 5 s in one go.
-
-[[try-ladder: programs/learn/m6-ton-vs-tonr.json]]
+[[see-example: 1]]
 
 ## Worked example: an oven that pauses
 
@@ -70,3 +68,9 @@ On a real PLC a retentive timer also keeps its time when the PLC is switched off
 1. Open the **Example** tab: the oven. Turn **Bake** to On and watch T1's ET count. Turn **Oven door** to Open part-way: the heater goes off and ET stays put. Shut it again: ET carries on. Done lights after 8 s of heat; press **Clear** to clear it. Then choose *A common mistake* in **Program**, above the machine: it uses a TON. Open the door and watch ET go back to 0.
 2. Open the **Exercise** tab: a pump with a **Service due** light. Write the pump's seal-in first (module 5). Then add **Box ▾ ▸ Timers ▸ TONR** on a rung of its own, with a contact of Pump before it, PT T#10s, and the right tag in **R**.
 3. Press **Check my program**. One test runs the pump twice, 4 s and then 6 s, and expects Service due at the moment the total reaches 10 s.
+
+[[example: TON and TONR side by side]]
+
+Try it: the same button, **Run**, drives a TON (T1) and a TONR (T2), both with PT 5 s. Hold **Run** for about 2 s and let go: T1's ET goes back to 0, but T2's ET stays at 2 s. Hold it again for 3 s more: **TonrDone** lights, because T2 has 5 s in all, while **TonDone** stays off. Let go: TonrDone stays lit until you press **Clear**. To light TonDone, hold Run for 5 s in one go.
+
+[[try-ladder: programs/learn/m6-ton-vs-tonr.json]]

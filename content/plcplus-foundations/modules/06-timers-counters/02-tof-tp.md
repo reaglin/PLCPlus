@@ -35,9 +35,7 @@ A TOF with PT T#4s; IN on at 1 s, off at 3 s:
 
 Q goes off PT after IN goes off: 3 s + 4 s = 7 s.
 
-Try it: this TOF keeps a motor's **CoolingFan** running for 4 s after the motor stops. Hold **Motor** down: the fan comes on at once and ET stays at 0. Let go and watch ET count up in *Inside the PLC*; the fan goes off when it reaches 4 s. Press **Motor** again before then, and the fan simply stays on.
-
-[[try-ladder: programs/learn/m6-tof-run-on.json]]
+[[see-example: 1]]
 
 ## The pulse timer, TP
 
@@ -58,9 +56,7 @@ A TP with PT T#5s. The button is pressed at 1 s and **held** until 8 s:
 | 6 s | TRUE | **FALSE**: 5 s are up, even though IN is still on |
 | 8 s | FALSE | FALSE |
 
-Try it: tap **Press** quickly, and the **Beeper** lamp stays on for 3 s. Then tick **keep pressed**: the beeper still goes off after 3 s, though Press is still on. Untick it and press again for the next pulse. (A TON would do the opposite: nothing for 3 s, then on for as long as you hold.)
-
-[[try-ladder: programs/learn/m6-tp-pulse.json]]
+[[see-example: 2]]
 
 ## Choosing the timer
 
@@ -82,3 +78,15 @@ The lab's PLC has **TOF** too, with the same .PRE, .ACC and .DN as its TON: .DN 
 2. Open the **Exercise** tab: a heater and its exhaust fan. The fan runs while the heater is on and for 5 s after; each press of **Purge** runs it for exactly 3 s. Which timer does each job? The table *Choosing the timer* above helps; the timers are in **Box ▾ ▸ Timers**.
 3. Two timers, but only one Fan coil (two coils of one tag fight each other). When should the fan run, in words? Then build that sentence on the Fan's rung.
 4. Press **Check my program**. Two tests check the moment the fan stops, to within 0.05 s, and one holds Purge down for 5.5 s.
+
+[[example: A TOF: the fan runs on]]
+
+Try it: this TOF keeps a motor's **CoolingFan** running for 4 s after the motor stops. Hold **Motor** down: the fan comes on at once and ET stays at 0. Let go and watch ET count up in *Inside the PLC*; the fan goes off when it reaches 4 s. Press **Motor** again before then, and the fan simply stays on.
+
+[[try-ladder: programs/learn/m6-tof-run-on.json]]
+
+[[example: A TP: a 3-second beep]]
+
+Try it: tap **Press** quickly, and the **Beeper** lamp stays on for 3 s. Then tick **keep pressed**: the beeper still goes off after 3 s, though Press is still on. Untick it and press again for the next pulse. (A TON would do the opposite: nothing for 3 s, then on for as long as you hold.)
+
+[[try-ladder: programs/learn/m6-tp-pulse.json]]

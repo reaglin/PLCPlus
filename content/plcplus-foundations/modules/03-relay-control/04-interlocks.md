@@ -8,7 +8,6 @@ example: u5.reversing-conveyor
 reference: [interlocks]
 ---
 
-
 # Interlocks
 
 Some outputs must never be on together. A motor that runs a door up or down has two contactors: one for each direction. Energize both and the motor is shorted across two phases. Something will burn.
@@ -20,14 +19,18 @@ An **interlock** stops that. Each direction's rung has a normally closed contact
 
 So whichever starts first locks the other out. In a relay panel this is often done twice: in the wiring (*electrical interlock*) and with a mechanical bar between the two contactors (*mechanical interlock*), because a welded contact could defeat the first.
 
-Try it on a hoist that runs only while its button is held. Tick **keep pressed** under **RaisePB**: HoistUp comes on. Now hold **LowerPB** as well: HoistDown stays off, because the normally closed HoistUp contact on its rung is open. Keep holding LowerPB and untick **keep pressed** under RaisePB: HoistUp goes off, and HoistDown comes on straight away. The two lamps are never on together.
-
-[[try-ladder: programs/learn/m3-interlock.json]]
+[[see-example: 1]]
 
 Each direction also needs to stop on its own at the end of its travel. A **limit switch** at the top and one at the bottom do that: each is a normally closed contact in its direction's rung, so reaching the limit breaks the rung.
 
-## Try it
+## Practise
 
 The **Example** tab runs a conveyor motor that can run forward or in reverse: two seal-ins, one per direction, each with an interlock. Press Forward, then press Reverse while it is still running: nothing happens until you press Stop. Choose *A common mistake* in Program to see the same circuit without the interlocks: press Forward, then Reverse, and read what the motor says.
 
 In module 5 you will write an interlocked program yourself, for a garage door, with limit switches as well.
+
+[[example: An interlocked hoist]]
+
+Try it on a hoist that runs only while its button is held. Tick **keep pressed** under **RaisePB**: HoistUp comes on. Now hold **LowerPB** as well: HoistDown stays off, because the normally closed HoistUp contact on its rung is open. Keep holding LowerPB and untick **keep pressed** under RaisePB: HoistUp goes off, and HoistDown comes on straight away. The two lamps are never on together.
+
+[[try-ladder: programs/learn/m3-interlock.json]]

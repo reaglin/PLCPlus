@@ -55,6 +55,6 @@ Only when the verify step shows zero energy is the machine safe to work on. Remo
 
 Never open or work in a live panel unless you are **qualified**, have been **trained** for that task, are **permitted** by your employer or instructor, and wear the protective equipment the task calls for. In PLC+ you never need to: the machines are simulated. In the lab, your instructor decides what may be done with power on.
 
-## Try it
+## Practise
 
 Open the **Exercise** tab and answer its practice questions: the LOTO steps in order, live-dead-live, and what an e-stop does and does not do. The Reference tab has the lockout/tagout steps on one page.

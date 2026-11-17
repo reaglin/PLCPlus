@@ -9,7 +9,6 @@ example: u5.push-on-push-off
 reference: [tags]
 ---
 
-
 # Tags and addresses
 
 Every value a program uses has a place in the PLC's memory. An **address** says *where* that place is: which module, which point. A **tag** gives it a *name* people can read. `Local:1:I.Data.0` is an address; **Start** is a tag. A program written with good tag names reads almost like the brief.
@@ -38,9 +37,7 @@ Each tag has a **data type**: what kind of value it holds and how much memory it
 
 Every discrete input and output is a BOOL. Allen-Bradley's Logix controllers use DINT for most whole numbers, and their timers keep the preset as a DINT number of milliseconds instead of a TIME.
 
-See the kinds and the types in one small program. Hold **CallPB** (an input tag): Called, a memory tag listed under *Inside the PLC* because it is wired to nothing, turns TRUE, and then CallLamp (an output tag) lights. **Setting** is an INT input: type a whole number in its box and press Enter, or use − and +, and the INT output Shown takes the same number.
-
-[[try-ladder: programs/learn/m4-tag-kinds.json]]
+[[see-example: 1]]
 
 ## Addresses on different PLCs
 
@@ -67,6 +64,12 @@ Micro800 controllers name their built-in points another way again, such as `_IO_
 - Be consistent: PB for push buttons, a noun for an output (**FillValve**).
 - No spaces. Many PLCs do not allow them.
 
-## Try it
+## Practise
 
 Open the **Example** tab: one button that turns a work light on and off. Open **The wiring: which tag is which**. In PLC+ that list *is* the tag list for the machine's inputs and outputs: LightPB is an input and WorkLight an output. Pulse is a memory tag, so it is not in the list. Press the button and watch all three on the rungs. Pulse is TRUE for only one scan; to catch it, press **Pause**, tick **keep pressed** under the Light button, and press **Step one scan**: Pulse is TRUE. Press **Step one scan** again and it is FALSE, though the button is still held. (The `-|P|-` contact that does this is explained in 5.5.) Then answer the questions on the **Exercise** tab.
+
+[[example: Input, output and memory tags]]
+
+See the kinds and the types in one small program. Hold **CallPB** (an input tag): Called, a memory tag listed under *Inside the PLC* because it is wired to nothing, turns TRUE, and then CallLamp (an output tag) lights. **Setting** is an INT input: type a whole number in its box and press Enter, or use − and +, and the INT output Shown takes the same number.
+
+[[try-ladder: programs/learn/m4-tag-kinds.json]]

@@ -8,7 +8,6 @@ quiz: quizzes/m1-series-parallel.json
 reference: [series-parallel, ohms-law]
 ---
 
-
 # Series and parallel circuits
 
 Parts in a circuit can be joined in two basic ways. Which way they are joined decides how the current and the voltage are shared, and, for switches, what logic they make.
@@ -30,9 +29,7 @@ Two resistors, 200 Ω and 400 Ω, are in series across a 24 V DC supply.
 2. Current: I = 24 V / 600 Ω = 0.04 A = 40 mA, through both.
 3. Voltage across the 200 Ω: 0.04 A × 200 Ω = 8 V. Across the 400 Ω: 0.04 A × 400 Ω = 16 V. Check: 8 V + 16 V = 24 V.
 
-Check the worked example here. Set **R1** to 200 Ω and **R2** to 400 Ω: the current is 40 mA and the voltages 8 V and 16 V. Now make R2 bigger and watch its share of the 24 V grow while the current through both falls.
-
-[[try-circuit: series]]
+[[see-example: 1]]
 
 ## Parallel: several paths
 
@@ -51,9 +48,7 @@ Three 24 V DC pilot lights are wired in parallel. Each draws 25 mA. A relay coil
 2. The coil draws 24 V / 480 Ω = 50 mA.
 3. The supply provides 75 mA + 50 mA = **125 mA** in total.
 
-Try two branches. Set **R1** to 480 Ω (the relay coil: 50 mA) and move **R2**: R1's current does not change, because it always has the full supply across it, but the total current is always the two added together. A smaller R2 draws more current.
-
-[[try-circuit: parallel]]
+[[see-example: 2]]
 
 ## Side by side
 
@@ -83,6 +78,26 @@ Two Start buttons, one at each end of a conveyor, are wired this way.
 
 This is the bridge to ladder logic. In a ladder program, contacts in series are AND and contacts side by side are OR, exactly as the switches here. You will meet that again in modules 2 and 3.
 
-## Try it
+## Practise
 
 Open the **Exercise** tab and answer its practice questions: a series total, a parallel current, and the truth table for switches in series. The Reference tab has AND and OR with contacts, and Ohm's law, on one page each.
+
+[[example: Two resistors in series]]
+
+This is the Learn page's first worked example: two resistors, 200 Ω and 400 Ω, in series across a 24 V DC supply. The circuit starts there: the total is 600 Ω, the current **40 mA** through both, and the voltages **8 V** across R1 and **16 V** across R2, which add up to the 24 V.
+
+1. **Make R2 bigger.** Its share of the 24 V grows, R1's shrinks, and the current through both falls: one path, one current.
+2. **Make R1 and R2 the same.** Each gets half the supply, 12 V.
+3. Tick **Open the switch**: one break anywhere stops the current through every part. That is why a broken wire in a series circuit turns everything off.
+
+[[try-circuit: series 24V R1=200 R2=400]]
+
+[[example: Three pilot lights and a relay coil in parallel]]
+
+This is the Learn page's second worked example: three 24 V DC pilot lights, each drawing 25 mA (960 Ω), and a relay coil of 480 Ω, all wired in parallel across the same supply. The circuit starts there: each light draws **25 mA**, the coil **50 mA**, and the supply gives the total, **125 mA**.
+
+1. **Move one light's resistance.** Only its own current changes; the coil and the other lights carry on, because each branch has the full 24 V across it.
+2. Tick **Open** on a light, as if its bulb burned out: that light's current goes to 0, and the total drops by 25 mA to 100 mA. The rest keep working.
+3. **Turn the supply up or down**: every branch's current changes together, and the total is still the branches added up.
+
+[[try-circuit: parallel 24V Coil=480 Light1=960 Light2=960 Light3=960]]

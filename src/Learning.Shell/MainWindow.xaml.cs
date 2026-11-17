@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -14,6 +15,7 @@ using Learning.Core.Notes;
 using Learning.Core.Progress;
 using System.Windows.Threading;
 using Learning.Shell.ViewModels;
+using Plc.Grading;
 
 namespace Learning.Shell;
 
@@ -129,8 +131,10 @@ public partial class MainWindow : Window
         };
         _idleTimer.Start();
 
-        foreach (var view in new[] { LearnView, ReferenceView, ModuleView, ExerciseNone, DashboardView })
+        foreach (var view in new[] { ReferenceView, ModuleView, ExerciseNone, DashboardView })
             view.WidgetFactory = w => LessonWidgets.Create(_plc, w);
+        // The Learn page's [[see-example: N]] is a button to Example N (Ron, 2026-11-17: the Try it goes on the Example tab).
+        LearnView.WidgetFactory = w => w.Name == "see-example" ? SeeExampleButton(w.Argument) : LessonWidgets.Create(_plc, w);
         // A workspace speaks only while its tab is showing: a hidden one is loading, not answering the learner.
         foreach (var ws in new[] { ExampleWorkspace, ExerciseWorkspace })
         {
@@ -157,7 +161,7 @@ public partial class MainWindow : Window
                 NoteTabs.Reference => ReferenceMarkdown(item),
                 NoteTabs.Laboratory => LabMarkdown(item),
                 ReviewTabName => ReviewMarkdown(item),
-                _ => item.Learn,
+                _ => ExamplePages.Split(item.Learn).Learn,
             };
         }
         // Ask the AI (Learning Core plan 3.8): optional, through the shared AI Manager.
@@ -655,8 +659,8 @@ public partial class MainWindow : Window
             {
                 var kind = i.Kind == ItemKind.Assess ? (i.Quiz is null ? "Module check" : $"Module check, with {i.Quiz.Questions.Count} questions")
                     : i.Exercise is not null ? "Lesson, example and exercise"
-                    : i.Quiz is not null ? (i.Example is null ? "Lesson and questions" : "Lesson, example and questions")
-                    : i.Example is null ? "Reading" : "Reading, with an example to run";
+                    : i.Quiz is not null ? (!HasExamples(i) ? "Lesson and questions" : "Lesson, examples and questions")
+                    : !HasExamples(i) ? "Reading" : "Reading, with examples to try";
                 md.AppendLine($"| {i.Number} {i.Title} | {kind} | {_vm.WhereYouAre(i)} |");
             }
             md.AppendLine();
@@ -703,21 +707,48 @@ public partial class MainWindow : Window
         PreviousButton.ToolTip = _vm.PreviousInOrder(item) is { } before ? $"Back to {before} (Ctrl+Shift+PgUp)" : "This is the first item in the path";
         NextButton.ToolTip = _vm.NextInOrder(item) is { } after ? $"On to {after} (Ctrl+Shift+PgDn)" : "This is the last item in the path";
 
+        // The examples first: the Learn page's see-example buttons name them.
+        var (learn, written) = ExamplePages.Split(item.Learn);
+        var example = _plc.Find(item.Example);
+        _exampleTitles = [.. written.Select(p => p.Title), .. example is null ? Array.Empty<string>() : [example.Challenge.Title]];
+
         // Learn
-        LearnView.Markdown = item.Learn.Trim().Length > 0
-            ? item.Learn
+        LearnView.Markdown = learn.Trim().Length > 0
+            ? learn
             : $"# {item.Title}\n\n*This page is still to be written. Module {item.Module.Number}'s learning outcomes are on the module's first page.*";
         ReadButton.Visibility = item.CompletesByReading ? Visibility.Visible : Visibility.Collapsed;
         ExerciseWorkspace.SaveName = $"{item.Number} {item.Title} — My program";
 
-        // Example
-        var example = _plc.Find(item.Example);
-        ExampleScroll.Visibility = example is null ? Visibility.Collapsed : Visibility.Visible;
-        ExampleWorkspace.Visibility = ExampleScroll.Visibility;
-        ExampleNone.Visibility = example is null ? Visibility.Visible : Visibility.Collapsed;
+        // Example: the written examples (each a page with a figure to try), then the machine.
+        ExamplePagesPanel.Children.Clear();
+        _examplePages.Clear();
+        foreach (var page in written)
+        {
+            var view = new MarkdownView { Visibility = Visibility.Collapsed, Glossary = _package.Glossary, MarkOnly = LearnView.MarkOnly };
+            view.WidgetFactory = w => LessonWidgets.Create(_plc, w);
+            view.TermClicked += ShowGlossaryPage;
+            AutomationProperties.SetName(view, "Example: " + page.Title);
+            view.Markdown = $"# {page.Title}\n\n{page.Markdown}";
+            ExamplePagesPanel.Children.Add(view);
+            _examplePages.Add(view);
+        }
+        _exampleHasMachine = example is not null;
+        _showingExamples = true;
+        ExampleParts.Items.Clear();
+        for (var k = 0; k < _exampleTitles.Count; k++)
+            ExampleParts.Items.Add(new TabItem
+            {
+                Header = new TextBlock { Text = $"Example {k + 1}: " + (k < written.Count ? _exampleTitles[k] : "the machine"), MaxWidth = 280, TextTrimming = TextTrimming.CharacterEllipsis },
+                ToolTip = k < written.Count ? $"Example {k + 1}: {_exampleTitles[k]}, to try here" : $"Example {k + 1}: the machine, {_exampleTitles[k]}, running its working program",
+            });
+        ExampleParts.Visibility = _exampleTitles.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+        _showingExamples = false;
+        ExampleNone.Visibility = _exampleTitles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         ExampleNone.Text = item.Kind == ItemKind.Assess
             ? "A module check has no example of its own: each item it covers has its own."
-            : "This item has no machine to run. Its Learn tab has the pictures and tables that go with it.";
+            : "This item has no example to try. Its Learn tab has the pictures and tables that go with it.";
+        // The machine first when there is one: the Learn pages' "How to do it" and the footer send the learner to it (UX review 2026-11-17).
+        ShowExamplePart(_exampleHasMachine ? written.Count : 0);
         if (example is not null)
         {
             ExampleWorkspace.Load(_plc, example, exercise: false, item.ExampleProgram);
@@ -729,8 +760,13 @@ public partial class MainWindow : Window
                     + $"This is an example machine, like your exercise's but not the same one. Watch how it works here, then write your own program for “{own.Challenge.Title}” on the Exercise tab.";
             }
         }
-        ExampleTab.Header = example is null ? "Exa_mple (none)" : "Exa_mple";
-        ExampleTab.ToolTip = example is null ? "This item has no machine to run (Ctrl+2)" : "Run the working program on its machine (Ctrl+2)";
+        ExampleTab.Header = _exampleTitles.Count switch { 0 => "Exa_mple (none)", 1 => "Exa_mple", var n => $"Exa_mples ({n})" };
+        ExampleTab.ToolTip = _exampleTitles.Count switch
+        {
+            0 => "This item has no example to try (Ctrl+2)",
+            1 => example is null ? $"An example to try: {_exampleTitles[0]} (Ctrl+2)" : "Run the working program on its machine (Ctrl+2)",
+            var n => $"{n} examples to try: {string.Join("; ", _exampleTitles)} (Ctrl+2)",
+        };
 
         // Exercise
         var exercise = _plc.Find(item.Exercise);
@@ -773,6 +809,71 @@ public partial class MainWindow : Window
             : ""));
     }
 
+    /// <summary>Whether an item's Example tab has anything: a written example or a machine.</summary>
+    private static bool HasExamples(LearningItem item) => item.Example is not null || ExamplePages.Split(item.Learn).Examples.Count > 0;
+
+    private List<string> _exampleTitles = [];
+    private readonly List<MarkdownView> _examplePages = [];
+    private bool _exampleHasMachine, _showingExamples;
+
+    /// <summary>Shows Example k (from 0) of the item: one of its written pages, or the machine after them.</summary>
+    private void ShowExamplePart(int k)
+    {
+        for (var i = 0; i < _examplePages.Count; i++) _examplePages[i].Visibility = i == k ? Visibility.Visible : Visibility.Collapsed;
+        var machine = _exampleHasMachine && k == _examplePages.Count;
+        ExampleScroll.Visibility = machine ? Visibility.Visible : Visibility.Collapsed;
+        ExampleWorkspace.Visibility = ExampleScroll.Visibility;
+        if (ExampleParts.SelectedIndex != k && k < ExampleParts.Items.Count)
+        {
+            _showingExamples = true;
+            ExampleParts.SelectedIndex = k;
+            _showingExamples = false;
+        }
+    }
+
+    /// <summary>The written example showing on the Example tab, if one is.</summary>
+    private MarkdownView? ExamplePageShowing => _examplePages.FirstOrDefault(v => v.Visibility == Visibility.Visible);
+
+    private void ExampleParts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!ReferenceEquals(e.OriginalSource, ExampleParts)) return;
+        e.Handled = true; // not the item's own tabs
+        if (_showingExamples || ExampleParts.SelectedIndex < 0) return;
+        StopReading("Reading stopped because you chose another example.");
+        ShowExamplePart(ExampleParts.SelectedIndex);
+        ShowScreenHelp();
+        if (ExampleWorkspace.Visibility == Visibility.Visible)
+            SetStatus("The working program, running: work the machine and watch the rungs. Examples do not count toward your progress.");
+        else if (ExampleParts.SelectedIndex < _exampleTitles.Count)
+            SetStatus($"Example {ExampleParts.SelectedIndex + 1}: {_exampleTitles[ExampleParts.SelectedIndex]}. Try it: nothing here counts toward your progress.");
+    }
+
+    /// <summary>The Learn page's <c>[[see-example: N]]</c>: a button that opens Example N on the Example tab.</summary>
+    private UIElement? SeeExampleButton(string argument)
+    {
+        if (!int.TryParse(argument.Trim(), out var n) || n < 1 || n > _exampleTitles.Count) return null;
+        var title = _exampleTitles[n - 1];
+        var words = _exampleTitles.Count > 1 ? $"Example {n}: {title}" : title;
+        var text = new TextBlock { TextWrapping = TextWrapping.Wrap };
+        text.Inlines.Add(new System.Windows.Documents.Run("▶ Try it on the Example tab: ") { Foreground = (Brush)FindResource("PowerOnBrush"), FontWeight = FontWeights.SemiBold });
+        text.Inlines.Add(new System.Windows.Documents.Run(words) { FontWeight = FontWeights.SemiBold });
+        var button = new Button
+        {
+            Content = text, HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(12, 6, 12, 6), Margin = new Thickness(0, 2, 0, 2),
+            ToolTip = $"Opens {words} on the Example tab (Ctrl+2), with a picture to try. Come back with the Learn tab (Ctrl+1).",
+            Tag = new ReaderTitle($"There is an example to try on the Example tab: {words}."),
+        };
+        AutomationProperties.SetName(button, $"Try it on the Example tab: {words}");
+        button.Click += (_, _) =>
+        {
+            ItemTabs.SelectedItem = ExampleTab;
+            ShowExamplePart(n - 1);
+            ShowScreenHelp();
+            SetStatus($"{words}. Come back to the lesson with the Learn tab (Ctrl+1).");
+        };
+        return button;
+    }
+
     private void ShowItemStatus()
     {
         if (_item is not { } item) return;
@@ -796,7 +897,7 @@ public partial class MainWindow : Window
                 ? "Next: run the working program on the Example tab (Ctrl+2), then write your own on the Exercise tab (Ctrl+3)."
                 : state == ItemState.Complete
                     ? "Complete. Next ▸ (top right) goes on to the next item."
-                    : item.Example is not null ? "Try the Example tab (Ctrl+2) too. When you have read the page, press I have read this." : "When you have read the page, press I have read this.";
+                    : HasExamples(item) ? "Try the Example tab (Ctrl+2) too. When you have read the page, press I have read this." : "When you have read the page, press I have read this.";
         var unwritten = item.Learn.Trim().Length == 0;
         ReadButton.IsEnabled = state != ItemState.Complete && !unwritten;
         ReadButton.ToolTip = state == ItemState.Complete ? "This item is already complete"
@@ -811,7 +912,7 @@ public partial class MainWindow : Window
             return item.Module.Status is ModuleStatus.Outline or ModuleStatus.ComingLater
                 ? "## No exercise yet\n\nThis item is still to be written: its pages and any exercise come in a later version of PLC+."
                 : "## No exercise for this item\n\nThis item is complete when you have read it: press **I have read this** on the Learn tab." +
-                  (item.Example is not null ? " Its Example tab has a machine to run." : "");
+                  (HasExamples(item) ? " Its Example tab has examples to try." : "");
 
         var md = new StringBuilder("## What this module check covers\n\n");
         md.AppendLine("| Item | Where you are |").AppendLine("|---|---|");
@@ -1315,6 +1416,9 @@ public partial class MainWindow : Window
             ? ("This screen: My progress", "Your progress through the whole path. ★ mastered, ✓ complete, ↺ review suggested, ◐ in progress, ○ not started. Review suggested lists what to read again. At a module check, make a report to hand in: Hand in a report, the next row on the left. Time counts while you use PLC+.")
             : _item is null
             ? ("This screen: a module", "A module's first page: what to finish first, what you will be able to do, its topics and its items. Press the button under the title to start, or choose an item on the left.")
+            : ItemTabs.SelectedItem == ExampleTab && ExamplePageShowing is not null
+                ? ("This screen: Example", "An example to try, with a picture of it: move the sliders, click the switches, or hold the buttons, and watch what changes. The words above it say what to try and what to watch for. " +
+                   (_exampleTitles.Count > 1 ? "This item has more than one: choose Example 1, Example 2 … at the top. " : "") + "Nothing here counts toward your progress. Pop out gives it a window of its own; 🔊 Read aloud reads it.")
             : ItemTabs.SelectedItem == ExampleTab && ExampleWorkspace.Visibility == Visibility.Visible
                 ? ("This screen: Example", "A working program, on a machine like the exercise's (not the same one). Work the machine and watch power flow along the rungs. Choose A common mistake in the Program list to see it go wrong; Check this program runs the task's tests on it. Pop out gives it a window of its own. Examples do not count toward your progress.")
             : ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible
@@ -1495,7 +1599,7 @@ public partial class MainWindow : Window
 
     /// <summary>The page on the tab showing, if it is one the Reader reads.</summary>
     private MarkdownView? ReadablePage =>
-        ItemTabs.SelectedItem == LearnTab ? LearnView : ItemTabs.SelectedItem == LabTab ? LabView
+        ItemTabs.SelectedItem == LearnTab ? LearnView : ItemTabs.SelectedItem == ExampleTab ? ExamplePageShowing : ItemTabs.SelectedItem == LabTab ? LabView
         : ItemTabs.SelectedItem == ReviewTab ? ReviewView : ItemTabs.SelectedItem == ReferenceTab ? ReferenceView : null;
 
     private void ReadAloud_Executed(object sender, ExecutedRoutedEventArgs e)

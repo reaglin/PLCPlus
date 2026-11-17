@@ -9,7 +9,6 @@ example: u5.press-guard
 reference: [fault-types, troubleshooting]
 ---
 
-
 # Input faults: wires, shorts and stuck sensors
 
 An input fault means the PLC sees something different from what the button or sensor is doing. The program may be perfect: it acts on what it is told, and it is being told wrong.
@@ -29,9 +28,7 @@ A stuck sensor and a bad wire look exactly the same from the PLC. You tell them 
 
 A Stop button is wired **normally closed** so that its input is TRUE while all is well. If that wire breaks, the input goes FALSE, and the machine stops or will not start: it **fails safe**. But a short on a Stop input makes it TRUE for ever, and Stop no longer stops anything. That is why emergency stops are wired straight into the power circuit as well, never only through a PLC input.
 
-See it on a saw whose **SawStop** is wired normally closed. Press **SawStart**, then **SawStop**: it stops, as it should. Now tick **keep pressed** under SawStop. To the PLC that is exactly what a broken wire looks like: the input is FALSE for good. Press **SawStart**: the saw will not start. The machine has failed safe, and the clue is on the rung: SawStop reads FALSE though nobody is pressing it.
-
-[[try-ladder: programs/learn/m11-saw-stop.json]]
+[[see-example: 1]]
 
 ## Finding an input fault
 
@@ -44,8 +41,14 @@ See it on a saw whose **SawStop** is wired normally closed. Press **SawStart**, 
 
 A motor station's motor will not start. Start's contact turns green when the button is pressed, but the Stop contact is FALSE and stays FALSE, though nobody is pressing Stop. The wiring list says Stop is TRUE while it is NOT pressed, so FALSE means "pressed" to the PLC. Forcing Stop ON lets the motor start. The fault: the wire to the Stop button is broken, or the button's contact has failed open. The motor failed safe.
 
-## Try it
+## Practise
 
 On the **Example** tab is the press guard from module 5, working. Practise reading inputs: press each hand button alone and watch which contacts on rung 2 turn green; turn the Guard switch and watch the three rungs. Then right-click the **GuardShut** contact and choose **Force GuardShut ON** with the guard open: Ready lights and the press can close, with the guard open. That is what a shorted guard switch would do, and why safety guards are not trusted to one input alone. Choose **Remove the force**.
 
 Then open the **Exercise** tab. Each question is a machine you know from module 5, running its working program with one real fault. Work it as the question says, watch the rungs, and choose what is wrong. Press **Check my answers**.
+
+[[example: A broken Stop wire on a saw]]
+
+See it on a saw whose **SawStop** is wired normally closed. Press **SawStart**, then **SawStop**: it stops, as it should. Now tick **keep pressed** under SawStop. To the PLC that is exactly what a broken wire looks like: the input is FALSE for good. Press **SawStart**: the saw will not start. The machine has failed safe, and the clue is on the rung: SawStop reads FALSE though nobody is pressing it.
+
+[[try-ladder: programs/learn/m11-saw-stop.json]]

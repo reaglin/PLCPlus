@@ -9,7 +9,6 @@ exercise: u11.mixer
 reference: [troubleshooting, timers]
 ---
 
-
 # Find and fix the bug: a timer reset every scan
 
 A machine that should move on after a few seconds, and never does, usually has a timer that never finishes. The timer's rung has power, yet its time (**ET**, elapsed time) stays at 0. Something is resetting it.
@@ -23,9 +22,7 @@ So a timer resets every scan when:
 - **its rung loses power every scan**, or flickers: for example, IN comes from a rising-edge contact, TRUE for one scan only; or
 - **the same timer is used by two boxes.** One box, with power, starts it; the other, further down and without power, resets it, in the same scan. Next scan the same again. ET never gets past 0.
 
-See the first on two timers powered by the same button. Hold **Go** down (or tick **keep pressed**) and watch **Inside the PLC**: T2's ET climbs to 2 s and its Q turns TRUE, but T1's ET gets nowhere. T1's rung has a rising-edge contact, green for one scan only; the next scan its box has no power and resets T1. To see the one green scan, let go of Go, press **Pause**, tick **keep pressed** under Go, and press **Step one scan** twice: rung 1 is green after the first, and dark after the second.
-
-[[try-ladder: programs/learn/m11-edge-timer-bug.json]]
+[[see-example: 1]]
 
 The second is the one in this item, and it comes from copy and paste: a rung with a timer box is copied for a second timing job, and the box's timer (T1) is not changed to a new one (T2).
 
@@ -49,3 +46,9 @@ On an Allen-Bradley PLC the same mistake is two TON instructions with the same t
 3. Fix it. The box to replace is the mixing timer's, on rung 5: first read its PT (T#10s). Select that box and press **Delete**; then, with the rung's contact selected, add a TON with **Box ▾ ▸ Timers ▸ TON** and type the same PT, **T#10s**, in its **PT** box above the rungs. The new box gets its own timer, such as T2. Now look at rung 4, the mixer's rung. It reads T1.Q twice: the contact that **starts** the mixer must still read the warning timer, T1.Q. The normally closed contact that **stops** it must read the new timer: click it and type **T2.Q** in its **Tag** box. Test the whole batch yourself: the warning, the mixing, the stop after 10 s, and Stop at each stage. Then press **Check my program**. One test is hidden.
 
 The batch takes 13 s: press **Pause** and **Step one scan** to watch the moment the horn stops and the mixer starts.
+
+[[example: A timer behind an edge]]
+
+See the first on two timers powered by the same button. Hold **Go** down (or tick **keep pressed**) and watch **Inside the PLC**: T2's ET climbs to 2 s and its Q turns TRUE, but T1's ET gets nowhere. T1's rung has a rising-edge contact, green for one scan only; the next scan its box has no power and resets T1. To see the one green scan, let go of Go, press **Pause**, tick **keep pressed** under Go, and press **Step one scan** twice: rung 1 is green after the first, and dark after the second.
+
+[[try-ladder: programs/learn/m11-edge-timer-bug.json]]

@@ -6,7 +6,6 @@ objectives: [plc.m3.o1]
 reference: [relays, contacts]
 ---
 
-
 # Relays and contactors
 
 A **relay** is a switch worked by electricity. It has two parts:
@@ -16,9 +15,7 @@ A **relay** is a switch worked by electricity. It has two parts:
 
 When the coil is energized, every contact it owns changes over at once. A **normally open** (NO) contact is open while the coil is off and closes when it is energized. A **normally closed** (NC) contact is the other way round: closed while the coil is off, open when it is energized. "Normally" means *with the coil off*.
 
-Try it on a relay with one of each. Hold **CoilSwitch** down to energize the coil and watch both lamps change at the same moment: LampNO comes on and LampNC goes out. Let go and they change back.
-
-[[try-ladder: programs/learn/m3-relay-contacts.json]]
+[[see-example: 1]]
 
 A **contactor** is a heavy-duty relay. Its coil is worked by a small control voltage (often 24 V DC or 120 V AC), and its main contacts switch the large current a motor needs. One small signal controls a big load, safely away from the operator's hands.
 
@@ -35,3 +32,9 @@ A PLC replaces the relay coils and their wiring with a program, but keeps their 
 On the lab's Allen-Bradley PLC the normally open contact is called **XIC** (examine if closed), the normally closed contact **XIO** (examine if open), and the coil **OTE** (output energize).
 
 The Reference tab has the symbols on one page.
+
+[[example: A relay's NO and NC contacts]]
+
+Try it on a relay with one of each. Hold **CoilSwitch** down to energize the coil and watch both lamps change at the same moment: LampNO comes on and LampNC goes out. Let go and they change back.
+
+[[try-ladder: programs/learn/m3-relay-contacts.json]]

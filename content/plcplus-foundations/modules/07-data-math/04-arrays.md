@@ -9,7 +9,6 @@ exercise: u7.recipe-table
 reference: [arrays, compare, move]
 ---
 
-
 # Arrays: a table of values
 
 A drum filler has four recipes, each with its own fill time. You could make four tags, FillTime1 to FillTime4, and four rungs to choose between them. An **array** does it better: one tag that holds a whole numbered list of values, all of the same type.
@@ -30,9 +29,7 @@ The number in the brackets is the **index**, and it can be a tag: **FillTime[Rec
 
 *MOVE FillTime[Recipe]* into FillPT, and the fill timer uses FillPT as its preset.
 
-Try an array of three INTs, **Shelf**: its elements Shelf[1], Shelf[2] and Shelf[3] are listed in *Inside the PLC*, all 0 at the start. Set **Slot** (the index) and **Value**, then press **Store**: the number goes into that element only. Fill all three. Then set Slot to 5 and press Store: the compares in front of the MOVE block it, so nothing happens (the section below says why that check matters).
-
-[[try-ladder: programs/learn/m7-array-store.json]]
+[[see-example: 1]]
 
 ## An index outside the array
 
@@ -61,3 +58,9 @@ A board shows the target for the shift dialled on a thumbwheel: shift 1 makes 12
 2. Put the two compares in front of that MOVE, so it runs only for recipes 1 to 4. A new box goes in *after* the selected element, so: with the MOVE selected, press **-| |- Contact** (a contact goes in front of it); click that contact and add **Box ▾ ▸ Compare ▸ GE**; with GE selected, add **LE**; then click the contact and press **Delete**.
 3. Add a rung that lights **BadRecipe** for any other number: below 1 **or** above 4. Press **New rung**, type **BadRecipe** on its coil, then click its contact, choose **Box ▾ ▸ Compare ▸ LT**, and delete the contact. Now the second compare, side by side with the first: select the **LT** compare and press **Branch**: a second path appears with a contact on it, already selected. With that contact selected, choose **Box ▾ ▸ Compare ▸ GT**, then select the contact again and press **Delete**. Fill in each compare's IN1 and IN2. Then make sure Start does nothing with a bad recipe: what must the fill valve's rung check?
 4. Try recipes 3, 7 and 0, then press **Check my program**. If you get lost, **Start again ▾** gives you the starting program back.
+
+[[example: An array with an index tag]]
+
+Try an array of three INTs, **Shelf**: its elements Shelf[1], Shelf[2] and Shelf[3] are listed in *Inside the PLC*, all 0 at the start. Set **Slot** (the index) and **Value**, then press **Store**: the number goes into that element only. Fill all three. Then set Slot to 5 and press Store: the compares in front of the MOVE block it, so nothing happens (the section below says why that check matters).
+
+[[try-ladder: programs/learn/m7-array-store.json]]

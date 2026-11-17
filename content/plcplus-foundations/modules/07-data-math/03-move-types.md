@@ -9,7 +9,6 @@ exercise: u7.recipe-select
 reference: [move, data-types, bcd]
 ---
 
-
 # MOVE and data types
 
 **MOVE** copies a value from one place to another. While power flows into it, it copies its **IN** (a tag or a typed number) into its **OUT** (a tag), on every scan. With no power it does nothing, and OUT keeps the last value copied. On Allen-Bradley it is **MOV** (Source and Dest).
@@ -21,9 +20,7 @@ That one idea does a lot of work:
 - **Take a snapshot**: with a push button in front, MOVE copies only while the button is pressed, and the copy then stays put.
 - **Choose between values**: two MOVEs into the same tag, each with its own contact, so only one runs.
 
-Try a snapshot: change **Dial**, then press **Take**: **Kept** copies it. Now change Dial again without pressing Take: Kept keeps the number it was given, because with no power the MOVE does nothing.
-
-[[try-ladder: programs/learn/m7-move-snapshot.json]]
+[[see-example: 1]]
 
 ## Two MOVEs into one tag
 
@@ -50,9 +47,7 @@ When MOVE (or a math box) writes into a tag of another type, PLC+ **converts** t
 - a REAL into an INT is **rounded** to the nearest whole number (2.7 becomes 3; exactly .5 goes to the even number, so 2.5 becomes 2);
 - a number too big for an INT **wraps round**, as in item 7.2, without any warning.
 
-Try both: **Reading** is a REAL, starting at 2.5, and **Whole** is an INT: press + and − (they step by 0.5) and watch 2.5 give 2, 3 give 3 and 3.5 give 4. **Big** is a DINT: type 32767 in its box and press Enter, and **Small** (an INT) shows 32767. Press + once: Big is 32768, but Small shows −32768.
-
-[[try-ladder: programs/learn/m7-move-types.json]]
+[[see-example: 2]]
 
 IEC 61131-3 PLCs ask you to write the conversion yourself, such as REAL_TO_INT; Allen-Bradley's MOV converts by itself, as PLC+ does. Either way, check that the number fits where it goes.
 
@@ -68,3 +63,15 @@ IEC 61131-3 PLCs ask you to write the conversion yourself, such as REAL_TO_INT; 
 2. Rung 2: the same with a **-| |-** contact and 8.
 3. A CTU for the scoops (**Box ▾ ▸ Counters ▸ CTU**). How many scoops should it count to, and which button clears it? Then make the **Scoops added** display show the count, and add a rung that lights Done.
 4. Turn the switch, press Scoop and Reset, then press **Check my program**.
+
+[[example: A snapshot with MOVE]]
+
+Try a snapshot: change **Dial**, then press **Take**: **Kept** copies it. Now change Dial again without pressing Take: Kept keeps the number it was given, because with no power the MOVE does nothing.
+
+[[try-ladder: programs/learn/m7-move-snapshot.json]]
+
+[[example: When the types differ]]
+
+Try both: **Reading** is a REAL, starting at 2.5, and **Whole** is an INT: press + and − (they step by 0.5) and watch 2.5 give 2, 3 give 3 and 3.5 give 4. **Big** is a DINT: type 32767 in its box and press Enter, and **Small** (an INT) shows 32767. Press + once: Big is 32768, but Small shows −32768.
+
+[[try-ladder: programs/learn/m7-move-types.json]]

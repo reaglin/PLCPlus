@@ -9,7 +9,6 @@ example: u5.press-guard
 reference: [io-modules, plc-hardware]
 ---
 
-
 # Input and output modules
 
 The modules are where the PLC meets the machine. An **input module** turns a voltage from a field device into a TRUE or FALSE the program can read. An **output module** turns a TRUE or FALSE from the program into a voltage that works a field device.
@@ -27,9 +26,7 @@ Follow one signal, from the machine to the program:
 
 An output runs the other way: the program sets a tag, the processor sends it to an output point, and the module switches voltage to the field device on that point's terminal.
 
-Follow one signal yourself. **PartSensor** is wired to input point 0 and PartLamp to output point 0. Hold **PartSensor** down: its tag turns TRUE, the rung passes power, and the PartLamp tag turns TRUE, which lights the lamp on output point 0.
-
-[[try-ladder: programs/learn/m4-input-to-output.json]]
+[[see-example: 1]]
 
 Most modules have a **status LED** for each point. An input LED lit means there is voltage at that terminal. An output LED lit means the program has told the point to turn on. It does not prove the device got power: a blown fuse or a broken wire beyond the terminal still leaves the device off. Checking the LED first, then the wire, is the start of most troubleshooting.
 
@@ -58,6 +55,12 @@ Many DC input modules can be wired either way, by what you connect to the module
 
 An output point can carry only a small current, often an amp or less. A motor needs far more. So the output drives the **coil of a contactor** (or a motor starter), and the contactor's heavy contacts switch the motor, exactly as in module 3. This also keeps the motor's power wiring away from the PLC.
 
-## Try it
+## Practise
 
 Open the **Example** tab: a press guard station. Open **The wiring: which tag is which** under the machine: LeftHand, RightHand and GuardShut are inputs, and Ready, PressClose and GuardOpen are outputs. Turn the Guard switch and watch its tag turn TRUE on the rungs, then the Ready light's tag. Then answer the questions on the **Exercise** tab.
+
+[[example: From an input point to an output point]]
+
+Follow one signal yourself. **PartSensor** is wired to input point 0 and PartLamp to output point 0. Hold **PartSensor** down: its tag turns TRUE, the rung passes power, and the PartLamp tag turns TRUE, which lights the lamp on output point 0.
+
+[[try-ladder: programs/learn/m4-input-to-output.json]]

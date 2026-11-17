@@ -8,7 +8,6 @@ example: u5.pump-start-stop
 reference: [troubleshooting, diagnostic-tools]
 ---
 
-
 # A method, and the tools to use
 
 When a machine misbehaves, it is tempting to guess: change a part, change the program, try again. Guessing is slow, costs parts, and can hide the real fault. A technician follows a **method**, the same way every time.
@@ -36,9 +35,7 @@ Every machine in PLC+ has these tools; the Reference tab lists their twins on a 
 - **Reset** starts again from power-up: every tag off, the machine as it began. It also removes every force.
 - **Forcing.** Right-click a contact or coil of a wired tag and choose **Force *Tag* ON** or **Force *Tag* OFF**. The PLC then uses that value whatever the machine does, and the rung shows FORCED in place of the value. Choose **Remove the force** to let the tag follow the machine again. Forcing an input asks "does the program work if this input does?"; forcing an output asks "does the device work if the PLC turns it on?"
 
-Practise steps 3 and 4 of the method on one rung, a belt. Press **BeltOn**: the belt starts and holds itself on. Then press **⏸ Pause**, tick **keep pressed** under **Halt** (the Stop button), and press **Step one scan**: Halt turns FALSE and Belt drops in that one scan. Untick it and press **▶ Run** to start the clock again. Now start the belt and press **OverloadOK**, as if the overload tripped: the belt stops. Read the rung contact by contact: which one is no longer green? That contact names the cause.
-
-[[try-ladder: programs/learn/m11-belt-method.json]]
+[[see-example: 1]]
 
 On an exercise there are two more. **Check my program** runs the task's tests; when one fails, **Replay the failed test** runs it again on the machine, pressing the buttons itself, and stops just after the moment it failed; the results say *What happened in the test*, step by step. And the **Problems** list under My program names anything the PLC cannot run, such as a contact with no tag. The Problems list cannot see a program that runs but does the wrong thing: only you and the tests can.
 
@@ -46,7 +43,7 @@ On an exercise there are two more. **Check my program** runs the task's tests; w
 
 A force can move a machine past the guards and interlocks the program checks. On a real machine, force only with permission and everyone clear, and remove the force when you are done. Allen-Bradley controllers light a **FORCE** light while forces are on, so the next person knows.
 
-## Try it
+## Practise
 
 On the **Example** tab is the pump station from module 5, running its working program. Start the pump, then:
 
@@ -55,3 +52,9 @@ On the **Example** tab is the pump station from module 5, running its working pr
 3. Right-click the **OverloadOK** contact and choose **Force OverloadOK OFF**: the pump stops, as if the overload had tripped, though the switch on the machine still says OK. Choose **Remove the force**, or press **Reset**.
 
 Then answer the questions on the **Exercise** tab and press **Check my answers**.
+
+[[example: Steps 3 and 4 on a belt]]
+
+Practise steps 3 and 4 of the method on one rung, a belt. Press **BeltOn**: the belt starts and holds itself on. Then press **⏸ Pause**, tick **keep pressed** under **Halt** (the Stop button), and press **Step one scan**: Halt turns FALSE and Belt drops in that one scan. Untick it and press **▶ Run** to start the clock again. Now start the belt and press **OverloadOK**, as if the overload tripped: the belt stops. Read the rung contact by contact: which one is no longer green? That contact names the cause.
+
+[[try-ladder: programs/learn/m11-belt-method.json]]

@@ -17,7 +17,6 @@ takeaways:
   - With a seal-in, a motor stopped by a power cut stays off until someone presses Start again (three-wire control).
 ---
 
-
 # The seal-in: start and stop a motor
 
 In module 3 you met the seal-in circuit as relays. Now you write it as a program.
@@ -37,9 +36,7 @@ The motor's coil needs power while *(Start OR Motor) AND Stop*:
 
 A second rung lights RunLight while Motor is on.
 
-Why must Stop come *after* the branch? Here is a fan written the wrong way, with its stop button inside the branch, in series with Start only. Press **FanOn** and let go: the fan runs, sealed in. Now press **FanOff**: the fan keeps running, because the Fan contact on the lower path goes round FanOff. Stop does not win. Press **Reset** to stop it.
-
-[[try-ladder: programs/learn/m5-stop-in-branch.json]]
+[[see-example: 1]]
 
 ## How to do it
 
@@ -52,3 +49,9 @@ Why must Stop come *after* the branch? Here is a fan written the wrong way, with
 5. Hold Start, let go, then press Stop, and watch the rungs. Then press **Check my program**.
 
 In your own program, try leaving out the seal-in contact too, and see what the motor does when you let go of Start.
+
+[[example: Stop in the wrong place]]
+
+Why must Stop come *after* the branch? Here is a fan written the wrong way, with its stop button inside the branch, in series with Start only. Press **FanOn** and let go: the fan runs, sealed in. Now press **FanOff**: the fan keeps running, because the Fan contact on the lower path goes round FanOff. Stop does not win. Press **Reset** to stop it.
+
+[[try-ladder: programs/learn/m5-stop-in-branch.json]]

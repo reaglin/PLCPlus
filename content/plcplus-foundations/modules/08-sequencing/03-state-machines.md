@@ -9,7 +9,6 @@ exercise: u8.gate
 reference: [state-machine, sequencer, timers]
 ---
 
-
 # State machines: a gate that can stop anywhere
 
 A sequence goes 1, 2, 3, 4 and round again. Real machines are not that tidy. An automatic gate is closing when a car arrives: it must open again. Someone presses Stop with the gate half open. The air pressure drops. A **state machine** handles all of this with three ideas:
@@ -51,9 +50,7 @@ Keep the state as a number in an INT tag, State, as in item 8.2. Write the numbe
 - **One rung per output**, an EQ for each state that turns it on.
 - A state machine starts in state 0 when the PLC starts, because an INT starts at 0: make 0 the safe, idle state.
 
-Try a small one: a toaster with three states, 0 Idle, 1 Toasting (3 s) and 8 Smoke alarm. Press **Go** and watch **State** go to 1 and back to 0 after 3 s. Press **Go** again, and while it toasts press **Smoke** (you play the smoke detector): State goes to 8 from Toasting. Let go of Smoke: the alarm **stays**, because it is a state, not just a light. Press **Ack** while holding Smoke: nothing; let go of Smoke, then press **Ack**: back to 0. Press **Smoke** while Idle too: "from any state" means any.
-
-[[try-ladder: programs/learn/m8-toaster-states.json]]
+[[see-example: 1]]
 
 ## The worked example: a rinse tank with a leak alarm
 
@@ -73,3 +70,9 @@ The leak alarm is a **state**, not just a light. It stays until a person presses
 1. Open the **Example** tab: the rinse tank. Press **Start**; while it fills, turn the **Leak detector** to *Wet*, then back to *Dry*. The **State** display stays at 8 until you press **Alarm reset**. Then choose *A common mistake* in **Program**, above the machine: it has no leak state. Try the same, and see what happens when the floor dries.
 2. Open the **Exercise** tab: the gate. Its tables are above; write one rung per transition, then one per output. Add the 3 s TON (**Box ▾ ▸ Timers ▸ TON**) on a rung powered by *EQ State 2*. My program calls it T1 (PLC+ cannot rename timers yet), so the move from Open to Closing reads **T1.Q**.
 3. Try every row of the transition table on the machine: Open; Open again while it closes; Stop halfway; Reset; the **Air pressure** switch. Then press **Check my program**. One test is hidden.
+
+[[example: A toaster with three states]]
+
+Try a small one: a toaster with three states, 0 Idle, 1 Toasting (3 s) and 8 Smoke alarm. Press **Go** and watch **State** go to 1 and back to 0 after 3 s. Press **Go** again, and while it toasts press **Smoke** (you play the smoke detector): State goes to 8 from Toasting. Let go of Smoke: the alarm **stays**, because it is a state, not just a light. Press **Ack** while holding Smoke: nothing; let go of Smoke, then press **Ack**: back to 0. Press **Smoke** while Idle too: "from any state" means any.
+
+[[try-ladder: programs/learn/m8-toaster-states.json]]

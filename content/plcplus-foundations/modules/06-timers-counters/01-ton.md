@@ -25,9 +25,7 @@ The most used timer is the **on-delay timer**, **TON**. It waits: when power rea
 
 The most important rule: **when IN goes FALSE, a TON resets at once.** Q goes FALSE and ET goes back to 0, however far it had got. A TON only says "done" if IN stays on for the whole time.
 
-Try it on a running PLC: hold **Go** down and watch ET count up in *Inside the PLC*. Let go before 3 seconds and ET goes straight back to 0; hold it the whole 3 seconds and Q, and the **Done** lamp, turn on.
-
-[[try-ladder: programs/learn/m6-ton-delay.json]]
+[[see-example: 1]]
 
 ## A timing diagram, in a table
 
@@ -79,3 +77,9 @@ So NOT T1.Q in the horn rung would be an XIO of Warn_Timer.DN, and T1.Q in the m
 2. Open the **Exercise** tab: the traffic light. With Run on: green 5 s, yellow 2 s, red 5 s, over and over. Use three TONs in a chain: each starts when the one before it is done, and the last one finishing restarts the first: how? Think about what resets a TON.
 3. To add a timer, select the contact on a rung and choose **Box ▾ ▸ Timers ▸ TON**. The box gets its own tag (T1, then T2, …) and PT T#1s: type the time in its **PT** box above the rungs and press Enter. If the rung has a coil you do not need, select it and press **Delete**.
 4. Each light's rung uses the timers' Q contacts. Press **Check my program**. The tests check *when* yellow and red come on, to within 0.05 s.
+
+[[example: A TON, 3 seconds]]
+
+Try it on a running PLC: hold **Go** down and watch ET count up in *Inside the PLC*. Let go before 3 seconds and ET goes straight back to 0; hold it the whole 3 seconds and Q, and the **Done** lamp, turn on.
+
+[[try-ladder: programs/learn/m6-ton-delay.json]]

@@ -7,7 +7,6 @@ objectives: [plc.m2.o3]
 reference: [boolean-logic, series-parallel, contacts]
 ---
 
-
 # AND, OR and NOT
 
 A PLC decides what to do by combining signals that are each either **TRUE** (on, 1) or **FALSE** (off, 0). A button is pressed or not. A guard is closed or not. A tank is full or not. This kind of on/off math is called **Boolean logic**, after George Boole, who wrote it down in the 1850s.
@@ -58,9 +57,7 @@ Real rungs mix all three. *The fill valve opens if Auto is on AND the tank is NO
 
 NOT is worked first. It applies only to the input just after it, here TankFull. The next item covers this order in full.
 
-Here are AND, OR and NOT as a small ladder program, running live. Rung 1 is the fill valve, `Auto AND NOT TankFull`; rung 2 is a horn, `TankFull OR Test`. Hold **Auto** (or tick "keep pressed"): FillValve lights, because power passes Auto's normally open contact and TankFull's normally closed one. Now also press **TankFull**: the normally closed contact opens, FillValve goes off, and the Horn sounds through the top branch of rung 2. Let go of everything and press **Test**: the Horn sounds through the other branch. Watch the green power flow through the contacts as you press.
-
-[[try-ladder: programs/learn/m2-fill-and-horn.json]]
+[[see-example: 1]]
 
 ## How it is written
 
@@ -74,6 +71,12 @@ Different books and programs write the same three operations in different ways. 
 
 Careful: in a textbook A + B means OR, not addition. 1 + 1 is 1 in Boolean logic, because "TRUE OR TRUE" is just TRUE.
 
-## Try it
+## Practise
 
 Open the **Exercise** tab for five practice questions. In the three truth tables, choose TRUE or FALSE as the result of each row. Answer them all, then press **Check my answers** at the bottom. The last two ask how a press's contacts are wired, and when a normally closed contact passes power. The Reference tab has the three tables and their contacts on one page.
+
+[[example: AND, OR and NOT on a tank]]
+
+Here are AND, OR and NOT as a small ladder program, running live. Rung 1 is the fill valve, `Auto AND NOT TankFull`; rung 2 is a horn, `TankFull OR Test`. Hold **Auto** (or tick "keep pressed"): FillValve lights, because power passes Auto's normally open contact and TankFull's normally closed one. Now also press **TankFull**: the normally closed contact opens, FillValve goes off, and the Horn sounds through the top branch of rung 2. Let go of everything and press **Test**: the Horn sounds through the other branch. Watch the green power flow through the contacts as you press.
+
+[[try-ladder: programs/learn/m2-fill-and-horn.json]]

@@ -9,7 +9,6 @@ example: u5.reversing-conveyor
 reference: [fault-types, troubleshooting]
 ---
 
-
 # Output and device faults
 
 An output fault is the other half of the machine: the PLC turns an output on, and nothing happens. The motor does not turn, the valve does not open, the lamp stays dark, the cylinder does not move.
@@ -20,9 +19,7 @@ An output fault is the other half of the machine: the PLC turns an output on, an
 
 So when an output's coil is TRUE and the machine does not respond, stop looking at the program and the inputs: they have done their job.
 
-Some machines let the PLC check for itself: the motor's contactor has a spare **feedback contact**, wired to an input, that closes when the contactor really pulls in. Tick **keep pressed** under **Run**: the Motor coil turns TRUE. Leave **Running** alone, as if the contactor had failed: the timer counts, and after 2 s the **NoRun** alarm lights, though the coil is still TRUE. Now hold **Running** (the feedback arrives): the alarm goes out. The coil only says what the PLC asks for; the feedback says what happened.
-
-[[try-ladder: programs/learn/m11-motor-feedback.json]]
+[[see-example: 1]]
 
 ## What fails on the output side
 
@@ -48,8 +45,14 @@ A failed device often shows up somewhere else first. If the fill valve of a tank
 
 A reversing conveyor runs forward but not in reverse. Press Reverse: the Reverse light comes on, the Reverse coil on rung 2 is TRUE, and What every part is doing says the conveyor motor is stopped. RevPB, StopPB and the interlock all passed power, so the inputs and the program are fine. The light is lit by the same Reverse tag, so the PLC is asking for reverse. The fault is in the reverse contactor or its wiring.
 
-## Try it
+## Practise
 
 On the **Example** tab is the reversing conveyor from module 5, working. Run it forward, then stop it, and right-click the **Reverse** coil: choose **Force Reverse ON**. The motor runs in reverse, though the program did not ask it to, and the rung shows FORCED. That is how a technician checks an output: if the device moves when forced, it works. Choose **Remove the force**, or press **Reset**.
 
 Then open the **Exercise** tab. Each question is a machine with one fault; the wrong answers include input faults, so rule them out. Work it, compare the rungs with **What every part is doing**, and choose what is wrong. Press **Check my answers**.
+
+[[example: A motor's feedback contact]]
+
+Some machines let the PLC check for itself: the motor's contactor has a spare **feedback contact**, wired to an input, that closes when the contactor really pulls in. Tick **keep pressed** under **Run**: the Motor coil turns TRUE. Leave **Running** alone, as if the contactor had failed: the timer counts, and after 2 s the **NoRun** alarm lights, though the coil is still TRUE. Now hold **Running** (the feedback arrives): the alarm goes out. The coil only says what the PLC asks for; the feedback says what happened.
+
+[[try-ladder: programs/learn/m11-motor-feedback.json]]

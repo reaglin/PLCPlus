@@ -8,7 +8,6 @@ quiz: quizzes/m2-truth-tables.json
 reference: [boolean-logic]
 ---
 
-
 # Truth tables for larger expressions
 
 A real rung often has three or four conditions. A truth table shows what it does in every case, before you ever run the machine. This page shows how to build one, which part of an expression is worked first, one more operation (XOR), and how to turn a sentence into an expression.
@@ -49,9 +48,7 @@ Here 1 means TRUE and 0 means FALSE. PLC+ draws the same table with the words:
 
 [[truth-table: (A OR B) AND NOT C]]
 
-Now switch the inputs yourself. Turn **A** on: the result is TRUE. Turn **C** on as well: it goes FALSE, whatever A and B are, because of `AND NOT C`. The marked row of the table moves as you switch.
-
-[[try-logic: (A OR B) AND NOT C]]
+[[see-example: 1]]
 
 ## Order of operations
 
@@ -78,9 +75,7 @@ The first is TRUE on that row; the second is FALSE. When in doubt, **write the b
 
 A PLC use: a tank has two level sensors at the same height, so they should always agree. `Level1 XOR Level2` is TRUE only when they disagree, which means one sensor has failed. That can raise an alarm. PLC+ works XOR after AND and before OR; brackets make it plain.
 
-Try the two sensors. Turn **Level1** and **Level2** both off, then both on: no alarm, they agree. Turn just one on: the result goes TRUE, a sensor has failed.
-
-[[try-logic: Level1 XOR Level2]]
+[[see-example: 2]]
 
 ## From a sentence to an expression
 
@@ -99,6 +94,18 @@ Check the table against the sentence: every row with Silenced TRUE is FALSE, and
 
 In ladder (module 5), this is High and PumpFault in parallel, then a normally closed contact of Silenced in series.
 
-## Try it
+## Practise
 
 Open the **Exercise** tab for six practice questions: three truth tables to fill in (choose TRUE or FALSE for each row), the number of rows, the order of operations, and a sentence to match to its expression. Press **Check my answers** when you have answered them all.
+
+[[example: (A OR B) AND NOT C]]
+
+Now switch the inputs yourself. Turn **A** on: the result is TRUE. Turn **C** on as well: it goes FALSE, whatever A and B are, because of `AND NOT C`. The marked row of the table moves as you switch.
+
+[[try-logic: (A OR B) AND NOT C]]
+
+[[example: Two level sensors that must agree (XOR)]]
+
+Try the two sensors. Turn **Level1** and **Level2** both off, then both on: no alarm, they agree. Turn just one on: the result goes TRUE, a sensor has failed.
+
+[[try-logic: Level1 XOR Level2]]

@@ -9,7 +9,6 @@ exercise: u7.batch-counter
 reference: [compare, data-types]
 ---
 
-
 # Compare numbers
 
 A contact asks a question about one BOOL: is it on? A **compare** box asks a question about two numbers, and passes power to the rest of the rung when the answer is yes. It works like a contact that looks at numbers.
@@ -29,9 +28,7 @@ Each box has two inputs, **IN1** and **IN2**: a tag or a number you type. The bo
 
 Like contacts, compares can be put **in series** (both must be true: AND) or **in parallel** (either one: OR). Two compares in series test a range: *GT Count 0* then *LT Count 10* passes power while the count is 1 to 9.
 
-Try it: type a **Speed** in the box and press Enter, or use − and +. **TooFast** lights from 101 up (at exactly 100 it is not *greater* than 100). **InRange** lights from 40 to 60: both compares must pass, so watch power flow through the first box and stop at the second when Speed is over 60.
-
-[[try-ladder: programs/learn/m7-compare-range.json]]
+[[see-example: 1]]
 
 ## Where the numbers come from
 
@@ -52,9 +49,7 @@ Why LE 0 and not EQ 0? If someone presses Part used once too often, a down count
 
 The most common compare mistake is to pick "less than" where you meant "less than or equal". With Warn at 3, *LT C1.CV 3* waits until only 2 parts are left: the warning comes one part late. Say the rule in words first ("lit when 3 or fewer are left"), and the words choose the box: "or fewer" is LE.
 
-Try it: the rule is "warn when 3 or fewer are left". **Left** starts at 6: press − one at a time. **WarnLE** lights at 3, as the rule says; **WarnLT** waits until 2, one too late.
-
-[[try-ladder: programs/learn/m7-lt-or-le.json]]
+[[see-example: 2]]
 
 The same goes for equal. **EQ** is true at exactly one value, so a count that jumps past it, or keeps going, is missed. When a count reaches a target, use **GE**, not EQ.
 
@@ -68,3 +63,15 @@ The same goes for equal. **EQ** is true at exactly one value, so a count that ju
 2. **New rung** for Batch done. Click its contact and choose **Box ▾ ▸ Compare**: the compare goes in after the contact, in front of the coil. Then click the contact and press **Delete**, so the compare alone decides. Which compare, and which IN1 and IN2? The section above tells you.
 3. One more rung for Filling batch. What two things must both be true while a batch is filling? Each is a compare; how do you make a rung need both?
 4. Press Part, Reset and the thumbwheel's − and +, and watch. Then press **Check my program**.
+
+[[example: Speed limits with compares]]
+
+Try it: type a **Speed** in the box and press Enter, or use − and +. **TooFast** lights from 101 up (at exactly 100 it is not *greater* than 100). **InRange** lights from 40 to 60: both compares must pass, so watch power flow through the first box and stop at the second when Speed is over 60.
+
+[[try-ladder: programs/learn/m7-compare-range.json]]
+
+[[example: Less than, or less than or equal?]]
+
+Try it: the rule is "warn when 3 or fewer are left". **Left** starts at 6: press − one at a time. **WarnLE** lights at 3, as the rule says; **WarnLT** waits until 2, one too late.
+
+[[try-ladder: programs/learn/m7-lt-or-le.json]]

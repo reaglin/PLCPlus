@@ -7,7 +7,6 @@ quiz: quizzes/m1-vir.json
 reference: [ohms-law]
 ---
 
-
 # Voltage, current and resistance
 
 Electricity in a circuit is described by three quantities. Every later lesson uses them, so it is worth learning them well.
@@ -51,9 +50,7 @@ I = V / R = 24 V / 480 Ω = 0.05 A = **50 mA**.
 
 A PLC output can supply only so much current (the data sheet says how much; 0.5 A per point is common for a 24 V DC output). 50 mA is well inside that, so the PLC can drive this coil directly.
 
-Try the coil's numbers yourself. Set the **voltage** to 24 V and the **resistance** to 480 Ω: the current reads 50 mA and the power 1.2 W. Then double the voltage and watch the current double; double the resistance instead and watch it halve. Turn the resistance down to 10 Ω, nearly a short circuit, and see how large the current gets.
-
-[[try-circuit: ohms-law]]
+[[see-example: 1]]
 
 ## Power
 
@@ -66,6 +63,17 @@ Two faults are worth naming now, because you will meet them again when you find 
 - An **open circuit** is a break in the path: a cut wire, a loose terminal, a switch that does not close. No current flows, and the load gets no voltage. If the wire to a PLC input is broken, that input reads **FALSE** all the time, whatever the button or sensor does.
 - A **short circuit** is a path with almost no resistance, where there should be a load. By Ohm's law, a tiny R makes a huge I. Fuses and circuit breakers are there to open the circuit before the wires overheat. A shorted switch makes its input read **TRUE** all the time.
 
-## Try it
+## Practise
 
 Open the **Exercise** tab and answer its practice questions: Ohm's law with real panel numbers, prefixes, and what an open wire does to an input. A wrong answer shows the right one and why. The Reference tab has Ohm's law on one page.
+
+[[example: Ohm's law on a relay coil]]
+
+This is the Learn page's worked example: a relay coil rated 24 V DC, with a resistance of 480 Ω, across a 24 V battery. The circuit starts there, so the current reads **50 mA** (I = 24 V ÷ 480 Ω) and the power **1.2 W** (P = 24 V × 0.05 A).
+
+1. **Double the voltage** to 48 V: the current doubles to 100 mA, and the power goes up four times, to 4.8 W (twice the voltage times twice the current). Watch the resistor warm.
+2. Put the voltage back to 24 V and **double the resistance** to 960 Ω: the current halves, to 25 mA. That is about what a 24 V pilot light draws.
+3. **Turn the resistance down to 10 Ω**, nearly a short circuit: the current is 2.4 A, far more than the 0.5 A a PLC output can usually give. A fuse is there to open the circuit before that happens.
+4. Tick **Open the switch**: an open circuit. No current flows and the resistor gets no power, whatever the voltage.
+
+[[try-circuit: ohms-law 24V Coil=480]]

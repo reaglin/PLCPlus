@@ -7,7 +7,6 @@ quiz: quizzes/m2-binary-hex.json
 reference: [number-systems]
 ---
 
-
 # Binary and hexadecimal
 
 Every number in a PLC is stored as a row of **bits**. A bit is one on/off value: 1 or 0. Counting with only the digits 0 and 1 is called **binary** (base 2).
@@ -22,9 +21,7 @@ In decimal, each place is worth ten times the place to its right: ones, tens, hu
 
 To read a binary number, add up the places that hold a 1. For example, 1011 0010 has 1s in bits 7, 5, 4 and 1: 128 + 32 + 16 + 2 = **178**.
 
-Try it with the bits below. Click bits **7, 5, 4 and 1** on and check that the decimal reads 178. Then type **37** in the number box and see which bits light: 32 + 4 + 1. Watch the hex line too; the next part explains it.
-
-[[try-number: 8 bits]]
+[[see-example: 1]]
 
 Binary numbers get long, so they are often written in groups of four bits, with a space or an underscore between groups. IEC 61131-3, the PLC programming standard, writes a binary number with `2#` in front: `2#1011_0010`. A textbook may write it as 10110010₂ instead.
 
@@ -86,9 +83,7 @@ IEC writes hex as `16#FF`; you will also see 0xFF (in C and on many drives) and 
 - **Bits of a tag.** On the lab's Allen-Bradley PLC you can read one bit of an integer tag by its number: `Status.3` is bit 3 of the tag Status.
 - **Status words and fault codes.** A drive or module often reports a word of status bits in hex. `16#0041` is `2#0000_0000_0100_0001`: bits 0 and 6 are on. The manual tells you what each bit means.
 
-Treat these 16 bits as an input module. Turn on bits **0, 1 and 3** (inputs 0, 1 and 3) and check that the word is 11, `16#000B`. Then type **65** and see that it is `16#0041`: bits 0 and 6 on. Turn every bit on to see the largest unsigned 16-bit number, 65,535 or `16#FFFF`.
-
-[[try-number: 16 bits]]
+[[see-example: 2]]
 
 ## Sizes of data
 
@@ -101,6 +96,18 @@ Treat these 16 bits as an input module. Turn on bits **0, 1 and 3** (inputs 0, 1
 
 INT and DINT use their top bit for the sign (plus or minus); module 7 explains how. Counted without a sign, 16 bits hold 0 to 65,535, which is `16#FFFF`.
 
-## Try it
+## Practise
 
 Open the **Exercise** tab for six practice questions: write numbers in binary and hex, read them back in decimal, and read an input module's word. Type a binary answer with only 0s and 1s (spaces are fine: 0010 1101). Type a hex answer with 0–9 and A–F; 16#, 0x and a trailing h are accepted. Each answer tells you why, and shows the right one when yours is wrong. Use the Reference tab for the 0–15 table.
+
+[[example: 8 bits and their weights]]
+
+Try it with the bits below. Click bits **7, 5, 4 and 1** on and check that the decimal reads 178. Then type **37** in the number box and see which bits light: 32 + 4 + 1. Watch the hex line too; the next part explains it.
+
+[[try-number: 8 bits]]
+
+[[example: A 16-bit input word]]
+
+Treat these 16 bits as an input module. Turn on bits **0, 1 and 3** (inputs 0, 1 and 3) and check that the word is 11, `16#000B`. Then type **65** and see that it is `16#0041`: bits 0 and 6 on. Turn every bit on to see the largest unsigned 16-bit number, 65,535 or `16#FFFF`.
+
+[[try-number: 16 bits]]

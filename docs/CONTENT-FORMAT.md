@@ -177,17 +177,41 @@ A `|` inside `` `code` `` in a table stays in the cell, so ladder symbols such a
 | `[[truth-table: (Start OR Motor) AND Stop]]` | Every row of the expression: AND, OR, XOR, NOT and brackets; up to four inputs |
 
 **Interactive examples** (Ron, 2026-11-17: "wherever possible add interactive examples of the concepts in the Learn section"). Each is
-framed "▶ Try it:" with what to do; put one or two sentences before it saying what to try and what to watch for.
+framed "▶ Try it:" with what to do; put one or two sentences before it saying what to try and what to watch for. **They go on the
+Example tab, not the Learn page** (Ron, 2026-11-17: "the Try it goes into the Example section and always contains some type of
+figure … if there are multiple larger examples, we can add tabs for Example 1, Example 2"): see *Examples to try*, below.
 
 | Line | Shows |
 |---|---|
 | `[[try-ladder: programs/learn/m6-ton-delay.json]]` | A small program **running live**: each `"io": "input"` tag is a button to hold down (or "keep pressed"); a BOOL input with `"initial": "TRUE"` is normally closed (pressing makes it FALSE); a number input has a box with − and +. Outputs are lamps or values; tags with no io (bits, numbers, arrays, timers and counters with every member) under "Inside the PLC". Power flow on the rungs, Pause, Step one scan, Reset. It runs only while on screen. The program's `name` is its title; every rung needs a `comment`. Keep it small (1–4 rungs), in `programs/learn/m<module>-<what>.json` |
 | `[[try-logic: (A AND B) OR NOT C]]` | Switch each input; the result lamp and the marked row of the truth table |
 | `[[try-number: 8 bits]]`, `16 bits`, `bcd` | Click bits or type a number: decimal (with the sum of the weights), binary in fours, hex; BCD's four digits, or why a group is not BCD |
-| `[[try-circuit: ohms-law]]`, `series`, `parallel`, `ac-dc` | Sliders for voltage and resistance (or AC peak and frequency): current, voltages, power, in words and a bar |
+| `[[try-circuit: ohms-law 24V Coil=480]]` | **The circuit drawn** (battery, resistors, a switch, the current's arrow; a wire carrying current is green and thick; a resistor warms orange with its power), sliders for the supply and each resistor, **Open** to break the circuit, and the current, voltages and power in words and bars. After the kind come, optionally, the supply (`24V`, 0–48) and the parts it starts with, in ohms (10–2000), plain or named (`Coil=480`), so it can start at the Learn page's worked example. `ohms-law` takes one part; `series 24V R1=200 R2=400` two to four; `parallel 24V Coil=480 Light1=960 …` one to four, each branch with its own Open; `ac-dc` takes none (the AC wave and DC line) |
 
-A live ladder never runs an exercise's working program, and should not solve the item's exercise or a later one (D21): another task,
+`try-logic` draws the expression as a live ladder rung above its switches (AND in series, OR side by side, NOT as a normally closed
+contact, XOR as its two paths). A live ladder never runs an exercise's working program, and should not solve the item's exercise or a later one (D21): another task,
 other tags. The validator checks that it loads, has no errors and has an input.
+
+### Examples to try: the Example tab
+
+An item's examples come **after its Learn page**, at the end of the file, each starting with a line of its own:
+
+```
+… the end of the Learn page.
+
+[[example: Two resistors in series]]
+
+This is the Learn page's first worked example: … What to try, step by step, and what to watch for.
+
+[[try-circuit: series 24V R1=200 R2=400]]
+```
+
+A section runs to the next `[[example: …]]` line or the end of the file; its title shows above it on the Example tab. **Each has a
+figure**: an interactive example, a ladder or a truth table (the validator checks). Where an example belongs in the lesson, put
+`[[see-example: 1]]` on the Learn page: a button, "▶ Try it on the Example tab: …", that opens it. With more than one example (the
+written ones first, then the item's machine, if it has `example:`), the Example tab has tabs **Example 1, Example 2 …**, and
+`see-example` counts them in that order. Use the Learn page's worked example where there is one, so the learner checks the numbers
+they have just read. Keep each example to one idea; a second large one gets its own section.
 
 ## Before publishing: the validator
 

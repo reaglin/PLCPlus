@@ -8,7 +8,6 @@ quiz: quizzes/m2-bcd.json
 reference: [bcd, number-systems]
 ---
 
-
 # BCD: binary-coded decimal
 
 Some devices on a machine think in decimal digits, one digit at a time. A **thumbwheel switch** on an operator panel lets someone dial a number such as 308, one wheel per digit. A **7-segment display** shows a count, one digit per window. These devices use **BCD**, short for *binary-coded decimal*.
@@ -56,9 +55,7 @@ A handy check: if you look at a BCD word in hex, the hex digits are the decimal 
 
 If a program reads a BCD word as if it were plain binary, it gets the wrong number. BCD 0010 0101 means 25, but as plain binary it is 32 + 4 + 1 = **37**. A recipe dialed in as 25 seconds would run for 37. A PLC therefore converts a BCD input before using it, and converts a number to BCD before sending it to a display. On the lab's Allen-Bradley PLC these instructions are **FRD** (from BCD) and **TOD** (to BCD). IEC 61131-3 names them BCD_TO_INT and INT_TO_BCD.
 
-See the mistake for yourself. Click the bits to **0010 0101**: the BCD line reads 25, but the decimal (the sum of the weights, how plain binary reads it) is 37. The number box works in plain binary, so typing **37** and pressing Enter gives the same bits. Then set **0100 0000 0110** and check that it reads 406 in BCD, while its plain value is 1030. Last, make one group **1010**: the BCD line says that group is not a BCD digit (the part below on wasted codes explains why).
-
-[[try-number: bcd]]
+[[see-example: 1]]
 
 ## Thumbwheels and displays
 
@@ -72,6 +69,12 @@ Four bits have sixteen codes, 0000 to 1111. BCD uses only ten of them. The six c
 
 The waste adds up. Sixteen bits in BCD hold 0 to 9,999. The same sixteen bits in plain binary hold 0 to 65,535. BCD is used because it is easy for simple devices, not because it is efficient.
 
-## Try it
+## Practise
 
 Open the **Exercise** tab for six practice questions: write numbers in BCD, read BCD back, spot a code that cannot be BCD, and count the inputs a set of thumbwheels needs. Type BCD answers in groups of four, such as `0010 0101`; the spaces are optional.
+
+[[example: BCD or plain binary?]]
+
+See the mistake for yourself. Click the bits to **0010 0101**: the BCD line reads 25, but the decimal (the sum of the weights, how plain binary reads it) is 37. The number box works in plain binary, so typing **37** and pressing Enter gives the same bits. Then set **0100 0000 0110** and check that it reads 406 in BCD, while its plain value is 1030. Last, make one group **1010**: the BCD line says that group is not a BCD digit (the part below on wasted codes explains why).
+
+[[try-number: bcd]]

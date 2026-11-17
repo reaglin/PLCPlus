@@ -27,9 +27,8 @@ namespace Learning.Shell;
 /// </list>
 /// They run on the page, count for nothing, and say what to try. The live ladder runs only while it is on screen.
 /// </summary>
-internal static class TryWidgets
+internal static partial class TryWidgets
 {
-    public static readonly IReadOnlyList<string> Circuits = ["ohms-law", "series", "parallel", "ac-dc"];
     public static readonly IReadOnlyList<string> Numbers = ["8 bits", "16 bits", "bcd"];
 
     internal static Brush Line => (Brush)Application.Current.FindResource("LineBrush");
@@ -72,7 +71,7 @@ internal static class TryWidgets
     };
 
     /// <summary>A lamp: a circle, green and lit when on, with its name and ON or OFF in words (never colour alone).</summary>
-    internal static (StackPanel Panel, Action<bool> Set) Lamp(string name)
+    internal static (StackPanel Panel, Action<bool> Set) Lamp(string name, bool truth = false)
     {
         var dot = new Ellipse { Width = 22, Height = 22, Stroke = Brushes.Black, StrokeThickness = 1, Margin = new Thickness(0, 0, 8, 0) };
         var words = Text(name);
@@ -82,7 +81,7 @@ internal static class TryWidgets
         void Set(bool on)
         {
             dot.Fill = on ? On : new SolidColorBrush(Color.FromRgb(0x2B, 0x31, 0x38));
-            words.Text = $"{name}: {(on ? "ON" : "off")}";
+            words.Text = $"{name}: {(truth ? (on ? "TRUE" : "FALSE") : on ? "ON" : "off")}";
             words.FontWeight = on ? FontWeights.SemiBold : FontWeights.Normal;
             AutomationProperties.SetName(row, words.Text);
         }
@@ -97,7 +96,7 @@ internal static class TryWidgets
         var values = e.Variables.ToDictionary(v => v, _ => false);
         var body = new StackPanel();
         var switches = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
-        var (lamp, setLamp) = Lamp("Result");
+        var (lamp, setLamp) = Lamp("Result", truth: true);
         var rows = new List<(bool[] Inputs, Border[] Cells)>();
         var grid = new Grid { HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 0) };
         var columns = e.Variables.Count + 1;
@@ -131,10 +130,12 @@ internal static class TryWidgets
         }
         var marked = new SolidColorBrush(Color.FromArgb(0x66, 0xFF, 0xC1, 0x07));
         var said = Text("", 13, brush: Muted);
+        var rung = LogicRung.Create(e.Text);
         void Show()
         {
             var result = e.Evaluate(values);
             setLamp(result);
+            rung?.Show(values, result);
             for (var k = 0; k < rows.Count; k++)
             {
                 var (inputs, cells) = rows[k];
@@ -154,12 +155,25 @@ internal static class TryWidgets
             switches.Children.Add(toggle);
         }
         switches.Children.Add(lamp);
+        if (rung is { } figure)
+        {
+            body.Children.Add(new ScrollViewer
+            {
+                Content = new Border { Child = figure.Canvas, BorderBrush = Line, BorderThickness = new Thickness(1), Padding = new Thickness(4), Background = Brushes.White, HorizontalAlignment = HorizontalAlignment.Left },
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false,
+            });
+            body.Children.Add(new TextBlock
+            {
+                Text = "The same logic as a ladder rung: AND is contacts in series, OR is paths side by side, NOT is a normally closed contact (NC). Above each contact is its input; under it, whether it is closed (lets power through) or open. A normally closed contact is closed when its input is FALSE. Where power reaches, the wire is green and thick and says power.",
+                FontSize = 12, Foreground = Muted, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 3, 0, 10),
+            });
+        }
         body.Children.Add(switches);
         body.Children.Add(said);
         body.Children.Add(new Border { Child = grid, BorderBrush = Line, BorderThickness = new Thickness(1, 1, 0, 0), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 6, 0, 0) });
         Show();
         AutomationProperties.SetLiveSetting(said, AutomationLiveSetting.Polite);
-        return Frame(e.Text, "Click an input to switch it between FALSE and TRUE. The result lamp shows the answer, and the row of the truth table you are on is marked.", body, e.Text);
+        return Frame(e.Text, "Click an input to switch it between FALSE and TRUE. The rung shows where power passes, the result lamp shows the answer, and the row of the truth table you are on is marked.", body, e.Text);
     }
 
     // ---- try-number ----------------------------------------------------------------------------------------
@@ -261,153 +275,6 @@ internal static class TryWidgets
             bcd ? "Click the bits on and off. Each group of four bits is one decimal digit (0 to 9); a group above 9 is not BCD. Try 0001 0010 0011 0100, then 1010 in any group."
                 : "Click a bit to switch it between 0 and 1: the number is the sum of the weights of the bits that are 1. Watch how each group of four bits makes one hex digit.",
             body, mode);
-    }
-
-    // ---- try-circuit ---------------------------------------------------------------------------------------
-
-    public static UIElement? Circuit(string argument) => argument.Trim().ToLowerInvariant() switch
-    {
-        "ohms-law" => OhmsLaw(),
-        "series" => Resistors(series: true),
-        "parallel" => Resistors(series: false),
-        "ac-dc" => AcDc(),
-        _ => null,
-    };
-
-    internal static string Amps(double a) => Math.Abs(a) >= 1 ? $"{a:0.##} A" : $"{a * 1000:0.#} mA";
-    internal static string Ohms(double r) => r >= 1000 ? $"{r / 1000:0.##} kΩ" : $"{r:0.#} Ω";
-    internal static string Watts(double w) => w >= 1 ? $"{w:0.##} W" : $"{w * 1000:0.#} mW";
-
-    /// <summary>A slider with its name and value in words; returns the row and the slider.</summary>
-    internal static (Grid Row, Slider Slider) Knob(string name, double min, double max, double start, Func<double, string> show, string tip, double step = 1)
-    {
-        var slider = new Slider { Minimum = min, Maximum = max, Value = start, Width = 260, SmallChange = step, LargeChange = step * 10, IsSnapToTickEnabled = true, TickFrequency = step, VerticalAlignment = VerticalAlignment.Center, ToolTip = tip };
-        AutomationProperties.SetName(slider, name);
-        var label = Text(name, 14, bold: true);
-        label.Width = 210;
-        var value = Text(show(start), 14);
-        value.Margin = new Thickness(10, 0, 0, 0);
-        slider.ValueChanged += (_, _) => value.Text = show(slider.Value);
-        var grid = new Grid { Margin = new Thickness(0, 2, 0, 2) };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        Grid.SetColumn(slider, 1);
-        Grid.SetColumn(value, 2);
-        grid.Children.Add(label);
-        grid.Children.Add(slider);
-        grid.Children.Add(value);
-        return (grid, slider);
-    }
-
-    /// <summary>A bar that fills with a value from 0 to its full scale, with the value in words beside it.</summary>
-    internal static (StackPanel Row, Action<double, string> Set) Meter(string name, double full)
-    {
-        var bar = new Rectangle { Height = 16, Fill = On, HorizontalAlignment = HorizontalAlignment.Left };
-        var track = new Border { Width = 260, Height = 18, BorderBrush = Line, BorderThickness = new Thickness(1), Background = Brushes.White, Child = bar, Margin = new Thickness(0, 0, 10, 0) };
-        var label = Text(name, 14, bold: true);
-        label.Width = 210;
-        var words = Text("", 14, bold: true);
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 3, 0, 3) };
-        row.Children.Add(label);
-        row.Children.Add(track);
-        row.Children.Add(words);
-        AutomationProperties.SetLiveSetting(words, AutomationLiveSetting.Polite);
-        return (row, (v, text) => { bar.Width = Math.Clamp(v / full, 0, 1) * 258; words.Text = text; AutomationProperties.SetName(row, $"{name}: {text}"); });
-    }
-
-    private static UIElement OhmsLaw()
-    {
-        var body = new StackPanel();
-        var (vRow, v) = Knob("Voltage (V)", 0, 48, 24, x => $"{x:0} V", "The source voltage: 0 to 48 volts");
-        var (rRow, r) = Knob("Resistance (R)", 10, 1000, 240, x => Ohms(x), "The load's resistance: 10 Ω to 1 kΩ", 10);
-        var (iRow, i) = Meter("Current (I = V ÷ R)", 4.8);
-        var (pRow, p) = Meter("Power (P = V × I)", 230.4);
-        var sum = Text("", 13, brush: Muted);
-        void Show()
-        {
-            var current = v.Value / r.Value;
-            i(current, Amps(current));
-            p(v.Value * current, Watts(v.Value * current));
-            sum.Text = $"{v.Value:0} V ÷ {Ohms(r.Value)} = {Amps(current)}. Double the voltage and the current doubles; double the resistance and it halves.";
-        }
-        v.ValueChanged += (_, _) => Show();
-        r.ValueChanged += (_, _) => Show();
-        foreach (var x in new UIElement[] { vRow, rRow, iRow, pRow, sum }) body.Children.Add(x);
-        Show();
-        return Frame("Ohm's law, V = I × R", "Move the voltage and resistance sliders (or Tab to one and use the arrow keys). The current and power follow.", body, "ohms-law");
-    }
-
-    private static UIElement Resistors(bool series)
-    {
-        var body = new StackPanel();
-        var (vRow, v) = Knob("Supply voltage", 0, 24, 24, x => $"{x:0} V", "The supply voltage: 0 to 24 volts");
-        var (r1Row, r1) = Knob("R1", 10, 1000, 100, x => Ohms(x), "The first resistor", 10);
-        var (r2Row, r2) = Knob("R2", 10, 1000, 300, x => Ohms(x), "The second resistor", 10);
-        var lines = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
-        var (aRow, a) = Meter(series ? "Current (the same everywhere)" : "Current through R1", 2.4);
-        var (bRow, b) = Meter(series ? "Voltage across R1" : "Current through R2", series ? 24 : 2.4);
-        var (cRow, c) = Meter(series ? "Voltage across R2" : "Total current", series ? 24 : 4.8);
-        var sum = Text("", 13, brush: Muted);
-        void Show()
-        {
-            double V = v.Value, R1 = r1.Value, R2 = r2.Value;
-            if (series)
-            {
-                var I = V / (R1 + R2);
-                a(I, Amps(I));
-                b(I * R1, $"{I * R1:0.##} V");
-                c(I * R2, $"{I * R2:0.##} V");
-                sum.Text = $"Total resistance R1 + R2 = {Ohms(R1 + R2)}. The voltages add up to the supply: {I * R1:0.##} V + {I * R2:0.##} V = {V:0} V. The bigger resistor takes the bigger share.";
-            }
-            else
-            {
-                double I1 = V / R1, I2 = V / R2;
-                a(I1, Amps(I1));
-                b(I2, Amps(I2));
-                c(I1 + I2, Amps(I1 + I2));
-                sum.Text = $"Each resistor has the full {V:0} V across it. The currents add: {Amps(I1)} + {Amps(I2)} = {Amps(I1 + I2)}. Total resistance {Ohms(R1 * R2 / (R1 + R2))}, less than the smaller one.";
-            }
-        }
-        foreach (var s in new[] { v, r1, r2 }) s.ValueChanged += (_, _) => Show();
-        foreach (var x in new UIElement[] { vRow, r1Row, r2Row, aRow, bRow, cRow, sum }) body.Children.Add(x);
-        Show();
-        return Frame(series ? "Two resistors in series" : "Two resistors in parallel",
-            series ? "Move the sliders. In series the same current flows through both, and the supply voltage is shared between them."
-                   : "Move the sliders. In parallel each resistor gets the full voltage, and the currents add up.", body, series ? "series" : "parallel");
-    }
-
-    private static UIElement AcDc()
-    {
-        var body = new StackPanel();
-        var (pRow, peak) = Knob("AC peak voltage", 10, 340, 170, x => $"{x:0} V", "The highest voltage the AC reaches each cycle", 10);
-        var (fRow, freq) = Knob("Frequency", 1, 60, 60, x => $"{x:0} Hz", "Cycles each second (60 Hz in North America, 50 Hz in Europe)");
-        var canvas = new Canvas { Width = 420, Height = 182, Background = Brushes.White, Margin = new Thickness(0, 6, 0, 6), ClipToBounds = true };
-        var info = Text("", 13, brush: Muted);
-        void Show()
-        {
-            canvas.Children.Clear();
-            const double mid = 80, scale = 70 / 340.0;
-            canvas.Children.Add(new System.Windows.Shapes.Line { X1 = 0, X2 = 420, Y1 = mid, Y2 = mid, Stroke = Line, StrokeThickness = 1 });
-            var rms = peak.Value / Math.Sqrt(2);
-            var dc = new System.Windows.Shapes.Line { X1 = 0, X2 = 420, Y1 = mid - rms * scale, Y2 = mid - rms * scale, Stroke = Brushes.SteelBlue, StrokeThickness = 2, StrokeDashArray = [4, 3] };
-            canvas.Children.Add(dc);
-            var wave = new Polyline { Stroke = On, StrokeThickness = 2.5 };
-            // 0.1 s across the picture.
-            for (var x = 0; x <= 420; x += 2) wave.Points.Add(new Point(x, mid - peak.Value * scale * Math.Sin(2 * Math.PI * freq.Value * (x / 420.0 * 0.1))));
-            canvas.Children.Add(wave);
-            var key = Text("green: AC   blue dashes: the DC voltage that heats a lamp the same (the RMS)   across: 0.1 s", 11, brush: Muted);
-            Canvas.SetLeft(key, 4);
-            Canvas.SetTop(key, 162);
-            canvas.Children.Add(key);
-            info.Text = $"AC swings from +{peak.Value:0} V to −{peak.Value:0} V, {freq.Value:0} times a second (one cycle every {1000 / freq.Value:0.#} ms). It does the same work as {rms:0} V of DC (peak ÷ √2). DC stays at one voltage: a 24 V DC PLC input sees a steady 24 V.";
-        }
-        peak.ValueChanged += (_, _) => Show();
-        freq.ValueChanged += (_, _) => Show();
-        AutomationProperties.SetName(canvas, "A picture of the AC wave and the DC line");
-        foreach (var x in new UIElement[] { pRow, fRow, canvas, info }) body.Children.Add(x);
-        Show();
-        return Frame("AC and DC", "Move the sliders: the green wave is AC; the blue dashed line is DC of the same effect. 170 V peak is the 120 V of a wall socket.", body, "ac-dc");
     }
 }
 

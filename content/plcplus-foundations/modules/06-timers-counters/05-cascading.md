@@ -29,9 +29,7 @@ This is the same trick as the traffic light in 6.1: a chain of timers, the last 
 
 Count the flashes: a CTU on the rung *Beacon* adds one every time the beacon comes on. With PV 3, its Q can sound a horn from the third flash. The same idea makes long times: a timer that restarts itself every minute, counted by a CTU with PV 60, measures an hour.
 
-Try a small one: T1 restarts itself every second, and C1 counts its ticks. Tick **keep pressed** under **Run** and watch T1's ET climb to 1 s and drop back to 0, and C1.CV go up by one each time; **FiveSeconds** lights at 5. Untick it part-way and the count waits. Press **Reset** to clear it. To see the one-scan tick, press **Pause** just before ET reaches 1 s, then **Step one scan** a few times and watch T1.Q.
-
-[[try-ladder: programs/learn/m6-timer-counts-seconds.json]]
+[[see-example: 1]]
 
 ## A counter driving a counter
 
@@ -59,3 +57,9 @@ The same patterns work with .DN: *XIO T2.DN* on T1's rung for the flasher; *XIC 
 1. Open the **Example** tab: the alarm beacon. Turn **Alarm** to On and watch T1 and T2 take turns, and the **Flashes** display count. The horn joins in at the third flash. Press **Pause** and **Step one scan** around the moment T2 finishes to see T1 and T2 reset. Then choose *A common mistake* in **Program**, above the machine: one timer that resets itself. The beacon looks on all the time: it is off for one scan in every 0.5 s.
 2. Open the **Exercise** tab: the case packer. Start the belt and watch the bottles pass the eye. You need two CTUs, the belt's seal-in, and a MOVE for each display. Ask yourself: what should stop the belt? And the bottle counter must be cleared for two different reasons: which, and how can one R input take both? The section above shows a way.
 3. Press **Check my program**. A full case takes 24 bottles, about 12.5 s of test time.
+
+[[example: A timer that counts seconds]]
+
+Try a small one: T1 restarts itself every second, and C1 counts its ticks. Tick **keep pressed** under **Run** and watch T1's ET climb to 1 s and drop back to 0, and C1.CV go up by one each time; **FiveSeconds** lights at 5. Untick it part-way and the count waits. Press **Reset** to clear it. To see the one-scan tick, press **Pause** just before ET reaches 1 s, then **Step one scan** a few times and watch T1.Q.
+
+[[try-ladder: programs/learn/m6-timer-counts-seconds.json]]

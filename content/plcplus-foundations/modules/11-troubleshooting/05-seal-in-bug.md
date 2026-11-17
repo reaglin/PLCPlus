@@ -9,7 +9,6 @@ exercise: u11.two-pumps
 reference: [troubleshooting, seal-in]
 ---
 
-
 # Find and fix the bug: a seal-in on the wrong tag
 
 A seal-in holds a coil on after its Start button is let go: a contact **of the coil's own tag**, in parallel with Start (module 5). The contact must read the same tag as the coil it holds. If it reads another tag, the program still runs, the Problems list stays empty, and the machine does two strange things at once.
@@ -30,9 +29,7 @@ Read rung 2 as the PLC does:
 1. **The light does not stay on.** Press Light on: WorkLight turns on. Let go: LightOn is FALSE, and the seal-in contact reads Fan, which is off. Nothing holds the light, so it goes out. It behaves like a light with no seal-in at all.
 2. **The light comes on by itself.** Start the fan: Fan is TRUE, so rung 2's seal-in contact passes power, and the light comes on though nobody pressed Light on. Light off turns it off only while held.
 
-See both symptoms on a heater and a lamp, where the lamp's rung was copied from the heater's. Press **LampOn** and let go: the lamp goes out at once. Then press **HeatOn**: the heater starts, and the lamp comes on by itself. Watch the contact under LampOn on rung 2 as you do it: it reads Heater. Press **HeatOff** to stop the heater, and the lamp goes out with it.
-
-[[try-ladder: programs/learn/m11-heater-lamp-seal-bug.json]]
+[[see-example: 1]]
 
 Neither symptom says "wrong tag" by itself. Together, and with the rung's live values in front of you, they do: the contact beside LightOn turns green when the fan starts, and that is the clue.
 
@@ -55,3 +52,9 @@ Change the seal-in contact's tag to the coil's own tag. Click the contact, type 
 3. Fix the bug, test each pump and each Stop yourself, and press **Check my program**. One of the tests is hidden: it checks that each Stop stops only its own pump.
 
 If you change too much, **Start again ▾** gives you the program as it was given to you, and **Undo** takes back the last change.
+
+[[example: A seal-in copied wrong]]
+
+See both symptoms on a heater and a lamp, where the lamp's rung was copied from the heater's. Press **LampOn** and let go: the lamp goes out at once. Then press **HeatOn**: the heater starts, and the lamp comes on by itself. Watch the contact under LampOn on rung 2 as you do it: it reads Heater. Press **HeatOff** to stop the heater, and the lamp goes out with it.
+
+[[try-ladder: programs/learn/m11-heater-lamp-seal-bug.json]]

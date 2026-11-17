@@ -15,7 +15,6 @@ takeaways:
   - A coil is TRUE only while its rung passes power, so it follows the contacts scan by scan.
 ---
 
-
 # Contacts and coils: a pilot light station
 
 Every rung you write has the same shape: **contacts** on the left that read tags, and a **coil** at the right-hand end that sets one.
@@ -26,9 +25,7 @@ Every rung you write has the same shape: **contacts** on the left that read tags
 
 Put contacts one after the other (**in series**) and power must pass through all of them: that is **AND**. Put them side by side (**in parallel**, a branch) and power can pass through either: that is **OR**.
 
-Try OR on a door chime. Hold **FrontDoor**: the chime sounds. Let go and hold **BackDoor**: it sounds again, because power has a second path through the branch. Rung 2 shows that a contact can read a coil's tag: ChimeLight follows Chime, scan by scan.
-
-[[try-ladder: programs/learn/m5-door-chime.json]]
+[[see-example: 1]]
 
 ## The task
 
@@ -46,3 +43,9 @@ A station has two push buttons (PB1, PB2), a Mode switch and three lights. Light
 4. Press **Check my program**. Each test says what it expected and when.
 
 When every test passes, this item is complete.
+
+[[example: OR on a door chime]]
+
+Try OR on a door chime. Hold **FrontDoor**: the chime sounds. Let go and hold **BackDoor**: it sounds again, because power has a second path through the branch. Rung 2 shows that a contact can read a coil's tag: ChimeLight follows Chime, scan by scan.
+
+[[try-ladder: programs/learn/m5-door-chime.json]]

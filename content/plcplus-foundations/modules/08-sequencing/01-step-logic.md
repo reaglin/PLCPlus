@@ -8,7 +8,6 @@ exercise: u8.stamping
 reference: [step-logic, seal-in, set-reset]
 ---
 
-
 # Step logic: a stamping station
 
 A stamping station puts a mark on a part, always in the same order: clamp the part, bring the stamp down, lift the stamp, let the part go. Each of these is a **step**. The program must know which step the machine is in, and move to the next step only when the machine says the step is finished.
@@ -37,9 +36,7 @@ For the transfer arm on the Example tab, step 2 (arm out) starts when step 1 (gr
 
 The first step starts from Start, but only when no step is on. The last step ends when its own sensor says it has finished (the arm is fully in), and the machine is idle again.
 
-Try it on a coffee machine with two steps: fill the cup, then heat it. There is no machine here, so you play the sensors with the buttons **CupFull** and **HotEnough**. Press **Go** and let go: Step1 holds itself on and the fill valve opens. Press **CupFull**: Step2 starts and, one scan later, Step1 ends. Press **CupFull** again now: nothing, because step 1 is over. Press **HotEnough** to finish the last step. To see the scan in which both steps are on, press **Go** again, press **Pause**, tick **keep pressed** under CupFull, and press **Step one scan** twice, reading the rungs after each.
-
-[[try-ladder: programs/learn/m8-step-bits.json]]
+[[see-example: 1]]
 
 ## The outputs come last
 
@@ -64,3 +61,9 @@ With set and reset coils (OTL and OTU on Allen-Bradley) the same idea is: step 1
 2. Open the **Exercise** tab: the stamping station. Write down its four steps first, as in the table above: what moves, and which sensor says it has finished.
 3. Write one rung per step: type **Step1** on a coil and PLC+ declares it. Use **Branch** for the seal-in. Then one rung per output.
 4. Turn **Part in place** to *Part in*, press **Start**, and watch. Then press **Check my program**. One test is hidden: it checks something the brief asks for that the visible tests do not.
+
+[[example: A two-step coffee machine]]
+
+Try it on a coffee machine with two steps: fill the cup, then heat it. There is no machine here, so you play the sensors with the buttons **CupFull** and **HotEnough**. Press **Go** and let go: Step1 holds itself on and the fill valve opens. Press **CupFull**: Step2 starts and, one scan later, Step1 ends. Press **CupFull** again now: nothing, because step 1 is over. Press **HotEnough** to finish the last step. To see the scan in which both steps are on, press **Go** again, press **Pause**, tick **keep pressed** under CupFull, and press **Step one scan** twice, reading the rungs after each.
+
+[[try-ladder: programs/learn/m8-step-bits.json]]

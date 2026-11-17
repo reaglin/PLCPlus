@@ -8,7 +8,6 @@ quiz: quizzes/m1-ac-dc.json
 reference: [ac-dc]
 ---
 
-
 # AC and DC in a control panel
 
 Open a control panel and you will usually find three kinds of power side by side. Knowing which is which tells you what each wire does and how dangerous it is.
@@ -20,9 +19,7 @@ Open a control panel and you will usually find three kinds of power side by side
 
 How often AC repeats is its **frequency**, measured in **hertz** (Hz): cycles per second. In the United States it is **60 Hz**; in much of the rest of the world it is 50 Hz. A motor or coil made for one may not work properly on the other, which is why the nameplate lists it.
 
-See the difference. The green wave is AC, the blue dashed line is DC. Set the **frequency** to 60 Hz, then 50 Hz, and count how the cycles change in the same tenth of a second. Move the **peak voltage**: 170 V peak is the 120 V AC of a wall socket, because AC's working value is its peak ÷ √2.
-
-[[try-circuit: ac-dc]]
+[[see-example: 1]]
 
 ## The three kinds of power in a panel
 
@@ -64,6 +61,12 @@ Every motor, transformer and power supply has a **nameplate** with its ratings. 
 
 A 24 V DC power supply's nameplate gives its output current, such as 5 A. Add up the current of everything on it (as in the last item) to make sure it is enough.
 
-## Try it
+## Practise
 
 Open the **Exercise** tab and answer its practice questions: match each kind of power to its use, and read a frequency and a nameplate. The Reference tab has AC and DC in a panel on one page.
+
+[[example: AC and DC side by side]]
+
+Here are AC and DC on one picture, over the same tenth of a second. The green wave is AC, the blue dashed line is DC. Set the **frequency** to 60 Hz, then 50 Hz, and count how the cycles change in the same tenth of a second. Move the **peak voltage**: 170 V peak is the 120 V AC of a wall socket, because AC's working value is its peak ÷ √2.
+
+[[try-circuit: ac-dc]]

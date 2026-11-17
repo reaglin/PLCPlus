@@ -12,11 +12,11 @@ namespace Plc.Grading;
 public static class PackageChecks
 {
     /// <summary>The widgets a PLC+ lesson can use.</summary>
-    public static readonly IReadOnlyList<string> WidgetNames = ["ladder", "truth-table", "try-ladder", "try-logic", "try-number", "try-circuit"];
+    public static readonly IReadOnlyList<string> WidgetNames = ["ladder", "truth-table", "try-ladder", "try-logic", "try-number", "try-circuit", "example", "see-example"];
 
     /// <summary>The kinds of <c>try-number</c> and <c>try-circuit</c> (the shell's TryWidgets draws them).</summary>
     public static readonly IReadOnlyList<string> TryNumbers = ["8 bits", "16 bits", "bcd"];
-    public static readonly IReadOnlyList<string> TryCircuits = ["ohms-law", "series", "parallel", "ac-dc"];
+    public static IReadOnlyList<string> TryCircuits => CircuitSpec.Kinds;
 
     /// <summary>Every problem in the package folder, Learning Core's and PLC+'s, one sentence each.</summary>
     public static IReadOnlyList<string> Validate(string folder)
@@ -45,7 +45,33 @@ public static class PackageChecks
             if (item.Example is { } id && item.ExampleProgram is { } title && challenges.TryGetValue(id, out var programs) && !programs.Contains(title, StringComparer.OrdinalIgnoreCase))
                 problems.Add($"{item.File}: example-program \"{title}\" is not one of the programs of {id} ({string.Join(", ", programs)}).");
         problems.AddRange(CheckAnswersStayHidden(folder, package));
+        problems.AddRange(CheckExamples(package));
         return problems;
+    }
+
+    /// <summary>
+    /// The Example tab's written examples (<see cref="ExamplePages"/>): each has a title and a figure (an interactive example, a ladder or a
+    /// truth table: Ron, 2026-11-17, "always contains some type of figure"), and every <c>[[see-example: N]]</c> on a Learn page names one
+    /// of the item's examples (the written ones first, then the machine).
+    /// </summary>
+    public static IEnumerable<string> CheckExamples(ContentPackage package)
+    {
+        foreach (var item in package.AllItems)
+        {
+            var (learn, pages) = ExamplePages.Split(item.Learn);
+            for (var i = 0; i < pages.Count; i++)
+            {
+                if (pages[i].Title.Length == 0) yield return $"{item.File}: example {i + 1} has no title. Write it as [[example: A title]].";
+                if (!Widgets.In(pages[i].Markdown).Any(w => w.Name is not ("example" or "see-example")))
+                    yield return $"{item.File}: example {i + 1} ({pages[i].Title}) has no figure: give it an interactive example, a ladder or a truth table.";
+                if (Widgets.In(pages[i].Markdown).Any(w => w.Name == "see-example"))
+                    yield return $"{item.File}: example {i + 1} ({pages[i].Title}) has a see-example button; those go on the Learn page.";
+            }
+            var count = pages.Count + (item.Example is null ? 0 : 1);
+            foreach (var w in Widgets.In(learn).Where(w => w.Name == "see-example"))
+                if (!int.TryParse(w.Argument.Trim(), out var n) || n < 1 || n > count)
+                    yield return $"{item.File}: [[see-example: {w.Argument.Trim()}]] names no example: the item has {count} (number them from 1).";
+        }
     }
 
     /// <summary>
@@ -112,7 +138,10 @@ public static class PackageChecks
             case "try-number":
                 return TryNumbers.Contains(w.Argument.Trim().ToLowerInvariant()) ? null : $"try-number takes one of: {string.Join(", ", TryNumbers)}.";
             case "try-circuit":
-                return TryCircuits.Contains(w.Argument.Trim().ToLowerInvariant()) ? null : $"try-circuit takes one of: {string.Join(", ", TryCircuits)}.";
+                return CircuitSpec.Parse(w.Argument, out var circuitProblem) is null ? circuitProblem : null;
+            case "example":
+            case "see-example":
+                return null; // checked with their item (CheckExamples)
             case "try-logic":
             case "truth-table":
                 try

@@ -14,7 +14,6 @@ takeaways:
   - If the set and the reset rungs are both TRUE in the same scan, the one lower in the program wins.
 ---
 
-
 # Set and reset: fill and drain a tank
 
 A seal-in remembers that Start was pressed. A **set** coil and a **reset** coil are another way to remember:
@@ -24,9 +23,7 @@ A seal-in remembers that Start was pressed. A **set** coil and a **reset** coil 
 
 When power stops reaching a set coil, its tag stays on, unlike a normal coil. On the Allen-Bradley PLC these are **OTL** (latch) and **OTU** (unlatch).
 
-Try set and reset beside a normal coil. Press **SetPB** and let go: Latched stays on, but Follows, a normal coil on the same button, goes out. Press **ResetPB**: Latched goes out. Then tick **keep pressed** under both buttons: Latched stays off, because the reset rung is lower in the program and has the last word.
-
-[[try-ladder: programs/learn/m5-set-reset.json]]
+[[see-example: 1]]
 
 ## The task
 
@@ -43,3 +40,9 @@ The floats alone are not enough. Halfway up, the low float is covered and the hi
 1. In the **Example** tab, see set and reset on an overheat alarm: turn the Thermostat to Too hot and back to Normal. The alarm stays on until you press **Alarm reset** on the machine. *A common mistake* (choose it in **Program**, above the machine) has no memory: the alarm clears itself as soon as the oven cools.
 2. Think about the tank the same way: what must the program remember between the low float and the high float? Without memory, the valves follow the high float alone, and the level chatters around 80 %.
 3. In the **Exercise** tab, type a new tag name such as **Filling** on a coil, and PLC+ declares it for you. Change the coil's kind to **Set** or **Reset** in the box beside the tag.
+
+[[example: Set and reset beside a normal coil]]
+
+Try set and reset beside a normal coil. Press **SetPB** and let go: Latched stays on, but Follows, a normal coil on the same button, goes out. Press **ResetPB**: Latched goes out. Then tick **keep pressed** under both buttons: Latched stays off, because the reset rung is lower in the program and has the last word.
+
+[[try-ladder: programs/learn/m5-set-reset.json]]

@@ -369,13 +369,20 @@
                             <local:MarkdownView x:Name="LearnView" AutomationProperties.Name="The lesson" />
                         </DockPanel>
                     </TabItem>
-                    <TabItem x:Name="ExampleTab" Header="Exa_mple" ToolTip="Run the working program on its machine (Ctrl+2)">
-                        <Grid Margin="8,0,8,8">
-                            <ScrollViewer x:Name="ExampleScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False" SizeChanged="MachineScroll_SizeChanged">
-                                <local:MachineWorkspace x:Name="ExampleWorkspace" />
-                            </ScrollViewer>
-                            <TextBlock x:Name="ExampleNone" Style="{StaticResource Lead}" Margin="4,12" Visibility="Collapsed" />
-                        </Grid>
+                    <!-- Examples (Ron, 2026-11-17): the item's examples to try, each with a figure, and its machine; with more than one,
+                         the tabs Example 1, Example 2 … above them (the written ones first, the machine last). -->
+                    <TabItem x:Name="ExampleTab" Header="Exa_mple" ToolTip="The examples to try, and the working program on its machine (Ctrl+2)">
+                        <DockPanel Margin="8,0,8,8">
+                            <TabControl x:Name="ExampleParts" DockPanel.Dock="Top" Visibility="Collapsed" Margin="0,6,0,4" Padding="0" BorderThickness="0,1,0,0"
+                                        SelectionChanged="ExampleParts_SelectionChanged" AutomationProperties.Name="This item's examples: choose one" />
+                            <Grid>
+                                <ScrollViewer x:Name="ExampleScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False" SizeChanged="MachineScroll_SizeChanged">
+                                    <local:MachineWorkspace x:Name="ExampleWorkspace" />
+                                </ScrollViewer>
+                                <Grid x:Name="ExamplePagesPanel" />
+                                <TextBlock x:Name="ExampleNone" Style="{StaticResource Lead}" Margin="4,12" Visibility="Collapsed" />
+                            </Grid>
+                        </DockPanel>
                     </TabItem>
                     <TabItem x:Name="ExerciseTab" Header="Exerc_ise" ToolTip="Write your own program and check it (Ctrl+3)">
                         <Grid Margin="8,0,8,8">

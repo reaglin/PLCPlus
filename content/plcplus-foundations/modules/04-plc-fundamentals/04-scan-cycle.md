@@ -9,7 +9,6 @@ example: u5.pump-start-stop
 reference: [scan-cycle]
 ---
 
-
 # The scan cycle
 
 A PLC does not run its program once. It runs it over and over, as fast as it can, for as long as it is in **Run** mode. Each pass is called a **scan**, and every pass has the same steps:
@@ -34,13 +33,9 @@ In PLC+, one scan is **10 ms** of simulated time, so the program runs 100 times 
 
 When Start is pressed and Jog is not, rung 1 turns Motor on, then rung 5 turns it off again, in the same scan. The motor never runs from Start. The fix is one coil per output: put Start and Jog in parallel on one rung. (Set and reset coils, in module 5, are the exception: they are meant to be used in pairs.)
 
-See the order of the rungs for yourself. In this program, rung 2 sets a memory tag, Flag; rung 1 reads it *above*, and rung 3 reads it *below*. Press **Pause**, tick **keep pressed** under **Button**, and press **Step one scan**: LampBelow comes on in that scan, but LampAbove does not, because rung 1 ran before rung 2 set Flag. Press **Step one scan** again: now LampAbove comes on too, one scan late. Press **Pause** again to let it run.
+[[see-example: 1]]
 
-[[try-ladder: programs/learn/m4-rung-order.json]]
-
-Now the double coil mistake. Hold **RunPB**: Conveyor stays off, because rung 2 writes it FALSE again later in the same scan. Hold **JogPB**: Conveyor runs. Only the last rung's word counts.
-
-[[try-ladder: programs/learn/m4-double-coil.json]]
+[[see-example: 2]]
 
 **A very short pulse can be missed.** The inputs are read once per scan. If a sensor turns on and off again between two reads, the program never sees it. With a 10 ms scan, a pulse of 3 ms can fall between two reads. Slow scans and fast parts need care: a faster task, or a special input module that catches pulses.
 
@@ -50,6 +45,18 @@ Now the double coil mistake. Hold **RunPB**: Conveyor stays off, because rung 2 
 
 The four steps above are the classic cycle, and SLC 500 and MicroLogix PLCs work this way. Allen-Bradley's Logix controllers (CompactLogix, ControlLogix) update their inputs and outputs on a timer of their own (the **RPI**, requested packet interval), not once per scan, so an input can change in the middle of a scan. Programmers who need a steady value copy their inputs at the top of the program. PLC+ uses the classic cycle.
 
-## Try it
+## Practise
 
 Open the **Example** tab: a pump station. Press **Pause**, tick **keep pressed** under Start, and press **Step one scan**. In that one scan, rung 1 turns Pump on, and rung 2, further down, already sees it and lights PumpLight. Untick **keep pressed** (that lets go of Start) and step again: the Pump contact on the branch keeps rung 1 passing power. Press **Run** (the Pause button, while paused) to let it run on. The pump also has an overload relay in series; you will meet those in module 5. Then answer the questions on the **Exercise** tab.
+
+[[example: The order of the rungs]]
+
+See the order of the rungs for yourself. In this program, rung 2 sets a memory tag, Flag; rung 1 reads it *above*, and rung 3 reads it *below*. Press **Pause**, tick **keep pressed** under **Button**, and press **Step one scan**: LampBelow comes on in that scan, but LampAbove does not, because rung 1 ran before rung 2 set Flag. Press **Step one scan** again: now LampAbove comes on too, one scan late. Press **Pause** again to let it run.
+
+[[try-ladder: programs/learn/m4-rung-order.json]]
+
+[[example: The double coil]]
+
+Now the double coil mistake. Hold **RunPB**: Conveyor stays off, because rung 2 writes it FALSE again later in the same scan. Hold **JogPB**: Conveyor runs. Only the last rung's word counts.
+
+[[try-ladder: programs/learn/m4-double-coil.json]]

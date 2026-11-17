@@ -9,7 +9,6 @@ exercise: u11.compressor-alarm
 reference: [troubleshooting, scan-cycle]
 ---
 
-
 # Find and fix the bug: a double coil
 
 Items 2 and 3 were faults in the machine: the program was right, and a wire or a device was not. Now the machine is fine and the **program** is wrong. Program bugs are found with the same method, and they leave the same kind of clue: the inputs are right, but an output is not what the task asks for.
@@ -25,9 +24,7 @@ You met it in module 4: two rungs with a coil of the same tag. The PLC runs the 
 
 Press the front button and rung 2 turns Bell on; two rungs later, in the same scan, rung 4 turns it off again, because BackPB is not pressed. At the end of the scan Bell is FALSE, and that is what goes to the output. The bell never rings from the front door.
 
-See it misbehave on a vent fan with two coils, one for a hand button and one for a thermostat. Press **TooWarm**: Vent comes on. Press **ManualOn**: rung 1 is green right up to its coil, yet the Vent lamp stays dark, because rung 2, lower down, has turned Vent off again in the same scan. Press **Pause**, tick **keep pressed** under ManualOn, and press **Step one scan** to read both coils' values.
-
-[[try-ladder: programs/learn/m11-vent-double-coil.json]]
+[[see-example: 1]]
 
 How it gets there: a program grows. Someone adds "the back door rings the bell too" months later, on a new rung, without looking for the coil that is already there.
 
@@ -53,3 +50,9 @@ Then delete the extra coil's rung. (Set and reset coils are the exception: they 
 4. Test it yourself, then press **Check my program**. If a test fails, **Replay the failed test** shows it on the machine.
 
 If you want the program as it was given to you again, **Start again ▾** offers it.
+
+[[example: A vent fan with two coils]]
+
+See it misbehave on a vent fan with two coils, one for a hand button and one for a thermostat. Press **TooWarm**: Vent comes on. Press **ManualOn**: rung 1 is green right up to its coil, yet the Vent lamp stays dark, because rung 2, lower down, has turned Vent off again in the same scan. Press **Pause**, tick **keep pressed** under ManualOn, and press **Step one scan** to read both coils' values.
+
+[[try-ladder: programs/learn/m11-vent-double-coil.json]]

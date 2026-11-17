@@ -9,7 +9,6 @@ exercise: u8.batch-tank
 reference: [sequencer, timers]
 ---
 
-
 # Sequencers with a step number: a batch tank
 
 A memory bit per step works well for four steps. With twenty, there are twenty bits to keep straight. The other common way is **one number** for the whole sequence: an INT tag, here called **Step**, that holds the number of the step the machine is in. Step 0 is idle; step 1 is the first step, and so on. An operator can read it on a display: "Step 2" says exactly where the machine is.
@@ -31,9 +30,7 @@ Each move to the next step is a rung of three parts: an EQ box for the step it *
 
 There is nothing to end: when Step changes, the step before is over, because Step can hold only one number. The rungs below see the new number in the same scan.
 
-Try it on a car wash with two steps, soap and rinse. You play the sensors with **Soaped** and **Rinsed**. Press **Go** and watch **Step** change from 0 to 1, and the EQ box for step 1 pass power. Press **Soaped**, then **Rinsed**, and watch Step go 2, then 0. Then see the same scan at work: start again with **Go**, tick **keep pressed** under **Rinsed**, and press **Soaped**. Step jumps straight from 1 to 0: rung 2 moved it to 2, and rung 3, below it, saw the 2 in the same scan.
-
-[[try-ladder: programs/learn/m8-step-number.json]]
+[[see-example: 1]]
 
 - **A step that waits for a time:** a TON on a rung of its own, powered by *EQ Step 2*. The next rung moves on when its **.Q** turns on. When the step ends, the timer's input goes off and it resets, ready for the next batch.
 - **Start** belongs to step 0 only: *EQ Step 0*, *StartPB*, *MOVE 1*.
@@ -57,3 +54,9 @@ Many plants number steps 10, 20, 30 instead of 1, 2, 3, so that a step added lat
 2. Open the **Exercise** tab: the batch tank. Fill the tank to the high float, mix for 4 s, drain it below the low float. Write the table first.
 3. Add a box with **Box ▾ ▸ Compare ▸ EQ** and **Box ▾ ▸ Move and bit logic ▸ MOVE**. Type the values in the box's **IN1**, **IN2**, **IN** and **OUT** boxes above the rungs and press Enter. Step is already declared, as an INT, because it drives the display. The mixing time is **Box ▾ ▸ Timers ▸ TON**. In My program your timers are called T1, T2 … (PLC+ cannot rename them yet), so where the Example reads WashTimer.Q, yours reads T1.Q.
 4. Press **Check my program**. One test is hidden. Try pressing Start in the middle of a batch: what should happen?
+
+[[example: A car wash by step number]]
+
+Try it on a car wash with two steps, soap and rinse. You play the sensors with **Soaped** and **Rinsed**. Press **Go** and watch **Step** change from 0 to 1, and the EQ box for step 1 pass power. Press **Soaped**, then **Rinsed**, and watch Step go 2, then 0. Then see the same scan at work: start again with **Go**, tick **keep pressed** under **Rinsed**, and press **Soaped**. Step jumps straight from 1 to 0: rung 2 moved it to 2, and rung 3, below it, saw the 2 in the same scan.
+
+[[try-ladder: programs/learn/m8-step-number.json]]

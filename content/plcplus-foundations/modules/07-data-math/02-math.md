@@ -9,7 +9,6 @@ exercise: u7.inspection
 reference: [math, data-types]
 ---
 
-
 # Math: add, subtract, multiply, divide
 
 A math box works out a sum and writes the answer into a tag. While power flows into it, it runs on every scan; with no power, it does nothing, and its output tag keeps its last value.
@@ -35,9 +34,7 @@ This changes how you write a percentage. Rejects as a percentage of the total is
 
 With whole numbers, multiply first, then divide.
 
-Try DIV and MOD: **Seconds** starts at 150, which is 2 minutes and 30 seconds: DIV gives 2 (the .5 is dropped) and MOD gives the 30 left over. Use − and + or type other numbers, such as 59, 60 and 61, and watch **Minutes** and **Secs**.
-
-[[try-ladder: programs/learn/m7-div-mod-time.json]]
+[[see-example: 1]]
 
 ## Dividing by zero
 
@@ -51,9 +48,7 @@ An INT holds −32,768 to 32,767. A result bigger than that does not fit, and PL
 
 ADD can count: *ADD GoodCount 1* into GoodCount adds one. But it adds one on **every scan** that power reaches it, and a press lasts many scans (one scan is 10 ms). Put a **rising-edge** contact in front (item 5.5), and it adds one per press.
 
-Try it: press **Click** once, quickly. **PerPress** goes up by 1; **EveryScan** jumps by many, one for every 10 ms scan you held it. Hold Click down and EveryScan keeps climbing while PerPress does not move.
-
-[[try-ladder: programs/learn/m7-add-edge.json]]
+[[see-example: 2]]
 
 ## A worked example: packing
 
@@ -69,3 +64,15 @@ Parts are packed in boxes. One rung: *GT PerBox 0*, then *DIV Parts PerBox* into
 2. Total: one ADD with no contact in front: click a new rung's contact, add the box, then delete the contact and the coil.
 3. The percentage needs a MUL and a DIV in series. Which goes first? The section on whole numbers says. And what must be true before the DIV may run? The section on dividing by zero says. A new box goes in after the selected element: click the rung's contact and add the first box, select that box and add the next, and so on; then delete the contact and the coil. MUL needs a tag to hold its answer: type a new name, such as Scaled, in its OUT, and PLC+ declares it as an INT.
 4. Press **Check my program**.
+
+[[example: Minutes and seconds with DIV and MOD]]
+
+Try DIV and MOD: **Seconds** starts at 150, which is 2 minutes and 30 seconds: DIV gives 2 (the .5 is dropped) and MOD gives the 30 left over. Use − and + or type other numbers, such as 59, 60 and 61, and watch **Minutes** and **Secs**.
+
+[[try-ladder: programs/learn/m7-div-mod-time.json]]
+
+[[example: ADD once per press]]
+
+Try it: press **Click** once, quickly. **PerPress** goes up by 1; **EveryScan** jumps by many, one for every 10 ms scan you held it. Hold Click down and EveryScan keeps climbing while PerPress does not move.
+
+[[try-ladder: programs/learn/m7-add-edge.json]]

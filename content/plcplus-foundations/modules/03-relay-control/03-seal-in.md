@@ -8,7 +8,6 @@ example: u5.pump-start-stop
 reference: [seal-in, wiring-stop]
 ---
 
-
 # The seal-in circuit
 
 A motor, such as a pump's, needs two buttons: **Start** to run it and **Stop** to stop it. Push buttons are *momentary*: they are pressed only while a finger holds them. So how does the motor keep running after you let go of Start?
@@ -23,14 +22,18 @@ Say rung 1 in words: *the pump runs if (Start is pressed OR the pump is already 
 
 Here **PumpStop** is TRUE while nobody presses it. Find the row where PumpStart is FALSE, Pump is TRUE and PumpStop is TRUE: the result is TRUE, so the pump keeps itself running. Press Stop (PumpStop becomes FALSE) and every row is FALSE: the seal-in breaks, and the pump stays off until Start is pressed again. The overload contact works the same way as Stop: it is wired normally closed, so a trip, or a broken wire, breaks the seal-in.
 
-Compare a rung without a seal-in and one with it, side by side. Hold **Go** and both lamps light. Let go: LampPlain goes out, but LampSealed stays on, held by its own contact on the branch. Now press **Halt**: the seal-in breaks and LampSealed goes out, and stays out after you let go of Halt. (Halt is red because it is wired normally closed: its tag is TRUE until you press it.)
-
-[[try-ladder: programs/learn/m3-seal-in.json]]
+[[see-example: 1]]
 
 ## Why Stop is wired normally closed
 
 The Stop button's contacts are closed until it is pressed, so its input is TRUE while all is well. If the wire to it breaks, the input goes FALSE, which is the same as pressing Stop, and the machine stops. A broken wire fails *safe*. That is why the program checks Stop with a normally **open** contact: the contact passes power while the input is TRUE (not pressed). The Reference tab explains this again; it catches out almost everyone once.
 
-## Try it
+## Practise
 
 Open the **Example** tab and run the pump: press Start, let go, then press Stop. Then choose *A common mistake* in Program: it checks Stop with a normally closed contact, because it is "a stop button". Press Start and see what happens, and why. In module 5 you will write the seal-in yourself, for a motor.
+
+[[example: With and without a seal-in]]
+
+Compare a rung without a seal-in and one with it, side by side. Hold **Go** and both lamps light. Let go: LampPlain goes out, but LampSealed stays on, held by its own contact on the branch. Now press **Halt**: the seal-in breaks and LampSealed goes out, and stays out after you let go of Halt. (Halt is red because it is wired normally closed: its tag is TRUE until you press it.)
+
+[[try-ladder: programs/learn/m3-seal-in.json]]

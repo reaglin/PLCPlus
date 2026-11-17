@@ -14,7 +14,6 @@ takeaways:
   - An edge and a set coil together remember an event, such as which kind of part passed the sensor.
 ---
 
-
 # Edges and memory: sort metal from plastic
 
 Sometimes a program must act **once**, at the moment a signal changes, not all the time it is on. That moment is an **edge**:
@@ -24,9 +23,7 @@ Sometimes a program must act **once**, at the moment a signal changes, not all t
 
 On the Allen-Bradley PLC a one-shot (**ONS**) after a contact does the same job.
 
-One scan is far too quick to see, so go one scan at a time. Press **Pause**, tick **keep pressed** under **Button**, and press **Step one scan**: RisePulse (under *Inside the PLC*) is TRUE, and Held lights. Press **Step one scan** again: RisePulse is FALSE, though Held stays on. Untick **keep pressed** and step: FallPulse is TRUE for that one scan, then FALSE on the next.
-
-[[try-ladder: programs/learn/m5-edges.json]]
+[[see-example: 1]]
 
 ## The task
 
@@ -41,3 +38,9 @@ The sensor and the diverter are in different places, so the program must **remem
 ## How to do it
 
 Run the **Example** first: one button that turns a work light on with one press and off with the next. Its rung 1 makes a one-scan Pulse from a rising edge of the button. *A common mistake* (choose it in **Program**, above the machine) uses a plain contact instead, so the light flips on and off every scan the button is held. Then write the sorter in the **Exercise** tab. Watch MetalSeen turn on at the sensor and off as the part leaves the eye. If you are tempted to divert using Prox directly, try it, and see which bin the metal ends up in.
+
+[[example: Edges, one scan at a time]]
+
+One scan is far too quick to see, so go one scan at a time. Press **Pause**, tick **keep pressed** under **Button**, and press **Step one scan**: RisePulse (under *Inside the PLC*) is TRUE, and Held lights. Press **Step one scan** again: RisePulse is FALSE, though Held stays on. Untick **keep pressed** and step: FallPulse is TRUE for that one scan, then FALSE on the next.
+
+[[try-ladder: programs/learn/m5-edges.json]]

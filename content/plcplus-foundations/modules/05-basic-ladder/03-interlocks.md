@@ -14,7 +14,6 @@ takeaways:
   - Every rule that keeps people and the machine safe is one more contact in series on the rung it must stop.
 ---
 
-
 # Limit switches and interlocks: a garage door
 
 A garage door opener is two seal-in circuits, one per direction (MotorUp and MotorDown), with three extra rules:
@@ -25,9 +24,7 @@ A garage door opener is two seal-in circuits, one per direction (MotorUp and Mot
 
 Stop (StopPB) stops either direction. Like the motor station's Stop, it is wired normally closed.
 
-Try a limit switch on its own, on a barrier arm that rises while its button is held. Tick **keep pressed** under **RaisePB**: ArmUp comes on. Now press **TopLimit**, as the arm would when it reaches the top: ArmUp goes off although RaisePB is still pressed, and AtTop lights. The normally closed TopLimit contact has broken the rung.
-
-[[try-ladder: programs/learn/m5-limit-switch.json]]
+[[see-example: 1]]
 
 ## How to build it
 
@@ -40,3 +37,9 @@ Write the Down rung the same way, with ClosePB, ClosedLimit, MotorUp and EyeClea
 The **Example** tab shows the interlock on a simpler machine: a conveyor motor that runs forward or in reverse. Press Forward, then Reverse while it runs: nothing happens until Stop. *A common mistake* (choose it in **Program**, above the machine) has no interlocks: try the same and read what the motor says. Your door adds the limit switches and the safety eye; test each rule on the Exercise tab as you go: open the door, close it, press Close while it is opening, and step into the doorway (the button beside the safety eye).
 
 Then write it in the **Exercise** tab and press **Check my program**. One of the tests is hidden: it checks that the door is safe in a case the brief describes but the visible tests do not.
+
+[[example: A limit switch on a barrier arm]]
+
+Try a limit switch on its own, on a barrier arm that rises while its button is held. Tick **keep pressed** under **RaisePB**: ArmUp comes on. Now press **TopLimit**, as the arm would when it reaches the top: ArmUp goes off although RaisePB is still pressed, and AtTop lights. The normally closed TopLimit contact has broken the rung.
+
+[[try-ladder: programs/learn/m5-limit-switch.json]]

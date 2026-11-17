@@ -45,6 +45,6 @@ You write the program on a PC, in the PLC maker's software, and **download** it 
 
 Your lab uses Allen-Bradley PLCs, made by Rockwell Automation. As examples only: the **Micro800** family (such as the Micro850) are compact controllers programmed with Connected Components Workbench, and **CompactLogix** controllers are modular, programmed with Studio 5000 Logix Designer. Older panels may still have **SLC 500** or **MicroLogix** PLCs. Your lab instructor will tell you which model you will use.
 
-## Try it
+## Practise
 
 This item has no machine. Open the **Exercise** tab and answer the practice questions. Each answer says why, and shows the right one when yours is wrong. Pass them (80 %) and the item is complete.

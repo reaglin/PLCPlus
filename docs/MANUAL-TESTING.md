@@ -13,6 +13,24 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 17 — the examples on the Example tab, with circuits drawn (plan 13.15), 2026-11-17
+
+**On `main`**, `manual-test\PLCPlus.exe` (rebuild it with the command at the top), with a test folder of learners as in hand-test 12.
+
+1. **1.1 Voltage, current and resistance.** Under the worked example, the Learn page has a button "▶ Try it on the Example tab: Ohm's
+   law on a relay coil". Press it: the Example tab opens with the circuit drawn, a battery at 24 V and the 480 Ω coil, 50 mA and
+   1.2 W. Move the voltage to 48 V and the resistance to 10 Ω: do the arrow, the green wires and the resistor's orange glow follow?
+   Tick Open the switch: no current, thin dark wires, "Switch: OPEN". Is the circuit the size you wanted?
+2. **1.2 Series and parallel.** The item's tab says **Examples (2)**; Example 1 and Example 2 are tabs at the top. Example 1 starts
+   at the worked example (200 Ω, 400 Ω: 40 mA, 8 V and 16 V). Example 2 is the three pilot lights and the coil (125 mA). Tick Open on
+   Light2: only its branch stops, the total drops to 100 mA. Do the Learn page's two buttons each open their own example?
+3. **2.4 Truth tables.** Example 1 draws (A OR B) AND NOT C as a rung: switch A, then C, and watch power along it. Example 2, XOR, is
+   drawn as its two paths. Is the rung clear to a beginner, or would gates be better?
+4. **Every other item** with a Try it (modules 2–8 and 11): the Learn page has the button where the example was, and the Example tab
+   has it with its words. An item that also has a machine (most of modules 3–8 and 11) has it as the last Example, and the Example tab
+   opens on the machine, as the Learn page says. Are any titles wrong?
+5. 🔊 Read aloud on an Example reads its words; Pop out takes it to its own window.
+
 ## Hand-test 16 — the Read link and interactive examples (plan 13.13, 13.14), 2026-11-17
 
 On `main`, `manual-test\PLCPlus.exe`.

@@ -10,7 +10,6 @@ quiz: quizzes/m8-sfc.json
 reference: [sfc, step-logic]
 ---
 
-
 # An introduction to SFC (Sequential Function Chart)
 
 IEC 61131-3, the standard for PLC languages, has a language made for sequences: the **Sequential Function Chart**, or **SFC**. Instead of rungs, you draw the sequence itself: boxes for the steps, and a short bar between them for each condition. Allen-Bradley ControlLogix and CompactLogix PLCs have an SFC editor in Studio 5000, and so do most other makers' tools.
@@ -52,13 +51,17 @@ The chart maps straight onto what you wrote in this module:
 
 The Example tab runs the parts washer written this way: one BOOL per step, S0 to S4, S0 starting TRUE. (My program cannot give a tag a starting value yet; the Example's program has one.)
 
-Try a chart of three steps first, a small lift: S0 (initial) → *Call* → S1 Up (N: MotorUp) → *AtTop* → S2 Down (N: MotorDown) → *AtBottom* → back to S0. You play the sensors with **AtTop** and **AtBottom**. Under **Inside the PLC**, S0 is TRUE before you press anything: it is the initial step. Press **Call**: the transition fires, S1 becomes active and S0 inactive, and the MotorUp lamp is its N action. Press **AtBottom** now: nothing, because a transition fires only when the step before it is active. Then **AtTop**, then **AtBottom**, and S0 is active again.
-
-[[try-ladder: programs/learn/m8-sfc-lift.json]]
+[[see-example: 1]]
 
 [[ladder: programs/m8-parts-washer-sfc.json]]
 
-## Try it
+## Practise
 
 1. Open the **Example** tab. It starts with *Written as an SFC* chosen in **Program**, above the machine. Press **Start** and watch S0 to S4 take turns, and read each rung's comment: which part of the chart is it? Compare it with *Works*, the same machine with a step number.
 2. Open the **Exercise** tab and answer the questions; press **Check my answers**. These are practice: a wrong answer shows you the right one. This item is complete when you pass its questions.
+
+[[example: A lift as a chart]]
+
+Try a chart of three steps first, a small lift: S0 (initial) → *Call* → S1 Up (N: MotorUp) → *AtTop* → S2 Down (N: MotorDown) → *AtBottom* → back to S0. You play the sensors with **AtTop** and **AtBottom**. Under **Inside the PLC**, S0 is TRUE before you press anything: it is the initial step. Press **Call**: the transition fires, S1 becomes active and S0 inactive, and the MotorUp lamp is its N action. Press **AtBottom** now: nothing, because a transition fires only when the step before it is active. Then **AtTop**, then **AtBottom**, and S0 is active again.
+
+[[try-ladder: programs/learn/m8-sfc-lift.json]]

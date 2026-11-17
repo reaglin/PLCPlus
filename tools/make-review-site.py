@@ -81,6 +81,21 @@ def truth_table(expr):
     return f'<p class="cap">Truth table: {html.escape(expr)}</p><table class="tt"><tr>{head}</tr>{"".join(rows)}</table>'
 
 
+def split_examples(text):
+    """An item's Markdown: the Learn page, then its examples, each from a line [[example: Title]] (plan 13.15)."""
+    learn, examples, cur = [], [], None
+    for line in text.split('\n'):
+        m = re.match(r'^\s*\[\[\s*example\s*:\s*(.*?)\s*\]\]\s*$', line, re.I)
+        if m:
+            cur = (m.group(1), [])
+            examples.append(cur)
+        elif cur is None:
+            learn.append(line)
+        else:
+            cur[1].append(line)
+    return '\n'.join(learn), [(t, '\n'.join(body).strip()) for t, body in examples]
+
+
 def widgets(md_text, up):
     """[[ladder: …]] and [[truth-table: …]] lines become a picture and a table."""
     out = []
@@ -101,6 +116,8 @@ def widgets(md_text, up):
                     'try-number': f'click bits on and off ({m.group(2)}): decimal, binary, hex and BCD',
                     'try-circuit': f'move the sliders ({m.group(2)}): current, voltages and power'}.get(m.group(1), 'an interactive example')
             out.append(f'\n<aside class="note"><strong>▶ Try it in PLC+:</strong> {html.escape(what)}.</aside>\n')
+        elif m.group(1) == 'see-example':
+            out.append(f'\n<p class="note">▶ In PLC+ a button here opens Example {html.escape(m.group(2))} on the Example tab (shown below).</p>\n')
     return '\n'.join(out)
 
 
@@ -269,11 +286,12 @@ def main():
             b.append('<h2>About this module</h2>' + md(intro))
         if items:
             b.append('<h2>The items</h2><p>Each item has four tabs in PLC+: <strong>Learn</strong> (the lesson below), '
-                     '<strong>Example</strong> (a machine running a working program), <strong>Exercise</strong> (the learner '
+                     '<strong>Example</strong> (examples to try, each with a figure, and a machine running a working program; with more than one, Example 1, Example 2 …), <strong>Exercise</strong> (the learner '
                      'writes the program; PLC+ checks it) and <strong>Reference</strong>. Every item has a comment box under it.</p><ol>'
                      + ''.join(f'<li><a href="#{html.escape(im["id"])}">{html.escape(n)} {html.escape(im["title"])}</a></li>' for n, im, _ in items) + '</ol>')
         for n, im, learn in items:
             ex, exr = im.get('example'), im.get('exercise')
+            learn, examples = split_examples(learn)
             tabs = []
             if im.get('kind') == 'assess':
                 tabs.append(('Module check', 'Complete when every item it covers is: '
@@ -282,13 +300,15 @@ def main():
                                 if im.get('quiz') else '.')
                              + ' Once it is complete, the learner makes the PDF progress report to hand in (Hand in a report).'))
             else:
+                written = ''.join(f'Example {k + 1}: <a href="#{html.escape(im["id"])}-ex{k + 1}">{html.escape(t)}</a> (to try, with a figure). '
+                                  for k, (t, _) in enumerate(examples))
                 if ex in challenges:
                     ch, programs = challenges[ex]
                     names = [p['title'] for p in programs]
-                    tabs.append(('Example', f'The machine for “{html.escape(ch["title"])}”, running the working program '
+                    tabs.append(('Example', written + (f'Example {len(examples) + 1}: ' if examples else '') + f'The machine for “{html.escape(ch["title"])}”, running the working program '
                                  f'(also: {html.escape(", ".join(names[1:]))}). <a href="#{html.escape(im["id"])}-pic">The working program</a>.'))
                 else:
-                    tabs.append(('Example', 'None: this item has no machine.'))
+                    tabs.append(('Example', written or 'None.'))
                 if exr in challenges:
                     ch, _ = challenges[exr]
                     tabs.append(('Exercise', f'The learner writes the program for: <em>{html.escape(ch["brief"])}</em> '
@@ -314,6 +334,9 @@ def main():
                 b.append('<h3>The Learn tab</h3>' + md(learn, shift=2))
             else:
                 b.append('<p class="note">The Learn page is still to be written.</p>')
+            for k, (t, body) in enumerate(examples):
+                several = len(examples) + (1 if ex in challenges else 0) > 1
+                b.append(f'<h3 id="{html.escape(im["id"])}-ex{k + 1}">The Example tab{f", Example {k + 1}" if several else ""}: {html.escape(t)}</h3>' + md(body, shift=2))
             if ex in challenges:
                 prog = challenges[ex][1][0]['file']
                 name = os.path.splitext(os.path.basename(prog))[0]
