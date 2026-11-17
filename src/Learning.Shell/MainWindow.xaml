@@ -322,7 +322,7 @@
                     <WrapPanel HorizontalAlignment="Right">
                         <!-- Pop out (Ron, 2026-11-15): any tab in a full-size window of its own, for the tabs that need room. -->
                         <Button x:Name="PopOutTabButton" Content="⤢ Pop out" Margin="0,0,8,0" Command="{x:Static local:MainWindow.PopOutTab}" ToolTipService.ShowOnDisabled="True"
-                                ToolTip="Opens this tab in a window that fills the screen, for more room (Ctrl+Shift+O). The path, the menus, Previous and Next wait in the main window: Put it back (Esc, or Ctrl+Shift+O again) returns to them" />
+                                ToolTip="Opens this tab in a window that fills the screen, for more room (Ctrl+Shift+O). The path, the menus, Previous and Next wait in the main window: Close (Esc, or Ctrl+Shift+O again) returns to them" />
                         <Button x:Name="ReadAloudButton" Content="🔊 Read aloud" Margin="0,0,8,0" Command="{x:Static local:MainWindow.ReadAloud}"
                                 ToolTipService.ShowOnDisabled="True" ToolTip="Reads this page aloud, the paragraph being read marked (Ctrl+Shift+A). View ▸ Reader voice and speed… chooses the voice" />
                         <Button x:Name="StopReadingButton" Content="■ Stop" Margin="0,0,8,0" Click="StopReading_Click" Visibility="Collapsed"

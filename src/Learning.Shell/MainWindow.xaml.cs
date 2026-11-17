@@ -1099,7 +1099,7 @@ public partial class MainWindow : Window
     /// the learner can make as big as they like. It is modal: the main window is disabled, as ShowDialog would do, so it cannot
     /// be used or focused until the pop-out closes. It is not ShowDialog itself, because a dialog stops the auto-lock and the
     /// time on task (the idle timer waits while a dialog is open); the pop-out is the learner working, so both carry on.
-    /// Closing it (or Put it back, or Esc) puts the workspace back as it is.
+    /// Closing it (Close, or Esc) puts the workspace back as it is.
     /// </summary>
     private void PopOut(MachineWorkspace ws)
     {
@@ -1120,7 +1120,7 @@ public partial class MainWindow : Window
         void MainStatus(object? o, System.ComponentModel.PropertyChangedEventArgs e) { if (e.PropertyName == nameof(ShellViewModel.Status)) Show(_vm.Status); }
         _vm.PropertyChanged += MainStatus;   // what the main window says (passed, complete) shows here too
         status.Text = "The program and the machine, in a window of their own. Make it as big as you like. The main window waits until you come back: " +
-                      "press Put it back (or close this window, or press Esc) to return to the lesson, the menus and Next.";
+                      "press Close (or Esc) to return to the lesson, the menus and Next.";
 
         ws.Margin = new Thickness(16, 4, 16, 8);
         var scroll = new ScrollViewer { VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false, Content = ws };
@@ -1249,7 +1249,7 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// Pop out (Ron, 2026-11-15: "a Pop Out that can be used for all the tabs, that pops out the screen in the tab to a full size
-    /// modal window"): the tab showing moves, as it is, into a window that fills the screen; Put it back, Esc or closing it returns
+    /// modal window"): the tab showing moves, as it is, into a window that fills the screen; Close or Esc returns
     /// it. The Example and Exercise machines use their own pop-out (<see cref="PopOut"/>); every other tab, and an Exercise tab of
     /// questions, moves whole. Modal the same way: the main window waits, and the auto-lock and time on task carry on. The Reader
     /// works in it (its buttons are in the window's bar); a key term, a ✎ or Show it in the lesson puts the tab back first, since
@@ -1266,7 +1266,7 @@ public partial class MainWindow : Window
         tab.Content = new TextBlock
         {
             Style = (Style)FindResource("Lead"), Margin = new Thickness(12),
-            Text = $"The {name} tab is in its own window. Press Put it back there (or Esc) to bring it back here.",
+            Text = $"The {name} tab is in its own window. Press Close there (or Esc) to bring it back here.",
         };
 
         var win = new Window
@@ -1298,8 +1298,8 @@ public partial class MainWindow : Window
         }
         var back = new Button
         {
-            Content = "Put it _back", Margin = new Thickness(0),
-            ToolTip = $"Puts the {name} tab back in the main window, as it is now (Esc, or close this window)",
+            Content = "Close", Margin = new Thickness(0),
+            ToolTip = $"Closes this window and puts the {name} tab back in the main window, as it is now (or press Esc)",
         };
         back.Click += (_, _) => win.Close();
         buttons.Children.Add(back);
@@ -1355,7 +1355,7 @@ public partial class MainWindow : Window
         _popOut = win;
         EnableWindow(me, false);         // modal: the main window cannot be used or focused while the pop-out is open
         win.Show();
-        SetStatus($"The {name} tab fills the screen. Put it back (or Esc) returns it to the main window, with the path, the menus and Next.");
+        SetStatus($"The {name} tab fills the screen. Close (or Esc) returns it to the main window, with the path, the menus and Next.");
     }
 
     // ---- Moving around ---------------------------------------------------------------------------------
@@ -1446,7 +1446,7 @@ public partial class MainWindow : Window
     /// </summary>
     private void SetStatus(string text) =>
         _vm.Status = _popOut is not null && MainWindowWords.Any(w => text.Contains(w, StringComparison.Ordinal))
-            ? text + " (Those are in the main window: press Put it back first.)"
+            ? text + " (Those are in the main window: press Close there first.)"
             : text;
 
     private static readonly string[] MainWindowWords = ["Next ▸", "Previous", "Go ▸", "File ▸", "View ▸", "Learner ▸", "Help ▸", "AI ▸", "Ctrl+Shift+R", "top right"];

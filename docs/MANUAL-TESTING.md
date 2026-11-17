@@ -52,9 +52,9 @@ Tell me which examples to keep, move or drop, and any concept that needs one.
 **On `main`** (merged from `my-notes` 2026-11-17), `manual-test\PLCPlus.exe`.
 
 1. Open 5.2, Learn. Press **⤢ Pop out** (above the tabs, beside Read aloud): the lesson fills the screen, with 5.2's name, "Learn",
-   🔊 Read aloud and Put it back at the top. Read aloud works there (the amber mark follows); Esc stops reading, Esc again puts it back.
+   🔊 Read aloud and Close at the top. Read aloud works there (the amber mark follows); Esc stops reading, Esc again closes it.
 2. Pop out Review: flashcards and the self-test work full size. Laboratory, Reference and My notes the same (type a note, press Esc in
-   the box: the window stays; Put it back).
+   the box: the window stays; Close).
 3. On the Example and Exercise tabs, ⤢ Pop out (or the machine's own Pop out) gives the program and machine full size.
 4. In a popped-out Learn, click a key term: the tab goes back and the Glossary opens. Click a ✎: back, on My notes.
 5. View ▸ Pop out this tab, and Ctrl+Shift+O (press it again in the pop-out to put it back).
@@ -191,7 +191,7 @@ A2. **New learner…**: a name and a PIN; the recovery code (write it down, tick
     module 1's first page, and a status line that says where to start.
 A3. Do **1.1**: read the Learn tab, then **Exercise (questions)**; answer, **Check my answers**. Expected: ✓ or ✗ on each, why, and 1.1 ✓.
 A4. Do **5.2**: the Example first (a pump), then your own program on the Exercise tab; **Pop out** it, finish it there,
-    **Check my program**, **Put it back**. Expected: every test passes; 5.2 ✓; your program is the same in both places.
+    **Check my program**, **Close**. Expected: every test passes; 5.2 ✓; your program is the same in both places.
 A5. Back up (top right), then **Hand in a report** for module 1 (finish 1.2–1.5 and its check first, or make it marked Incomplete).
     Expected: a PDF to save, the result line, and the report in **Reports you have made**.
 At each step: could you tell what to do next without knowing the program?
@@ -237,7 +237,7 @@ The numeric display's orange digits on black; the path's marks on the selected r
 | 10.5 | **8.1**, Example (a transfer arm): press Start | The gripper and the arm move one after another, each cylinder's rod sliding out and back; the steps light on the rungs in order |
 | 10.6 | **11.4**, Exercise | My program starts as the exercise gives it (a double coil); the status line says to fix or finish it. Fix it and **Check my program** |
 | 10.7 | **11.2**, a find-the-fault question | The note says the machine has a fault, "a wire or a device" |
-| 10.8 | On any Example or Exercise, press **Pop out** | The program and the machine open in their own window, nearly as big as PLC+ (maximized if PLC+ is). Make it bigger or smaller. The main window cannot be used while it is open. **Put it back** (or close it) returns them as they were, still running |
+| 10.8 | On any Example or Exercise, press **Pop out** | The program and the machine open in their own window, nearly as big as PLC+ (maximized if PLC+ is). Make it bigger or smaller. The main window cannot be used while it is open. **Close** (or close it) returns them as they were, still running |
 | 10.9 | Pop out an exercise, change the program, put it back | The change is there; Check my program works in both places |
 | 10.10 | Pop out, then leave PLC+ alone until it locks (Settings on the start screen: the lock time) | The pop-out closes and the start screen shows: nothing of yours is left on screen |
 
