@@ -25,16 +25,16 @@ Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Sta
 | ☑ | Version 1.0.0 (`Directory.Build.props`, `PlcPlusVersion`) | |
 | ☑ | A `.msixupload` builds end to end with the development identity (68.8 MB) | 2026-11-05 |
 | ☑ | **1.0 ships from `main` with the textbook features** (plan 13.2–13.16: the seven tabs, My notes, Ask the AI, the Reader and the Read link, the examples to try on the Example tab, Pop out for every tab) | 2026-11-17, Ron: "Prepare a release for PLC+" (plan 13.12) |
-| ☑ | Privacy page updated for Ask the AI and Google voices (effective 2026-11-17) | §4; ⚠️ deploy waits for Ron (below) |
-| ☑ | Program page, help and testing guide say seven tabs and the new features | §4; ⚠️ deploy waits for Ron |
+| ☑ | Privacy page updated for Ask the AI and Google voices (effective 2026-11-17) | §4; deployed 2026-11-17 |
+| ☑ | Program page, help and testing guide say seven tabs and the new features | §4; deployed 2026-11-17 |
 | ☑ | Submission package built with the real identity: `artifacts\store\PLCPlus_1.0.0.0_x64_bundle.msixupload`, 69.2 MB, family name checked | §6, 2026-11-17 |
 | ☐ | WACK run and passing (Ron: it needs an administrator window) | §7 |
 | ☑ | Nine screenshots, 1424 × 836, in `store/screenshots/`, retaken from the 1.0 package | §8, 2026-11-17 |
 | ☐ | Partner Center submission | §9 |
 
 **The deploy of the site (2026-11-17):** the PLC+ examples session's `deploy.ps1 -Only plcplus` failed on the server's install
-step (log `%LOCALAPPDATA%\SoftwarePlus\deploy\runs\20261117-164942-23896.log`), so under the portfolio rule the next deploy waits
-for Ron. The privacy page must be live before the submission: the program links to it, and it now covers the AI.
+step (log `%LOCALAPPDATA%\SoftwarePlus\deploy\runs\20261117-164942-23896.log`), then Ron said go: deployed 20:19 the same day
+(run `20261117-201945-25976`, a -Reason without brackets).
 
 ---
 
