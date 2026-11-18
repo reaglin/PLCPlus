@@ -34,7 +34,7 @@ Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Sta
 | ☑ | Submission package built with the real identity: `artifacts\store\PLCPlus_1.0.1.0_x64_bundle.msixupload`, family name checked | §6, 2026-11-17 |
 | ☑ | WACK run and passing: **overall PASS, 23 of 24** on 1.0.1.0 (only Blocked executables, optional, from the .NET runtime) | §7, Ron 2026-11-17 20:29 (`artifacts\wack-report.xml`) |
 | ☑ | Nine screenshots, 1424 × 836, in `store/screenshots/`, retaken from the 1.0 package | §8, 2026-11-17 |
-| ☐ | Partner Center submission | §9 |
+| ☐ | Partner Center submission: package uploaded (Ron); listing (description, What's new, 19 features, short description, trademark), the nine screenshots in order and the testers' notes (Additional Testing Information) entered and saved by Claude 2026-11-17; visibility checked (hidden, direct link). **Ron: check, then Submit for certification** | §9 |
 
 **The deploy of the site (2026-11-17):** the PLC+ examples session's `deploy.ps1 -Only plcplus` failed on the server's install
 step (log `%LOCALAPPDATA%\SoftwarePlus\deploy\runs\20261117-164942-23896.log`), then Ron said go: deployed 20:19 the same day
