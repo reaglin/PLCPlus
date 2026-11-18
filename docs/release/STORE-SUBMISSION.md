@@ -16,7 +16,7 @@ Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Sta
 | | Item | State |
 |---|---|---|
 | ☑ | Store name **PLC+** reserved in Partner Center | Ron, 2026-11-04 |
-| ☐ | **NEEDS RON:** the package identity name and the Store ID, copied out of Partner Center | §3 |
+| ☑ | The package identity name and the Store ID, from Partner Center | §2 (2026-11-05) |
 | ☑ | `packaging/AppxManifest.xml` — identity, tiles, one capability (`runFullTrust`) | in the repo |
 | ☑ | `packaging/pack.ps1`, `make-msixupload.ps1`, `run-wack.ps1` — from Author+ | in the repo |
 | ☑ | `packaging/make-store-assets.ps1` — every tile, listing image and `PLCPlus.ico`, drawn from one mark | 52 tiles, none over WACK's size cap |
@@ -24,12 +24,17 @@ Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Sta
 | ☑ | `src/Learning.Shell/app.manifest` — PerMonitorV2 (WACK needs it) | in the repo |
 | ☑ | Version 1.0.0 (`Directory.Build.props`, `PlcPlusVersion`) | |
 | ☑ | A `.msixupload` builds end to end with the development identity (68.8 MB) | 2026-11-05 |
-| ☐ | Privacy page live at https://softwareplus.ai/plcplus/privacy/ | §4 |
-| ☐ | Testing guide live at https://softwareplus.ai/plcplus/testing/ | §4 |
-| ☐ | Submission package built with the real identity | §6, after §3 |
+| ☑ | **1.0 ships from `main` with the textbook features** (plan 13.2–13.16: the seven tabs, My notes, Ask the AI, the Reader and the Read link, the examples to try on the Example tab, Pop out for every tab) | 2026-11-17, Ron: "Prepare a release for PLC+" (plan 13.12) |
+| ☑ | Privacy page updated for Ask the AI and Google voices (effective 2026-11-17) | §4; ⚠️ deploy waits for Ron (below) |
+| ☑ | Program page, help and testing guide say seven tabs and the new features | §4; ⚠️ deploy waits for Ron |
+| ☑ | Submission package built with the real identity: `artifacts\store\PLCPlus_1.0.0.0_x64_bundle.msixupload`, 69.2 MB, family name checked | §6, 2026-11-17 |
 | ☐ | WACK run and passing (Ron: it needs an administrator window) | §7 |
-| ☑ | Seven screenshots, 1424 × 836, in `store/screenshots/` | §8 |
+| ☑ | Nine screenshots, 1424 × 836, in `store/screenshots/`, retaken from the 1.0 package | §8, 2026-11-17 |
 | ☐ | Partner Center submission | §9 |
+
+**The deploy of the site (2026-11-17):** the PLC+ examples session's `deploy.ps1 -Only plcplus` failed on the server's install
+step (log `%LOCALAPPDATA%\SoftwarePlus\deploy\runs\20261117-164942-23896.log`), so under the portfolio rule the next deploy waits
+for Ron. The privacy page must be live before the submission: the program links to it, and it now covers the AI.
 
 ---
 
@@ -102,7 +107,7 @@ for a few minutes; leave the computer alone while it does. Expected, as for ever
 ## 8. Screenshots
 
 `store/screenshots/`, 1424 × 836 (Partner Center wants at least 1366 × 768), taken from the packaged program with PrintWindow
-and the sample learner "Maria Gomez":
+and the sample learner "Maria Gomez" (retaken 2026-11-17 for the seven tabs; upload them in this order):
 
 | # | File | Shows |
 |---|---|---|
@@ -113,6 +118,8 @@ and the sample learner "Maria Gomez":
 | 5 | `05-module-3.png` | a module's first page: outcomes mastered, topics, items |
 | 6 | `06-hand-in.png` | Hand in a report: the signed PDF progress report |
 | 7 | `07-start.png` | Who is learning? — learners on a shared computer |
+| 8 | `08-try-it-6-1.png` | An example to try: an on-delay timer running live, with power flow and Inside the PLC |
+| 9 | `09-learn-5-2.png` | A Learn page: 🔊 Read beside the title, key terms, the button to try it on the Example tab |
 
 ## 9. Partner Center, field by field
 
@@ -189,12 +196,16 @@ Paste the notes in §10, then **Submit to the Store**.
 > students use one lab computer, each with a PIN-locked file of their own). It needs no administrator rights, installs no
 > drivers or services, and touches no other application's data.
 >
-> **No network.** PLC+ works offline and sends nothing. The only connection is to the Microsoft Store itself, when the user
-> chooses Help › Check for a new version. Links to help pages open in the user's web browser.
+> **Network.** PLC+ works offline and sends nothing about its users. It connects only when the user asks: Help › Check for a
+> new version (the Microsoft Store), the optional Ask the AI on an item's My notes tab and the optional Google voices for Read
+> aloud. Those two work only after the user enters their own key from an AI company or Google in AI › AI settings, and send the
+> user's question and the lesson's text (the book's words), never the learner's name, progress or notes. Without a key they say
+> what they need and everything else works. Links to help pages open in the user's web browser.
 >
 > **How to try it.** On the first screen press New learner, type any name and a 4-digit PIN, and keep or skip the recovery
-> code. The learning path opens on the left. Choose Module 5 › 5.2, then the Example tab: a working program runs a simulated
-> motor; press Start and Stop on the machine. The Exercise tab is the same machine with an empty program to build. Nothing needs
+> code. The learning path opens on the left. Choose Module 5 › 5.2, then the Examples tab and "the machine": a working program
+> runs a simulated motor; press Start and Stop on the machine. On 6.1's Examples tab, Example 1 is a small timer program running
+> live: hold Go down. The Exercise tab is the same machine with an empty program to build. Nothing needs
 > a sign-in, an account or a purchase.
 >
 > **Audience.** This 1.0 release is hidden (direct link) for the PLC instructors reviewing the course before students use it.
@@ -220,7 +231,7 @@ PLC+
 **Short description** [1000]
 
 ```
-Learn PLC programming at home, with simulated machines in place of real hardware. PLC+ takes you from electrical and logic basics to ladder logic, timers, counters, sequencing and troubleshooting: read a lesson, run a working example on a machine, then write your own program and check it. Progress stays on your computer, and a signed PDF report shows your instructor what you have done.
+Learn PLC programming at home, with simulated machines in place of real hardware. PLC+ takes you from electrical and logic basics to ladder logic, timers, counters, sequencing and troubleshooting: read a lesson (or hear it read), try the idea in a small program running live, run a working example on a machine, then write your own program and check it. Progress stays on your computer, and a signed PDF report shows your instructor what you have done.
 ```
 
 **Description** [10000]
@@ -229,10 +240,13 @@ Learn PLC programming at home, with simulated machines in place of real hardware
 PLC+ is the self-paced half of a PLC course: everything you can learn before you stand in front of a real controller. The lab is the other half.
 
 LEARN IN MODULES
-Each module is a short list of items, each with four tabs: Learn (the lesson), Example (a working program on a simulated machine, and a common mistake to see go wrong), Exercise (write your own program, or answer practice questions) and Reference (the symbols and rules on one page). A module ends with a check. This release has nine modules written: electrical foundations, logic and number systems, relay control, PLC fundamentals, basic ladder programming, timers and counters, data and math, sequencing and state machines, and troubleshooting.
+Each module is a short list of items, each with seven tabs: Learn (the lesson, which PLC+ can read aloud), Example (examples to try and a working program on a simulated machine, with a common mistake to see go wrong), Exercise (write your own program, or answer practice questions), Laboratory (the lab exercise for the real PLC), Review (takeaways, key terms, flashcards and a self-test), Reference (the symbols and rules on one page) and My notes. A module ends with a check. This release has nine modules written: electrical foundations, logic and number systems, relay control, PLC fundamentals, basic ladder programming, timers and counters, data and math, sequencing and state machines, and troubleshooting.
+
+TRY EACH IDEA AS YOU GO
+Small programs run live on the Example tab: hold a button and watch power flow along the rungs, a timer count up and a counter reach its preset. Switch the inputs of a truth table, click the bits of a byte to see it in binary, hex and BCD, and move the sliders of a circuit to see Ohm's law at work.
 
 MACHINES IN PLACE OF HARDWARE
-Pilot lights, a motor starter, a traffic light, a garage door, a tank, a sorting conveyor, pumps, cylinders, a stamping station and more. Press their buttons, block their sensors and watch the ladder live beside them: every contact shows TRUE or FALSE, and power flows in thick green. Pop out gives a machine and its program a window of their own.
+Pilot lights, a motor starter, a traffic light, a garage door, a tank, a sorting conveyor, pumps, cylinders, a stamping station and more. Press their buttons, block their sensors and watch the ladder live beside them: every contact shows TRUE or FALSE, and power flows in thick green. Pop out gives any tab, or a machine and its program, a window of their own.
 
 WRITE LADDER LOGIC
 A ladder editor made for beginners: contacts, coils, set and reset, edges, timers (TON, TOF, TONR), counters, compares, math and moves. Every change runs straight away. Check my program runs the machine through its tests and says, in plain words, which one failed and what happened; Replay shows the failure step by step. Names follow IEC 61131-3, with the Allen-Bradley name beside each one.
@@ -243,8 +257,11 @@ Find the fault on a machine with a broken sensor, a failed output or swapped wir
 PROGRESS AND REPORTS
 Many learners can share one computer: each has a progress file locked with a PIN. My progress shows the path, the outcomes mastered, what to review and the time spent. At each module check, PLC+ makes a signed PDF report to hand in; an instructor checks it in PLC+ (File › Check a report) to see it has not been changed.
 
+NOTES, A GLOSSARY AND AN OPTIONAL AI
+Keep your own notes on any paragraph; look up a key term in the Glossary. Ask the AI (optional, with a key of your own or your class's) answers a question about an item from its lesson.
+
 OFFLINE AND PRIVATE
-PLC+ works without an internet connection, has no accounts and no advertising, and sends nothing anywhere. Progress leaves the computer only as files you save yourself.
+PLC+ works without an internet connection, has no accounts and no advertising, and sends nothing about you anywhere. Progress leaves the computer only as files you save yourself. The optional AI and Google voices send only your question and the book's words, and only once you have set them up with your own key.
 ```
 
 **Product features** [up to 20]
@@ -253,17 +270,22 @@ PLC+ works without an internet connection, has no accounts and no advertising, a
 Nine modules: electrical basics to sequencing and troubleshooting
 Simulated machines in place of real PLC hardware
 Every lesson has a working example on a machine like the exercise's
+Examples to try: small programs running live, truth tables, bits and circuits
+Hear any page read aloud, the part being read marked
+Seven tabs per item: Learn, Example, Exercise, Laboratory, Review, Reference, My notes
+Your own notes on any paragraph, and a Glossary of key terms
 A ladder editor for beginners: every change runs straight away
 Check my program says which test failed, in plain words
 Replay a failed test step by step
 Timers, counters, compares, math, set/reset and edges
 Find-the-fault machines and programs to fix
 IEC 61131-3 names, with the Allen-Bradley name beside each one
-Pop out a machine and its program into a window of their own
+Pop out any tab into a window of its own
 My progress: outcomes mastered, what to review, time on task
 Many learners on one computer, each with a PIN-locked progress file
 Signed PDF progress reports to hand in; instructors can check them
-Works offline; sends nothing
+Optional Ask the AI, with your own key
+Works offline; sends nothing about you
 ```
 
 **Search terms** [up to 7] — few people will search while the listing is hidden, but they carry over to the public release
