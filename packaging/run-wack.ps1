@@ -19,10 +19,10 @@
 
 .EXAMPLE
     ./packaging/run-wack.ps1
-    Tests the newest .msixbundle in artifacts/.
+    Tests the newest .msixbundle in artifacts/ or below (artifacts/store for the Store build).
 
 .EXAMPLE
-    ./packaging/run-wack.ps1 -Package artifacts\PLCPlus_1.0.0.0_x64.msixbundle
+    ./packaging/run-wack.ps1 -Package artifacts\store\PLCPlus_1.0.1.0_x64.msixbundle
 #>
 [CmdletBinding()]
 param(
@@ -36,7 +36,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 
 # --- resolve paths before elevating, while the working directory is still the repo -----------
 if (-not $Package) {
-    $Package = Get-ChildItem (Join-Path $repoRoot 'artifacts') -Filter *.msixbundle -ErrorAction SilentlyContinue |
+    $Package = Get-ChildItem (Join-Path $repoRoot 'artifacts') -Filter *.msixbundle -Recurse -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
     if (-not $Package) {
         throw "No .msixbundle in artifacts\. Run packaging/make-msixupload.ps1 first."

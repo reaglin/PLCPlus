@@ -1,4 +1,8 @@
-# PLC+ — Microsoft Store submission (1.0.0, the instructors' release)
+# PLC+ — Microsoft Store submission (1.0.1, the instructors' release)
+
+**1.0.0.0 is already live on the Store** (Ron, 2026-11-17), hidden, for the instructors. **1.0.1** is an update to that
+product: the same identity and listing, a new package, and the listing, screenshots and notes refreshed for the textbook
+features. In Partner Center: PLC+ → **Update** (a new submission) → Packages, Store listings, then Submit.
 
 Everything needed to put **PLC+** on the Microsoft Store, in order, with the values to type and the commands to run.
 Copied from Author+ (`..\AuthorPlus\docs\STORE-SUBMISSION.md`), which went through the same steps on 2026-11-05.
@@ -22,12 +26,12 @@ Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Sta
 | ☑ | `packaging/make-store-assets.ps1` — every tile, listing image and `PLCPlus.ico`, drawn from one mark | 52 tiles, none over WACK's size cap |
 | ☑ | The icon: one rung of ladder logic in white on steel blue, the amber "+" as the coil | ⚠️ Ron to look (`store/images/asset-contact-sheet.png`) |
 | ☑ | `src/Learning.Shell/app.manifest` — PerMonitorV2 (WACK needs it) | in the repo |
-| ☑ | Version 1.0.0 (`Directory.Build.props`, `PlcPlusVersion`) | |
+| ☑ | Version **1.0.1** (`Directory.Build.props`, `PlcPlusVersion`); 1.0.0.0 is live | 2026-11-17 |
 | ☑ | A `.msixupload` builds end to end with the development identity (68.8 MB) | 2026-11-05 |
-| ☑ | **1.0 ships from `main` with the textbook features** (plan 13.2–13.16: the seven tabs, My notes, Ask the AI, the Reader and the Read link, the examples to try on the Example tab, Pop out for every tab) | 2026-11-17, Ron: "Prepare a release for PLC+" (plan 13.12) |
+| ☑ | **1.0.1 ships from `main` with the textbook features** (plan 13.2–13.16: the seven tabs, My notes, Ask the AI, the Reader and the Read link, the examples to try on the Example tab, Pop out for every tab) | 2026-11-17, Ron: "Prepare a release for PLC+" (plan 13.12) |
 | ☑ | Privacy page updated for Ask the AI and Google voices (effective 2026-11-17) | §4; deployed 2026-11-17 |
 | ☑ | Program page, help and testing guide say seven tabs and the new features | §4; deployed 2026-11-17 |
-| ☑ | Submission package built with the real identity: `artifacts\store\PLCPlus_1.0.0.0_x64_bundle.msixupload`, 69.2 MB, family name checked | §6, 2026-11-17 |
+| ☑ | Submission package built with the real identity: `artifacts\store\PLCPlus_1.0.1.0_x64_bundle.msixupload`, family name checked | §6, 2026-11-17 |
 | ☐ | WACK run and passing (Ron: it needs an administrator window) | §7 |
 | ☑ | Nine screenshots, 1424 × 836, in `store/screenshots/`, retaken from the 1.0 package | §8, 2026-11-17 |
 | ☐ | Partner Center submission | §9 |
@@ -78,7 +82,7 @@ cd ..\SoftwarePlus
 
 ## 5. The version
 
-`Directory.Build.props` → `<PlcPlusVersion>1.0.0</PlcPlusVersion>`. The package version is `1.0.0.0` (the Store needs the
+`Directory.Build.props` → `<PlcPlusVersion>1.0.1</PlcPlusVersion>`. The package version is `1.0.1.0` (the Store needs the
 fourth part to be 0). Every later upload needs a higher version (1.0.1, …).
 
 ## 6. Build the submission package
@@ -90,7 +94,7 @@ fourth part to be 0). Every later upload needs a higher version (1.0.1, …).
     -OutputDirectory artifacts\store
 ```
 
-Output: `artifacts\PLCPlus_1.0.0.0_x64_bundle.msixupload` (about 69 MB: the program, .NET, and the lessons, machines and
+Output: `artifacts\store\PLCPlus_1.0.1.0_x64_bundle.msixupload` (about 69 MB: the program, .NET, and the lessons, machines and
 questions in `content\plcplus-foundations`). The package is **unsigned** on purpose: the Store signs it. The content needs
 no signature of its own in this release, because it ships inside the package the Store signs (plan 12.5).
 
@@ -177,7 +181,7 @@ Do not upload `asset-contact-sheet.png`; it is the proof sheet.
 
 ### Packages
 
-Upload `artifacts\store\PLCPlus_1.0.0.0_x64_bundle.msixupload` (the one built with the real identity, §6). Tick Windows 10/11 Desktop only.
+Upload `artifacts\store\PLCPlus_1.0.1.0_x64_bundle.msixupload` (the one built with the real identity, §6). Tick Windows 10/11 Desktop only.
 
 The Super hero art slot is left empty: the Store says it must not show the product's title, and both hero images do.
 The notes for the testers (§10) now go on Partner Center's **Additional Testing Information** page, not Submission options.
@@ -208,7 +212,7 @@ Paste the notes in §10, then **Submit to the Store**.
 > live: hold Go down. The Exercise tab is the same machine with an empty program to build. Nothing needs
 > a sign-in, an account or a purchase.
 >
-> **Audience.** This 1.0 release is hidden (direct link) for the PLC instructors reviewing the course before students use it.
+> **Audience.** This 1.0.1 update is hidden (direct link) for the PLC instructors reviewing the course before students use it.
 >
 > **Privacy policy:** https://softwareplus.ai/plcplus/privacy/
 
@@ -303,7 +307,13 @@ IEC 61131-3
 **What's new in this version**
 
 ```
-First release, for the PLC instructors reviewing the course.
+New in 1.0.1:
+- Seven tabs for each item: Learn, Example, Exercise, Laboratory (the lab exercise), Review (takeaways, key terms, flashcards, a self-test), Reference and My notes.
+- Examples to try on the Example tab, each with a figure: small programs running live, truth tables, bits and circuits.
+- Hear any page read aloud, with the part being read marked; a 🔊 Read link beside each lesson's title.
+- Your own notes on any paragraph, and a Glossary of key terms.
+- Ask the AI about an item (optional, with your own key).
+- Pop out any tab into a window of its own; it remembers the size.
 ```
 
 **Copyright and trademark info**
@@ -324,7 +334,7 @@ Ron Eaglin
 
 ☐ Copy the live link into the testing guide (`site/plcplus/testing/`, `store-link`) and the program's page; deploy.
 ☐ Send the instructors the testing guide's address (plan 12.10).
-☐ Tag the commit: `git tag v1.0.0` and push the tag.
+☐ Tag the commit: `git tag v1.0.1` and push the tag (1.0.0 has no tag: its commit was not recorded).
 ☐ Note it in `docs/DEVELOPMENT-PLAN.md` (12.10), `CLAUDE.md` and `..\CLAUDE.md`.
 ☐ Try Help ▸ Check for a new version in the Store copy.
 
