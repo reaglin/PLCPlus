@@ -32,7 +32,7 @@ Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Sta
 | ☑ | Privacy page updated for Ask the AI and Google voices (effective 2026-11-17) | §4; deployed 2026-11-17 |
 | ☑ | Program page, help and testing guide say seven tabs and the new features | §4; deployed 2026-11-17 |
 | ☑ | Submission package built with the real identity: `artifacts\store\PLCPlus_1.0.1.0_x64_bundle.msixupload`, family name checked | §6, 2026-11-17 |
-| ☐ | WACK run and passing (Ron: it needs an administrator window) | §7 |
+| ☑ | WACK run and passing: **overall PASS, 23 of 24** on 1.0.1.0 (only Blocked executables, optional, from the .NET runtime) | §7, Ron 2026-11-17 20:29 (`artifacts\wack-report.xml`) |
 | ☑ | Nine screenshots, 1424 × 836, in `store/screenshots/`, retaken from the 1.0 package | §8, 2026-11-17 |
 | ☐ | Partner Center submission | §9 |
 
@@ -174,7 +174,7 @@ Paste the copy in §11. Upload the screenshots (§8) and the images:
 | Store logo 300 × 300 | `store\images\StoreLogo-300x300.png` |
 | Box art 1:1 | `store\images\BoxArt-1080x1080.png` |
 | Poster art 2:3 | `store\images\PosterArt-720x1080.png` |
-| Super hero art | `store\images\SuperHeroArt-2400x1200.png` |
+| Super hero art | **leave empty** (the Store says it must not show the product's title, and ours does) |
 | Hero 16:9 | `store\images\HeroImage-1920x1080.png` |
 
 Do not upload `asset-contact-sheet.png`; it is the proof sheet.
@@ -186,9 +186,9 @@ Upload `artifacts\store\PLCPlus_1.0.1.0_x64_bundle.msixupload` (the one built wi
 The Super hero art slot is left empty: the Store says it must not show the product's title, and both hero images do.
 The notes for the testers (§10) now go on Partner Center's **Additional Testing Information** page, not Submission options.
 
-### Submission options
+### Additional Testing Information, then Submit
 
-Paste the notes in §10, then **Submit to the Store**.
+Paste the notes in §10 on the **Additional Testing Information** page, then **Submit to the Store** (Ron).
 
 ---
 
@@ -207,8 +207,8 @@ Paste the notes in §10, then **Submit to the Store**.
 > what they need and everything else works. Links to help pages open in the user's web browser.
 >
 > **How to try it.** On the first screen press New learner, type any name and a 4-digit PIN, and keep or skip the recovery
-> code. The learning path opens on the left. Choose Module 5 › 5.2, then the Examples tab and "the machine": a working program
-> runs a simulated motor; press Start and Stop on the machine. On 6.1's Examples tab, Example 1 is a small timer program running
+> code. The learning path opens on the left. Choose Module 5 › 5.2, then the Examples tab: it opens on "Example 2: the machine",
+> where a working program runs a simulated pump; press Start and Stop on the machine. On 6.1's Examples tab, Example 1 is a small timer program running
 > live: hold Go down. The Exercise tab is the same machine with an empty program to build. Nothing needs
 > a sign-in, an account or a purchase.
 >
