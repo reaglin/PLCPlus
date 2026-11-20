@@ -60,6 +60,7 @@ SoftwarePlus.ai, where Ron marks it Implement or Discard. The site side is Softw
 |---|---|---|
 | F.1 | **Help ▸ Send feedback…** (beside Check for a new version; the same words in every program): opens `https://softwareplus.ai/feedback/?program=plcplus&version=<this version>` in the browser. Its tooltip: "Tell us about a bug, a suggestion or anything you noticed — it goes to Dr. Ron Eaglin." No form inside the program and no network code: the web page does the rest. The privacy policy gets the paragraph from SoftwarePlus 9.5 | the menu item opens the form naming PLC+ and its version (after SoftwarePlus 9.1 is live) |
 | F.2 | **Feedback marked Implement** for PLC+ (read from the inbox, SoftwarePlus 9.4) becomes tasks in this plan, each quoting the item, its date and version; the inbox marks them In plan | checked at the start of every round of work on PLC+ |
+| F.3 | **The privacy policy, in the same release as F.1** (Ron, 2026-11-20): PLC+'s page on SoftwarePlus.ai (`SoftwarePlus\site\plcplus\privacy\index.html`) gets the section "Feedback you send" from `SoftwarePlus\docs\FEEDBACK-SETUP.md` ("The privacy paragraph"), its effective date updated, and is deployed (`.\deploy.ps1 -Only plcplus`); any privacy text inside the program or in its Store listing says the same. A release with F.1 is not finished until this is done | the live privacy page has the section when the release with F.1 is submitted |
 
 ## Phase 0 — the repository and a first look ⚠️ 2026-11-04
 
