@@ -49,6 +49,18 @@ Claude never marks an item ✅. Passing tests and a clean UX review earn ⚠️.
 
 ---
 
+## Priority for the next version — Help ▸ Send feedback (Ron, 2026-11-20)
+
+Ron: *"creating a seamless path for feedback for all the programs … I would want to review the comments and mark for
+implementation or discard."* Every program gets the same menu item; what a person writes goes to one private inbox on
+SoftwarePlus.ai, where Ron marks it Implement or Discard. The site side is SoftwarePlus plan phase 9; the rule is in
+`..\CLAUDE.md`, "Every program: Help ▸ Send feedback". **Ship it with the next version of PLC+.**
+
+| # | Task | Done when |
+|---|---|---|
+| F.1 | **Help ▸ Send feedback…** (beside Check for a new version; the same words in every program): opens `https://softwareplus.ai/feedback/?program=plcplus&version=<this version>` in the browser. Its tooltip: "Tell us about a bug, a suggestion or anything you noticed — it goes to Dr. Ron Eaglin." No form inside the program and no network code: the web page does the rest. The privacy policy gets the paragraph from SoftwarePlus 9.5 | the menu item opens the form naming PLC+ and its version (after SoftwarePlus 9.1 is live) |
+| F.2 | **Feedback marked Implement** for PLC+ (read from the inbox, SoftwarePlus 9.4) becomes tasks in this plan, each quoting the item, its date and version; the inbox marks them In plan | checked at the start of every round of work on PLC+ |
+
 ## Phase 0 — the repository and a first look ⚠️ 2026-11-04
 
 | # | Task | Done when |
