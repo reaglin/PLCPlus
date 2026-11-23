@@ -1,6 +1,6 @@
 # PLC+ — Microsoft Store submission (1.1.0, the instructors' release)
 
-**1.0.0.0 is live on the Store** (Ron, 2026-11-17), hidden, for the instructors. **1.0.1** was prepared 2026-11-17 and **never
+**1.0.0.0 is live on the Store** (Ron, 2026-11-17), first hidden for the instructors, **public and discoverable since 2026-11-18** (Ron, plan 12.3). **1.0.1** was prepared 2026-11-17 and **never
 submitted**; **1.1.0** replaces it (Ron, 2026-11-23: "Prepare an update package for PLC+"). It is an update to the same product:
 the same identity and listing, a new package, and the listing, screenshots and notes refreshed. It carries 1.0.1's textbook
 features (the seven tabs, examples to try, Read aloud, My notes and the Glossary, Ask the AI, Pop out) and the PlusBooks' new
@@ -12,8 +12,8 @@ replace its package with 1.1.0's.
 Everything needed to put **PLC+** on the Microsoft Store, in order, with the values to type and the commands to run.
 Copied from Author+ (`..\AuthorPlus\docs\STORE-SUBMISSION.md`), which went through the same steps on 2026-11-05.
 
-**This release is for the PLC instructors who give feedback (D24, Ron 2026-11-05):** the listing is **hidden** — available
-only through its direct link, not found by searching the Store (§9, Availability). Modules 1–8 and 11 are written; 9, 10 and
+**Visibility:** the listing has been **public and discoverable since 2026-11-18** (Ron, plan 12.3; it was hidden for the
+instructors before that, D24). Leave Availability as it is; this update changes nothing there (§9). Modules 1–8 and 11 are written; 9, 10 and
 12 say "In development".
 
 Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Statistle, Author+ and the others).
@@ -43,7 +43,7 @@ Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Sta
 | ☑ | Submission package built with the real identity: `artifacts\store\PLCPlus_1.1.0.0_x64_bundle.msixupload` (69.2 MB), family name `DeanEaglin.PLC_xs303fgqvwdg8` checked | §6, 2026-11-23 |
 | ☐ | **WACK on 1.1.0.0 (Ron):** it needs administrator rights (a UAC prompt) and runs the program on screen for a few minutes, so it was left for Ron. Expected: overall PASS, 23 of 24 | §7 |
 | ☑ | Nine screenshots, 1424 × 836, in `store/screenshots/`, retaken from the 1.1.0 package's program (the new window; the start screen in sections) | §8, 2026-11-23 |
-| ☐ | **Ron: hand-test 18** (`docs/MANUAL-TESTING.md`), WACK, deploy SoftwarePlus (`.\deploy.ps1 -Only plcplus`), then in Partner Center: the 1.1.0 package, the listing (§11: description, What's new, 20 features), the nine screenshots in order, the testers' notes (§10), visibility hidden (direct link), **Submit** | §9 |
+| ☐ | **Ron: hand-test 18** (`docs/MANUAL-TESTING.md`), WACK, deploy SoftwarePlus (`.\deploy.ps1 -Only plcplus`), then in Partner Center: the 1.1.0 package, the listing (§11: description, What's new, 20 features), the nine screenshots in order, the testers' notes (§10), visibility left public and discoverable (as since 2026-11-18), **Submit** | §9 |
 
 **The deploy of the site (2026-11-17):** the PLC+ examples session's `deploy.ps1 -Only plcplus` failed on the server's install
 step (log `%LOCALAPPDATA%\SoftwarePlus\deploy\runs\20261117-164942-23896.log`), then Ron said go: deployed 20:19 the same day
@@ -145,9 +145,8 @@ Open PLC+ → **Start your submission**.
 ### Pricing and availability
 
 - Markets: **All** (the instructors may be anywhere; nothing in PLC+ is limited by country).
-- **Visibility — hidden (D24):** choose **Public audience**, then under Discoverability **Make this product available but not
-  discoverable in the Store** → **Direct link only**. Anyone with the link can install it; it does not appear in search or
-  lists. (Not "Private audience": that needs every instructor's Microsoft account e-mail in a group first.)
+- **Visibility — public and discoverable since 2026-11-18** (Ron, plan 12.3): leave it as it is. (For the first release it was
+  hidden, D24: Public audience → **Make this product available but not discoverable in the Store** → Direct link only.)
 - Schedule: **as soon as it passes certification**.
 - Base price: **Free** (question 2). No free trial, no sale.
 
@@ -225,7 +224,7 @@ Paste the notes in §10 on the **Additional Testing Information** page, then **S
 > live: hold Go down. The Exercise tab is the same machine with an empty program to build. Nothing needs
 > a sign-in, an account or a purchase.
 >
-> **Audience.** This 1.1.0 update is hidden (direct link) for the PLC instructors reviewing the course before students use it.
+> **Audience.** PLC+ is public. Students and the PLC instructors reviewing the course use it; modules 9, 10 and 12 say "In development".
 >
 > **Privacy policy:** https://softwareplus.ai/plcplus/privacy/
 
@@ -309,7 +308,7 @@ Optional Ask the AI, with your own key
 Works offline; sends nothing about you
 ```
 
-**Search terms** [up to 7] — few people will search while the listing is hidden, but they carry over to the public release
+**Search terms** [up to 7] — the listing is public, so these are what people search for
 
 ```
 PLC programming
