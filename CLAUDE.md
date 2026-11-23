@@ -61,8 +61,10 @@ Center, WACK, then the submission (hidden, direct link).
 **The window's room (plan W.1–W.7) and Help ▸ Send feedback (F.1) built 2026-11-23** for the next release, from PythonProgramming+ and
 WebDevelopment+: PlusBook Tools first in the path, the PlusBook Learning block under it folding down, Collapse Menu, help hiding to the
 right with a light blue strip, the start screen in coloured sections with About PlusBooks and Send feedback, "In development" for modules
-9, 10 and 12, on **Learning Core 1.10.2**; window tests in `tests/Learning.Shell.Tests`; 373 tests; ⚠️ Ron: hand-test 18. F.3 (the
-privacy page on SoftwarePlus.ai) must be live before that release is submitted.
+9, 10 and 12, on **Learning Core 1.10.2**; window tests in `tests/Learning.Shell.Tests`; 373 tests. F.3 (the privacy page) is live.
+**Store update 1.1.0 prepared 2026-11-23** (plan 12.12; 1.0.0.0 is live, hidden; 1.0.1 was never submitted and is superseded):
+`artifacts\store\PLCPlus_1.1.0.0_x64_bundle.msixupload` with the real identity, nine new screenshots, the listing and testers' notes in
+`docs/release/STORE-SUBMISSION.md`, softwareplus.ai/plcplus committed, not deployed. ⚠️ Ron: hand-test 18, WACK, deploy, submit.
 
 **The goal now (Ron, 2026-11-05, D24): the instructors' release.** PLC+ 1.0 on the Microsoft Store, hidden (direct link only), for
 the PLC instructors who give feedback; modules 1–8 and 11 written; a testing guide at softwareplus.ai/plcplus/testing/. Plan phases

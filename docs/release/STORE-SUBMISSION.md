@@ -1,15 +1,20 @@
-# PLC+ — Microsoft Store submission (1.0.1, the instructors' release)
+# PLC+ — Microsoft Store submission (1.1.0, the instructors' release)
 
-**1.0.0.0 is already live on the Store** (Ron, 2026-11-17), hidden, for the instructors. **1.0.1** is an update to that
-product: the same identity and listing, a new package, and the listing, screenshots and notes refreshed for the textbook
-features. In Partner Center: PLC+ → **Update** (a new submission) → Packages, Store listings, then Submit.
+**1.0.0.0 is live on the Store** (Ron, 2026-11-17), hidden, for the instructors. **1.0.1** was prepared 2026-11-17 and **never
+submitted**; **1.1.0** replaces it (Ron, 2026-11-23: "Prepare an update package for PLC+"). It is an update to the same product:
+the same identity and listing, a new package, and the listing, screenshots and notes refreshed. It carries 1.0.1's textbook
+features (the seven tabs, examples to try, Read aloud, My notes and the Glossary, Ask the AI, Pop out) and the PlusBooks' new
+window (plan W.1–W.7: PlusBook Tools, PlusBook Learning folding down, Collapse Menu, help hiding to the right, the start screen
+in sections with About PlusBooks, "In development"), Help ▸ Send feedback (F.1), on Learning Core 1.10.2. In Partner Center:
+PLC+ → **Update** (a new submission) → Packages, Store listings, then Submit. If an unsubmitted 1.0.1 draft is still there,
+replace its package with 1.1.0's.
 
 Everything needed to put **PLC+** on the Microsoft Store, in order, with the values to type and the commands to run.
 Copied from Author+ (`..\AuthorPlus\docs\STORE-SUBMISSION.md`), which went through the same steps on 2026-11-05.
 
 **This release is for the PLC instructors who give feedback (D24, Ron 2026-11-05):** the listing is **hidden** — available
 only through its direct link, not found by searching the Store (§9, Availability). Modules 1–8 and 11 are written; 9, 10 and
-12 say "coming later".
+12 say "In development".
 
 Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Statistle, Author+ and the others).
 
@@ -26,15 +31,19 @@ Publisher account: publishing as **Dean Eaglin** (the same account as SMADA, Sta
 | ☑ | `packaging/make-store-assets.ps1` — every tile, listing image and `PLCPlus.ico`, drawn from one mark | 52 tiles, none over WACK's size cap |
 | ☑ | The icon: one rung of ladder logic in white on steel blue, the amber "+" as the coil | ⚠️ Ron to look (`store/images/asset-contact-sheet.png`) |
 | ☑ | `src/Learning.Shell/app.manifest` — PerMonitorV2 (WACK needs it) | in the repo |
-| ☑ | Version **1.0.1** (`Directory.Build.props`, `PlcPlusVersion`); 1.0.0.0 is live | 2026-11-17 |
+| ☑ | Version **1.1.0** (`Directory.Build.props`, `PlcPlusVersion`); 1.0.0.0 is live; 1.0.1 never submitted | 2026-11-23 |
 | ☑ | A `.msixupload` builds end to end with the development identity (68.8 MB) | 2026-11-05 |
-| ☑ | **1.0.1 ships from `main` with the textbook features** (plan 13.2–13.16: the seven tabs, My notes, Ask the AI, the Reader and the Read link, the examples to try on the Example tab, Pop out for every tab) | 2026-11-17, Ron: "Prepare a release for PLC+" (plan 13.12) |
+| ☑ | **The textbook features, prepared as 1.0.1 and shipping in 1.1.0** (plan 13.2–13.16: the seven tabs, My notes, Ask the AI, the Reader and the Read link, the examples to try on the Example tab, Pop out for every tab) | 2026-11-17, Ron: "Prepare a release for PLC+" (plan 13.12) |
 | ☑ | Privacy page updated for Ask the AI and Google voices (effective 2026-11-17) | §4; deployed 2026-11-17 |
 | ☑ | Program page, help and testing guide say seven tabs and the new features | §4; deployed 2026-11-17 |
-| ☑ | Submission package built with the real identity: `artifacts\store\PLCPlus_1.0.1.0_x64_bundle.msixupload`, family name checked | §6, 2026-11-17 |
-| ☑ | WACK run and passing: **overall PASS, 23 of 24** on 1.0.1.0 (only Blocked executables, optional, from the .NET runtime) | §7, Ron 2026-11-17 20:29 (`artifacts\wack-report.xml`) |
-| ☑ | Nine screenshots, 1424 × 836, in `store/screenshots/`, retaken from the 1.0 package | §8, 2026-11-17 |
-| ☐ | Partner Center submission: package uploaded (Ron); listing (description, What's new, 19 features, short description, trademark), the nine screenshots in order and the testers' notes (Additional Testing Information) entered and saved by Claude 2026-11-17; visibility checked (hidden, direct link). **Ron: check, then Submit for certification** | §9 |
+| ☑ | (1.0.1, never submitted) package, WACK PASS 23 of 24, screenshots and listing prepared | 2026-11-17 |
+| ☑ | **1.1.0 ships from `main`** with the textbook features and the PlusBooks' new window (plan W.1–W.7, F.1); Release build, 373 tests and the content validator pass | 2026-11-23 |
+| ☑ | The privacy page has "Feedback you send" (plan F.3), live | 2026-11-23 |
+| ☑ | Program page, help and testing guide say 1.1.0 and the new window | §4; **committed, not deployed** (Ron deploys with the submission) |
+| ☑ | Submission package built with the real identity: `artifacts\store\PLCPlus_1.1.0.0_x64_bundle.msixupload` (69.2 MB), family name `DeanEaglin.PLC_xs303fgqvwdg8` checked | §6, 2026-11-23 |
+| ☐ | **WACK on 1.1.0.0 (Ron):** it needs administrator rights (a UAC prompt) and runs the program on screen for a few minutes, so it was left for Ron. Expected: overall PASS, 23 of 24 | §7 |
+| ☑ | Nine screenshots, 1424 × 836, in `store/screenshots/`, retaken from the 1.1.0 package's program (the new window; the start screen in sections) | §8, 2026-11-23 |
+| ☐ | **Ron: hand-test 18** (`docs/MANUAL-TESTING.md`), WACK, deploy SoftwarePlus (`.\deploy.ps1 -Only plcplus`), then in Partner Center: the 1.1.0 package, the listing (§11: description, What's new, 20 features), the nine screenshots in order, the testers' notes (§10), visibility hidden (direct link), **Submit** | §9 |
 
 **The deploy of the site (2026-11-17):** the PLC+ examples session's `deploy.ps1 -Only plcplus` failed on the server's install
 step (log `%LOCALAPPDATA%\SoftwarePlus\deploy\runs\20261117-164942-23896.log`), then Ron said go: deployed 20:19 the same day
@@ -82,8 +91,9 @@ cd ..\SoftwarePlus
 
 ## 5. The version
 
-`Directory.Build.props` → `<PlcPlusVersion>1.0.1</PlcPlusVersion>`. The package version is `1.0.1.0` (the Store needs the
-fourth part to be 0). Every later upload needs a higher version (1.0.1, …).
+`Directory.Build.props` → `<PlcPlusVersion>1.1.0</PlcPlusVersion>`. The package version is `1.1.0.0` (the Store needs the
+fourth part to be 0). Every later upload needs a higher version (1.1.1, 1.2.0, …). 1.1.0 is higher than 1.0.0.0 (live) and
+1.0.1.0 (prepared, never submitted).
 
 ## 6. Build the submission package
 
@@ -94,7 +104,7 @@ fourth part to be 0). Every later upload needs a higher version (1.0.1, …).
     -OutputDirectory artifacts\store
 ```
 
-Output: `artifacts\store\PLCPlus_1.0.1.0_x64_bundle.msixupload` (about 69 MB: the program, .NET, and the lessons, machines and
+Output: `artifacts\store\PLCPlus_1.1.0.0_x64_bundle.msixupload` (69.2 MB: the program, .NET, and the lessons, machines and
 questions in `content\plcplus-foundations`). The package is **unsigned** on purpose: the Store signs it. The content needs
 no signature of its own in this release, because it ships inside the package the Store signs (plan 12.5).
 
@@ -111,17 +121,20 @@ for a few minutes; leave the computer alone while it does. Expected, as for ever
 ## 8. Screenshots
 
 `store/screenshots/`, 1424 × 836 (Partner Center wants at least 1366 × 768), taken from the packaged program with PrintWindow
-and the sample learner "Maria Gomez" (retaken 2026-11-17 for the seven tabs; upload them in this order):
+and a sample learner "Maria Gomez" (modules 1–3 mastered, module 4 started; made in a test data folder with `PLCPLUS_DATA`
+and removed afterwards). Retaken 2026-11-23 from the 1.1.0 package's program for the new window: PlusBook Tools first in the
+path, the green PlusBook Learning block, the Help strip on the machine tabs, the start screen in sections. Upload them in this
+order:
 
 | # | File | Shows |
 |---|---|---|
-| 1 | `01-example-8-1.png` | an Example running: a transfer arm's step logic, the ladder live beside the machine |
+| 1 | `01-example-8-1.png` | an Example running: a transfer arm's step logic, the ladder live beside the machine (help hidden to the right) |
 | 2 | `02-example-7-1.png` | a counter and compare instructions with a thumbwheel and lamps |
 | 3 | `03-exercise-5-3.png` | an Exercise: the ladder editor and the garage door it controls |
-| 4 | `04-my-progress.png` | My progress: items, modules, outcomes, time, the module checks |
+| 4 | `04-my-progress.png` | My progress in PlusBook Tools: items, modules, outcomes, time, the module checks |
 | 5 | `05-module-3.png` | a module's first page: outcomes mastered, topics, items |
 | 6 | `06-hand-in.png` | Hand in a report: the signed PDF progress report |
-| 7 | `07-start.png` | Who is learning? — learners on a shared computer |
+| 7 | `07-start.png` | The start screen in sections: Who is learning?, Course Tools, Learner files, Help and information with About PlusBooks |
 | 8 | `08-try-it-6-1.png` | An example to try: an on-delay timer running live, with power flow and Inside the PLC |
 | 9 | `09-learn-5-2.png` | A Learn page: 🔊 Read beside the title, key terms, the button to try it on the Example tab |
 
@@ -181,7 +194,7 @@ Do not upload `asset-contact-sheet.png`; it is the proof sheet.
 
 ### Packages
 
-Upload `artifacts\store\PLCPlus_1.0.1.0_x64_bundle.msixupload` (the one built with the real identity, §6). Tick Windows 10/11 Desktop only.
+Upload `artifacts\store\PLCPlus_1.1.0.0_x64_bundle.msixupload` (the one built with the real identity, §6). Tick Windows 10/11 Desktop only.
 
 The Super hero art slot is left empty: the Store says it must not show the product's title, and both hero images do.
 The notes for the testers (§10) now go on Partner Center's **Additional Testing Information** page, not Submission options.
@@ -204,15 +217,15 @@ Paste the notes in §10 on the **Additional Testing Information** page, then **S
 > new version (the Microsoft Store), the optional Ask the AI on an item's My notes tab and the optional Google voices for Read
 > aloud. Those two work only after the user enters their own key from an AI company or Google in AI › AI settings, and send the
 > user's question and the lesson's text (the book's words), never the learner's name, progress or notes. Without a key they say
-> what they need and everything else works. Links to help pages open in the user's web browser.
+> what they need and everything else works. Links to help pages and Help › Send feedback open in the user's web browser.
 >
-> **How to try it.** On the first screen press New learner, type any name and a 4-digit PIN, and keep or skip the recovery
-> code. The learning path opens on the left. Choose Module 5 › 5.2, then the Examples tab: it opens on "Example 2: the machine",
+> **How to try it.** On the first screen open Who is learning? (the green section) and press New learner, type any name and a
+> 4-digit PIN, and keep or skip the recovery code. The modules open on the left, under PlusBook Tools. Choose Module 5 › 5.2, then the Examples tab: it opens on "Example 2: the machine",
 > where a working program runs a simulated pump; press Start and Stop on the machine. On 6.1's Examples tab, Example 1 is a small timer program running
 > live: hold Go down. The Exercise tab is the same machine with an empty program to build. Nothing needs
 > a sign-in, an account or a purchase.
 >
-> **Audience.** This 1.0.1 update is hidden (direct link) for the PLC instructors reviewing the course before students use it.
+> **Audience.** This 1.1.0 update is hidden (direct link) for the PLC instructors reviewing the course before students use it.
 >
 > **Privacy policy:** https://softwareplus.ai/plcplus/privacy/
 
@@ -264,6 +277,9 @@ Many learners can share one computer: each has a progress file locked with a PIN
 NOTES, A GLOSSARY AND AN OPTIONAL AI
 Keep your own notes on any paragraph; look up a key term in the Glossary. Ask the AI (optional, with a key of your own or your class's) answers a question about an item from its lesson.
 
+ROOM TO WORK
+The modules run down the left, with PlusBook Tools at the top: My progress, Hand in a report, My notes and the Glossary. Collapse Menu folds the path to one row per module, the PlusBook Learning block under it folds down to its title, and help hides to the right with one click (or F1), so a machine and its program get the whole window. Modules still being written say In development. The start screen is in sections: who is learning, tools that need no sign-in, the learners' files, and help, with a short page on what a PlusBook is. Help › Send feedback takes a note about a bug or an idea straight to the author.
+
 OFFLINE AND PRIVATE
 PLC+ works without an internet connection, has no accounts and no advertising, and sends nothing about you anywhere. Progress leaves the computer only as files you save yourself. The optional AI and Google voices send only your question and the book's words, and only once you have set them up with your own key.
 ```
@@ -285,6 +301,7 @@ Timers, counters, compares, math, set/reset and edges
 Find-the-fault machines and programs to fix
 IEC 61131-3 names, with the Allen-Bradley name beside each one
 Pop out any tab into a window of its own
+A window with room: the path folds and help hides to the right
 My progress: outcomes mastered, what to review, time on task
 Many learners on one computer, each with a PIN-locked progress file
 Signed PDF progress reports to hand in; instructors can check them
@@ -307,7 +324,11 @@ IEC 61131-3
 **What's new in this version**
 
 ```
-New in 1.0.1:
+New in 1.1.0:
+- A window with more room: PlusBook Tools (My progress, Hand in a report, My notes, the Glossary) at the top of the path; Collapse Menu folds the modules; the PlusBook Learning block folds down; help hides to the right with one click or F1.
+- The start screen in sections: Who is learning?, Course Tools (no sign-in), Learner files, and Help and information with About PlusBooks.
+- Modules still being written say In development.
+- Help › Send feedback: tell the author about a bug or an idea.
 - Seven tabs for each item: Learn, Example, Exercise, Laboratory (the lab exercise), Review (takeaways, key terms, flashcards, a self-test), Reference and My notes.
 - Examples to try on the Example tab, each with a figure: small programs running live, truth tables, bits and circuits.
 - Hear any page read aloud, with the part being read marked; a 🔊 Read link beside each lesson's title.
@@ -334,7 +355,7 @@ Ron Eaglin
 
 ☐ Copy the live link into the testing guide (`site/plcplus/testing/`, `store-link`) and the program's page; deploy.
 ☐ Send the instructors the testing guide's address (plan 12.10).
-☐ Tag the commit: `git tag v1.0.1` and push the tag (1.0.0 has no tag: its commit was not recorded).
+☐ Tag the commit: `git tag v1.1.0` and push the tag (1.0.0 has no tag: its commit was not recorded; 1.0.1 was never submitted).
 ☐ Note it in `docs/DEVELOPMENT-PLAN.md` (12.10), `CLAUDE.md` and `..\CLAUDE.md`.
 ☐ Try Help ▸ Check for a new version in the Store copy.
 

@@ -15,14 +15,14 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ## Hand-test 18 — the window's room, In development and Send feedback (plan W.1–W.7, F.1), 2026-11-23
 
-**On `main`**, `manual-test\PLCPlus.exe` (rebuilt 2026-11-23 with the command at the top). Use a test folder of learners, as in
+**On `main`**, `manual-test\PLCPlus.exe` (rebuilt 2026-11-23 as version 1.1.0, the Store update, with the command at the top). Use a test folder of learners, as in
 hand-test 12, or make a new learner and remove it afterwards.
 
 1. **The start screen (W.5).** Four sections: Who is learning? (green), Course Tools (no login required) (amber), Learner files
    (lavender), all three folded, and Help and information (blue) open at the bottom. Choose each section's name: does it open and
    fold? Are the colours easy to tell apart, and the buttons clear?
 2. **About PlusBooks and Send feedback (W.5, F.1).** In Help and information, the softwareplus.ai/plusbooks link opens the PlusBooks
-   page. **Send feedback…** opens the feedback form in your browser: does it name PLC+ and version 1.0.0? (Close it without sending.)
+   page. **Send feedback…** opens the feedback form in your browser: does it name PLC+ and version 1.1.0? (Close it without sending.)
    Testing guide (for instructors) still opens the testing guide.
 3. **Signing in.** Open Who is learning?, choose a learner, type the PIN, Open. Then Learner ▸ Switch learner: the start screen
    comes back with Who is learning? already open, so you can choose a name straight away.
