@@ -350,6 +350,7 @@ the books as we release new versions."* Built and tested first in WebDevelopment
 | W.2 | **PlusBook Tools** (13.4): My progress, Hand in a report, My notes, the Glossary and the Tools in one folding row first in the path; the content's "(in the path)" directions say where Hand in a report now is | In this book, tested |
 | W.3 | **The learning path's block at the bottom, folding down** (13.4, 13.5): the title, totals, time, key and buttons under the tree, in a block that folds down to its title; each learner's choice kept | In this book, tested |
 | W.4 | **Help hides to the right** (13.6, 13.8): Hide help ▸, a light blue bar across the top of help, leaves a narrow light blue Help strip at the right edge that opens it again (F1 too); each learner's choice kept | In this book, tested |
+| W.5 | **Each part of the window its own colour** (WebDevelopment+ 13.9, Ron 2026-11-23): PlusBook Learning (was The learning path) light green with Collapse Menu (was Show the parts only) and Course Links; help light blue; the start screen in Who is learning?, Course Tools (no login required) and Learner files (folding, each explained) and a last section with About PlusBooks, Help, Check for a new version, About and Exit; each section its own light background and border; buttons styled (Learning Core `docs/PLUSBOOK-FEATURES.md`, item 5) | In this book, tested |
 
 ## Open questions for Ron — 14 answered 2026-11-04; one asked 2026-11-05 (waits for the faculty's use cases); one asked 2026-11-18
 
