@@ -74,8 +74,8 @@
                 <MenuItem x:Name="BackupItem" Header="_Back up my progress…" Click="Backup_Click"
                           ToolTip="Saves a copy of your progress file on a USB drive or in a cloud folder (OneDrive, Google Drive …), so it is safe if this computer's copy is lost" />
                 <MenuItem Header="_Change my PIN…" Click="ChangePin_Click" ToolTip="Choose a new PIN; you need the PIN you use now" />
-                <MenuItem Header="My course's _links…" Click="CourseLinks_Click"
-                          ToolTip="The web addresses of your course website and of your course in the LMS (Canvas, Brightspace …), from your instructor" />
+                <MenuItem Header="Course _links…" Click="CourseLinks_Click"
+                          ToolTip="Add links to your course in the LMS (Canvas, Brightspace …) and to the course website, from your instructor (optional)" />
                 <Separator />
                 <MenuItem Header="_Switch learner" InputGestureText="Ctrl+Shift+L" Click="SwitchLearner_Click"
                           ToolTip="Saves your work, locks your progress and goes back to the list of learners, for the next person" />
@@ -89,6 +89,8 @@
                           ToolTip="The book's key terms and what they mean, A to Z, with the items that use each one" />
                 <MenuItem Header="My n_otes" InputGestureText="Ctrl+Shift+N" Command="{Binding ShowNotesCommand}"
                           ToolTip="Every note you have written on the lessons, with a search box. Only you see them" />
+                <MenuItem Header="Collapse men_u" Click="FoldParts_Click"
+                          ToolTip="Collapse the chapter menu to show only the modules; open a module with the arrow beside it (or the → key)" />
                 <MenuItem Header="_Continue where I left off" Command="{Binding ContinueWhereILeftOffCommand}"
                           ToolTip="Opens the first item in the path you have not completed yet" />
                 <MenuItem Header="_Next item" InputGestureText="Ctrl+Shift+PgDn" Command="{Binding NextCommand}" ToolTipService.ShowOnDisabled="True"
@@ -134,15 +136,17 @@
                           ToolTip="Every question asked through this key, and what it cost" />
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="_Help for this screen" InputGestureText="F1" Command="ApplicationCommands.Help"
+                <MenuItem Header="Show or hide _help" InputGestureText="F1" Command="ApplicationCommands.Help"
                           ToolTip="Shows or hides the help panel on the right: what this screen is for and how to use it" />
                 <MenuItem Header="Help on the _web (softwareplus.ai/plcplus)" Click="WebHelp_Click"
                           ToolTip="Opens PLC+'s help pages on softwareplus.ai in your web browser" />
-                <MenuItem Header="_Testing guide and feedback (for instructors)…" Click="TestingGuide_Click"
+                <MenuItem Header="_Testing guide (for instructors)…" Click="TestingGuide_Click"
                           ToolTip="Reviewing PLC+? Opens the testing guide on softwareplus.ai: what to try, and how to send your notes" />
                 <Separator />
                 <MenuItem Header="Check for a _new version…" Click="CheckForUpdate_Click"
                           ToolTip="Asks the Microsoft Store whether a newer version of PLC+ is out, and offers to install it" />
+                <MenuItem Header="Send _feedback…" Click="SendFeedback_Click"
+                          ToolTip="Tell us about a bug, a suggestion or anything you noticed — it goes to Dr. Ron Eaglin." />
                 <MenuItem Header="_About PLC+…" Click="About_Click" ToolTip="Who made PLC+, its version, and where to find more" />
             </MenuItem>
         </Menu>
@@ -154,14 +158,35 @@
             <TextBlock x:Name="StatusText" Text="{Binding Status}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
         </Border>
 
-        <!-- Help panel (F1). -->
-        <Border x:Name="HelpPanel" DockPanel.Dock="Right" Width="290" KeyboardNavigation.TabIndex="3" Background="{DynamicResource PanelBrush}"
-                BorderBrush="{DynamicResource LineBrush}" BorderThickness="1,0,0,0" Padding="16,14">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <!-- Plan W.4 (Ron, 2026-11-23): help folds to the right, leaving this strip to open it again, so the page has the room. -->
+        <Border x:Name="HelpStrip" DockPanel.Dock="Right" Visibility="Collapsed" KeyboardNavigation.TabIndex="3" Background="{DynamicResource HelpBarBrush}"
+                BorderBrush="{DynamicResource HelpBarLineBrush}" BorderThickness="1,0,0,0">
+            <Button x:Name="HelpStripButton" Click="Help_Executed" Style="{StaticResource HelpBarButton}" VerticalAlignment="Stretch" VerticalContentAlignment="Top"
+                    Padding="6,12" BorderThickness="0"
+                    AutomationProperties.Name="Open help"
+                    ToolTip="Opens the help panel for this screen again (F1)">
                 <StackPanel>
-                    <TextBlock x:Name="HelpScreenTitle" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
+                    <TextBlock Text="◂" HorizontalAlignment="Center" Margin="0,0,0,6" />
+                    <TextBlock Text="Help (F1)">
+                        <TextBlock.LayoutTransform><RotateTransform Angle="90" /></TextBlock.LayoutTransform>
+                    </TextBlock>
+                </StackPanel>
+            </Button>
+        </Border>
+
+        <!-- Help panel (F1). -->
+        <Border x:Name="HelpPanel" DockPanel.Dock="Right" Width="290" KeyboardNavigation.TabIndex="3" Background="{DynamicResource HelpPanelBrush}"
+                BorderBrush="{DynamicResource HelpBarLineBrush}" BorderThickness="1,0,0,0">
+            <DockPanel>
+            <!-- Ron, 2026-11-23: "Hide help", a light blue bar across the whole top of help; it stays in place while help scrolls. -->
+            <Button x:Name="FoldHelpButton" DockPanel.Dock="Top" Content="Hide help ▸" AutomationProperties.Name="Hide help" Click="Help_Executed"
+                    Style="{StaticResource HelpBarButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="8,7" BorderThickness="0,0,0,1"
+                    ToolTip="Hides help to the right, so the page has more room; the light blue Help strip at the right edge (or F1) opens it again" />
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16,12,16,14">
+                <StackPanel>
+                    <TextBlock x:Name="HelpScreenTitle" Style="{StaticResource PanelTitle}" TextWrapping="Wrap" AutomationProperties.HeadingLevel="Level2" />
                     <TextBlock x:Name="HelpScreenText" Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}" />
-                    <TextBlock Text="How to use PLC+" Style="{StaticResource PanelTitle}" Margin="0,10,0,6" AutomationProperties.HeadingLevel="Level2" />
+                    <TextBlock Text="How to use this PlusBook" Style="{StaticResource PanelTitle}" TextWrapping="Wrap" Margin="0,10,0,6" AutomationProperties.HeadingLevel="Level2" />
                     <TextBlock Style="{StaticResource Lead}" Foreground="{DynamicResource InkBrush}">
                         PLC+ teaches PLC programming in modules, with simulated machines in place of real ones. Each module is a list of items; finish them in order, or in any order you like.
                     </TextBlock>
@@ -169,9 +194,9 @@
                         More help, with pictures:
                         <Hyperlink NavigateUri="https://softwareplus.ai/plcplus/help/" RequestNavigate="Link_RequestNavigate" ToolTip="Opens PLC+'s help pages on softwareplus.ai in your web browser">softwareplus.ai/plcplus/help</Hyperlink>
                     </TextBlock>
-                    <TextBlock Text="The learning path (left)" FontWeight="SemiBold" Margin="0,6,0,2" />
+                    <TextBlock Text="PlusBook Learning (left: the path in lavender, its block in green)" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        The modules, in order, each with its items. My progress at the top shows the whole path. The mark says how far you have got: ○ not started, ◐ started, ✓ complete; a module can also be ★ mastered (every outcome mastered) or ↺ review suggested. Choose a module to see what it teaches and what to finish first; choose an item to work on it.
+                        The modules, in order, each with its items. The arrow beside a module opens or folds it; Collapse Menu folds them all. PlusBook Tools, at the top, holds My progress (the whole path at a glance), Hand in a report, My notes and the Glossary; the totals, your time, the key to the marks and Course Links are at the bottom, under PlusBook Learning (choose it to fold them down and give the path more room). A module still being written says In development. The mark says how far you have got: ○ not started, ◐ started, ✓ complete; a module can also be ★ mastered (every outcome mastered) or ↺ review suggested. Choose a module to see what it teaches and what to finish first; choose an item to work on it.
                     </TextBlock>
                     <TextBlock Text="An item's tabs" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
@@ -191,49 +216,39 @@
                     </TextBlock>
                     <TextBlock Text="My notes" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Key terms have a dotted underline: point at one to read its meaning; Go ▸ Glossary has them all. Review (Ctrl+5) sums up an item: takeaways, key terms, flashcards and a self-test. 🔊 Read aloud (Ctrl+Shift+A) reads a page to you. Write your own notes as you learn: on an item's My notes tab (Ctrl+7), or right-click a paragraph of a lesson and choose Add a note to this paragraph (a ✎ after it shows the note). Only you see them; they are kept in your progress file. My notes in the path (Ctrl+Shift+N) has them all, with a search box. The My notes tab can also ask the AI a question about the item (optional: AI ▸ AI settings…); you choose whether to keep its answer. If your class gives you its course website and LMS address, My course's links… (top of the path) keeps them, with buttons that open them.
+                        Key terms have a dotted underline: point at one to read its meaning; Go ▸ Glossary has them all. Review (Ctrl+5) sums up an item: takeaways, key terms, flashcards and a self-test. 🔊 Read aloud (Ctrl+Shift+A) reads a page to you. Write your own notes as you learn: on an item's My notes tab (Ctrl+7), or right-click a paragraph of a lesson and choose Add a note to this paragraph (a ✎ after it shows the note). Only you see them; they are kept in your progress file. My notes in the path (Ctrl+Shift+N) has them all, with a search box. The My notes tab can also ask the AI a question about the item (optional: AI ▸ AI settings…); you choose whether to keep its answer. If your class gives you its course website and LMS address, Course Links… (under PlusBook Learning; open it if it is folded, or Learner ▸ Course links…) keeps them, with buttons that open them.
                     </TextBlock>
                     <TextBlock Text="Your progress" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        Kept in your own file, locked with your PIN. Go ▸ My progress (Ctrl+Shift+Home, or the top of the path) shows each module, the module checks, outcomes to review and your time. Back it up (top right) to a USB drive or a cloud folder.
+                        Kept in your own file, locked with your PIN. Go ▸ My progress (Ctrl+Shift+Home, or PlusBook Tools at the top of the path) shows each module, the module checks, outcomes to review and your time. Back it up (top right) to a USB drive or a cloud folder.
                     </TextBlock>
                     <TextBlock Text="Handing in a report" FontWeight="SemiBold" Margin="0,6,0,2" />
                     <TextBlock Style="{StaticResource Lead}">
-                        At each module check, make a progress report: Hand in a report (the second row of the path, or Ctrl+Shift+R). PLC+ saves it as a signed PDF; you hand it in the way your instructor asks, usually by uploading it to the assignment. PLC+ never sends anything itself.
+                        At each module check, make a progress report: Hand in a report (in PlusBook Tools at the top of the path, or Ctrl+Shift+R). PLC+ saves it as a signed PDF; you hand it in the way your instructor asks, usually by uploading it to the assignment. PLC+ never sends anything itself.
                     </TextBlock>
-                    <Button Content="Hide help" HorizontalAlignment="Left" Click="Help_Executed" Margin="0,8,0,0"
-                            ToolTip="Hides this panel. Press F1 or use Help ▸ Help for this screen to show it again." />
+                    <Button Content="Hide help ▸" AutomationProperties.Name="Hide help" HorizontalAlignment="Left" Click="Help_Executed" Margin="0,8,0,0"
+                            ToolTip="Hides help to the right, so the page has more room; the light blue Help strip at the right edge (or F1) opens it again" />
                 </StackPanel>
             </ScrollViewer>
+            </DockPanel>
         </Border>
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="PathColumn" Width="300" MinWidth="220" />
+                <ColumnDefinition x:Name="PathColumn" Width="320" MinWidth="220" />
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition x:Name="PageColumn" Width="*" MinWidth="600" />
             </Grid.ColumnDefinitions>
 
-            <!-- The learning path -->
-            <DockPanel Background="{DynamicResource PanelBrush}" KeyboardNavigation.TabIndex="1">
-                <StackPanel DockPanel.Dock="Top" Margin="12,10,12,6">
-                    <TextBlock x:Name="PathTitle" Text="The learning path" Style="{StaticResource PanelTitle}" AutomationProperties.HeadingLevel="Level2" />
-                    <TextBlock x:Name="PathProgress" Text="{Binding TotalsText}" Style="{StaticResource Lead}" Margin="0" Foreground="{DynamicResource InkBrush}"
-                               ToolTip="In the modules written so far. Go ▸ My progress has the detail" />
-                    <TextBlock x:Name="PathTime" Text="{Binding TimeText}" Style="{StaticResource Lead}" Margin="0,2,0,0" Foreground="{DynamicResource InkBrush}"
-                               ToolTip="Time counts while you are using PLC+ (a key or the mouse in the last two minutes), not while it sits idle" />
-                    <TextBlock Text="★ mastered · ✓ complete · ↺ review · ◐ started · ○ not started · – coming later" Style="{StaticResource Lead}" FontSize="12" Margin="0,2,0,0" TextWrapping="Wrap" />
-                    <!-- My course's links (Learning Core plan 3.10): the course's text and the LMS, or a way to add them. -->
-                    <WrapPanel x:Name="CourseLinksRow" Margin="0,6,0,0">
-                        <Button x:Name="CourseTextButton" Content="📘 Course website" Click="CourseText_Click" Padding="8,2" Margin="0,0,6,4" Visibility="Collapsed" />
-                        <Button x:Name="CourseLmsButton" Content="🎓 Course in the LMS" Click="CourseLms_Click" Padding="8,2" Margin="0,0,6,4" Visibility="Collapsed" />
-                        <Button x:Name="CourseLinksButton" Content="My course's links…" Click="CourseLinks_Click" Padding="8,2" Margin="0,0,0,4"
-                                ToolTip="Add the web addresses of your course website and your course in the LMS (Canvas, Brightspace …), from your instructor" />
-                    </WrapPanel>
-                </StackPanel>
+            <!-- PlusBook Learning (Ron, 2026-11-23; plan W.5): the tree lavender, the block under it light green, in every PlusBook. -->
+            <Grid Background="{DynamicResource FilesBrush}" KeyboardNavigation.TabIndex="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <TreeView x:Name="PathTree" ItemsSource="{Binding Roots}" BorderThickness="0" Background="Transparent" Padding="4,0,4,8" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           SelectedItemChanged="PathTree_SelectedItemChanged"
-                          AutomationProperties.Name="The learning path: modules and their items">
+                          AutomationProperties.Name="PlusBook Learning: PlusBook Tools, the modules and the modules' items">
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="TreeViewItem">
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -252,8 +267,8 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock x:Name="MarkText" Text="{Binding Mark}" Foreground="{Binding MarkBrush}" FontWeight="Bold" />
                                 <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{Binding Header}" FontWeight="{Binding Weight}" TextWrapping="Wrap" MaxWidth="215" />
-                                    <TextBlock x:Name="DetailText" Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" MaxWidth="215" />
+                                    <TextBlock Text="{Binding Header}" FontWeight="{Binding Weight}" TextWrapping="Wrap" MaxWidth="{Binding TextWidth}" />
+                                    <TextBlock x:Name="DetailText" Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource MutedTextBrush}" TextWrapping="Wrap" MaxWidth="{Binding TextWidth}" />
                                 </StackPanel>
                             </Grid>
                             <!-- On the selected row (white on blue), the mark and the detail take the row's colour, so they stay readable. -->
@@ -266,10 +281,46 @@
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
-            </DockPanel>
+                <Border x:Name="PathInfoBack" Grid.Row="1" Background="{DynamicResource LearningBrush}" BorderBrush="{DynamicResource LearningLineBrush}" BorderThickness="0,1,0,0" />
+                <!-- Plan W.3 (Ron, 2026-11-23): the title, totals, time, key and buttons under the tree, so the materials come first;
+                     the block folds down to its title, so the tree has the most room; the learner's choice is kept. -->
+                <Expander x:Name="PathInfo" Grid.Row="1" Margin="8,4,12,6" ExpandDirection="Down" IsExpanded="True"
+                          Expanded="PathInfo_Toggled" Collapsed="PathInfo_Toggled"
+                          AutomationProperties.Name="PlusBook Learning: totals, key and buttons"
+                          AutomationProperties.HelpText="Your totals, your time, the key to the marks and the path's buttons. Space opens or folds them">
+                    <Expander.Resources>
+                        <Style TargetType="Button" BasedOn="{StaticResource SectionButton}">
+                            <Setter Property="BorderBrush" Value="{DynamicResource LearningLineBrush}" />
+                            <Setter Property="Padding" Value="10,3" />
+                        </Style>
+                    </Expander.Resources>
+                    <Expander.Header>
+                        <TextBlock x:Name="PathTitle" Text="PlusBook Learning" Style="{StaticResource PanelTitle}" Margin="0"
+                                   ToolTip="Opens or folds the totals, your time, the key and the buttons under the path; folded, the path above has more room" />
+                    </Expander.Header>
+                <StackPanel Margin="4,4,0,2">
+                    <TextBlock x:Name="PathProgress" Text="{Binding TotalsText}" Style="{StaticResource Lead}" Margin="0" Foreground="{DynamicResource InkBrush}"
+                               ToolTip="In the modules written so far. Go ▸ My progress has the detail" />
+                    <TextBlock x:Name="PathTime" Text="{Binding TimeText}" Style="{StaticResource Lead}" Margin="0,2,0,0" Foreground="{DynamicResource InkBrush}"
+                               ToolTip="Time counts while you are using PLC+ (a key or the mouse in the last two minutes), not while it sits idle" />
+                    <TextBlock x:Name="PathKey" Text="+ PlusBook Tools · ★ mastered · ✓ complete · ↺ review · ◐ started · ○ not started · – in development" Style="{StaticResource Lead}" FontSize="12" Margin="0,2,0,0" TextWrapping="Wrap" />
+                    <!-- Plan W.1: PLC+ is one part, so it has no part rows; Collapse Menu folds every module to its row. -->
+                    <Button x:Name="FoldPartsButton" Content="Collapse Menu" Click="FoldParts_Click" Margin="0,6,0,0" HorizontalAlignment="Left"
+                            AutomationProperties.HelpText="Open a module again with the arrow beside it, or the → key; each module opens and folds on its own"
+                            ToolTip="Collapse the chapter menu to show only the modules" />
+                    <!-- Course Links (Learning Core plan 3.10; named so by Ron, 2026-11-23): the course's text and the LMS, or a way to add them. -->
+                    <WrapPanel x:Name="CourseLinksRow" Margin="0,6,0,0">
+                        <Button x:Name="CourseTextButton" Content="📘 Course website" Click="CourseText_Click" Margin="0,0,6,4" Visibility="Collapsed" />
+                        <Button x:Name="CourseLmsButton" Content="🎓 Course in the LMS" Click="CourseLms_Click" Margin="0,0,6,4" Visibility="Collapsed" />
+                        <Button x:Name="CourseLinksButton" Content="Course Links…" Click="CourseLinks_Click" Margin="0,0,0,4"
+                                ToolTip="Add links to your course in the LMS (Canvas, Brightspace …) and to the course website, from your instructor (optional)" />
+                    </WrapPanel>
+                </StackPanel>
+                </Expander>
+            </Grid>
 
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource LineBrush}" Focusable="False"
-                          ToolTip="Drag to make the learning path wider or narrower" />
+                          ToolTip="Drag to make PlusBook Learning wider or narrower" />
 
             <!-- My progress (plan 7.2–7.5) -->
             <DockPanel x:Name="DashboardPage" Grid.Column="2" Margin="18,12,16,10" KeyboardNavigation.TabIndex="2" Visibility="Collapsed">
@@ -308,7 +359,7 @@
                     <TextBlock x:Name="ModuleTitle" Style="{StaticResource SectionTitle}" AutomationProperties.HeadingLevel="Level1" TextWrapping="Wrap" />
                     <TextBlock x:Name="ModuleStatusText" Style="{StaticResource Lead}" />
                     <TextBlock x:Name="ModuleEarlyText" Style="{StaticResource Lead}" Foreground="{DynamicResource AccentBrush}" Visibility="Collapsed" />
-                    <WrapPanel Margin="0,0,0,6">
+                    <WrapPanel x:Name="ModuleButtons" Margin="0,0,0,6">
                         <Button x:Name="ModuleStartButton" Click="ModuleStart_Click" />
                     </WrapPanel>
                 </StackPanel>

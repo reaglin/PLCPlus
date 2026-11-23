@@ -21,4 +21,4 @@ The check itself is ten questions, on the **Exercise** tab. Four of them are **f
 
 The other questions are about the method and the three program bugs. You need 80 % to pass, and you can try again: a wrong answer says where to look again.
 
-When all six items are complete and you have passed the questions, the module is complete and ready to hand in: **Hand in a report** (the second row of the path) makes the PDF progress report for your instructor, with your score on each exercise and a picture of each program you fixed.
+When all six items are complete and you have passed the questions, the module is complete and ready to hand in: **Hand in a report** (in PlusBook Tools, at the top of the path) makes the PDF progress report for your instructor, with your score on each exercise and a picture of each program you fixed.

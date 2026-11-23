@@ -14,4 +14,4 @@ This check covers the four exercises of module 7: the batch counter, the inspect
 
 The check itself is ten questions, on the **Exercise** tab. Some ask what a rung works out: do the sum the way the PLC does, with whole numbers. Two are **find the fault**: a machine from this module's Examples runs its working program, but one of its parts is faulty. Work the machine, turn its thumbwheels, watch the numbers on the rungs, and say what is wrong. You need 80 % to pass, and you can try again: press **Check my answers** each time.
 
-When all four exercises pass and you have passed the questions, the module is complete and ready to hand in: **Hand in a report** (the second row of the path) makes the PDF progress report for your instructor, with your score on each exercise and a picture of each program.
+When all four exercises pass and you have passed the questions, the module is complete and ready to hand in: **Hand in a report** (in PlusBook Tools, at the top of the path) makes the PDF progress report for your instructor, with your score on each exercise and a picture of each program.

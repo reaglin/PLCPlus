@@ -76,10 +76,10 @@ internal sealed class CourseLinksWindow : FormWindow
     private CourseLinks? _result;
 
     private CourseLinksWindow(Window owner, CourseLinks? now)
-        : base(owner, "PLC+ — My course's links", "My course's links",
+        : base(owner, "PLC+ — Course links", "Course links",
             "If your class uses PLC+, your instructor can give you two web addresses: the course website and the course " +
             "in your learning management system (Canvas, Brightspace, Blackboard, Moodle …). Paste them here and PLC+ keeps them with your " +
-            "progress, with buttons at the top of the learning path that open them in your web browser. Leave a box empty if you have no such address.",
+            "progress, with buttons at the bottom of PlusBook Learning that open them in your web browser. Leave a box empty if you have no such address.",
             600)
     {
         _name = AddText("Course _name (optional):", "How you know the course, such as “ETI 1420 PLCs, spring 2027”. It is shown on the buttons' tips.");

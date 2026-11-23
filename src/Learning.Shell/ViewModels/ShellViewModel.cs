@@ -29,26 +29,72 @@ public sealed partial class ShellViewModel : ObservableObject
     {
         Package = package;
         _order = [.. package.AllItems];
-        Dashboard = new PathNode { IsDashboard = true, Weight = FontWeights.SemiBold };
-        Roots.Add(Dashboard);
-        Reports = new PathNode { IsReports = true, Weight = FontWeights.SemiBold };
-        Roots.Add(Reports);
-        Notes = new PathNode { IsNotes = true, Weight = FontWeights.SemiBold };
-        Roots.Add(Notes);
+        // Plan W.2 (Ron, 2026-11-23): the rows that are not the book's materials share one folding row of their own, PlusBook
+        // Tools, first in the path, so the materials are what the path shows next.
+        Common = new PathNode
+        {
+            IsCommon = true, Weight = FontWeights.Bold, Header = "PlusBook Tools", Mark = "+",
+            Detail = "My progress, reports, notes and the glossary",
+            SpokenName = "PlusBook Tools: my progress, hand in a report, my notes and the glossary",
+            Tip = "My progress, Hand in a report, My notes and the Glossary. The arrow beside it (or the → and ← keys) opens and folds them; choosing its name from another row opens My progress",
+        };
+        Roots.Add(Common);
+        Dashboard = new PathNode { IsDashboard = true, Weight = FontWeights.SemiBold, Parent = Common };
+        Common.Children.Add(Dashboard);
+        Reports = new PathNode { IsReports = true, Weight = FontWeights.SemiBold, Parent = Common };
+        Common.Children.Add(Reports);
+        Notes = new PathNode { IsNotes = true, Weight = FontWeights.SemiBold, Parent = Common };
+        Common.Children.Add(Notes);
         Glossary = new PathNode
         {
+            Parent = Common,
             IsGlossary = true, Weight = FontWeights.SemiBold, Header = "Glossary", Mark = "Aa",
             Detail = $"{package.Glossary.Entries.Count} key terms, A to Z",
             SpokenName = $"Glossary: {package.Glossary.Entries.Count} key terms",
             Tip = "The book's key terms and what they mean, with the items that use them (Ctrl+Shift+G)",
         };
-        Roots.Add(Glossary);
+        Common.Children.Add(Glossary);
+        // Plan W.1 (Ron, 2026-11-23): where the book has parts, each part holds its modules. PLC+ has one part (no part: lines),
+        // so every module stays at the top of the tree and there are no part rows.
+        PathNode? part = null;
         foreach (var m in package.Modules)
         {
-            var node = new PathNode { Module = m };
+            if (package.StartsPart(m)) Roots.Add(part = PartHeading(package, m));
+            else if (package.PartOf(m) is null) part = null;
+            var node = new PathNode { Module = m, Parent = part };
             foreach (var i in m.Items) node.Children.Add(new PathNode { Module = m, Item = i, Parent = node });
-            Roots.Add(node);
+            if (part is null) Roots.Add(node); else part.Children.Add(node);
         }
+    }
+
+    /// <summary>Every module's row, inside its part or at the top of the tree, in the book's order.</summary>
+    public IEnumerable<PathNode> ModuleNodes =>
+        Roots.SelectMany(r => r.IsPart ? r.Children : [r]).Where(n => n.Module is not null && n.Item is null);
+
+    /// <summary>Every row in the tree, at any depth.</summary>
+    public IEnumerable<PathNode> AllNodes => Roots.SelectMany(Self);
+
+    private static IEnumerable<PathNode> Self(PathNode n) => n.Children.SelectMany(Self).Prepend(n);
+
+    /// <summary>Collapse Menu (plan W.1): every part, module and PlusBook Tools folds, so the path shows the book at a glance.</summary>
+    public void FoldToParts()
+    {
+        foreach (var n in AllNodes) n.IsExpanded = false;
+    }
+
+    /// <summary>The heading row of the part that begins with <paramref name="first"/>: its name and its modules' numbers.</summary>
+    internal static PathNode PartHeading(ContentPackage package, LearningModule first)
+    {
+        var part = first.Part!;
+        var numbers = package.Modules.Where(m => package.PartOf(m) == part).Select(m => m.Number).ToList();
+        var range = numbers.Count == 1 ? $"Module {numbers[0]}" : $"Modules {numbers[0]} to {numbers[^1]}";
+        return new PathNode
+        {
+            IsPart = true, PartFirst = first, Header = part, Weight = FontWeights.Bold, Detail = range,
+            Mark = "📖", // a part of the book; the arrow beside it says it opens
+            SpokenName = $"{part}: {range}",
+            Tip = $"{part}: {range}. Choose it to open its first module. The arrow beside it (or the → and ← keys) opens and folds its modules.",
+        };
     }
 
     public ContentPackage Package { get; }
@@ -60,6 +106,11 @@ public sealed partial class ShellViewModel : ObservableObject
     public LearningProgress Progress => Session?.Data.Progress ?? NoOne;
 
     public ObservableCollection<PathNode> Roots { get; } = [];
+    /// <summary>PlusBook Tools: the row that holds My progress, Hand in a report, My notes and the Glossary (plan W.2).</summary>
+    public PathNode Common { get; }
+
+    /// <summary>How many module checks are complete and not yet handed in as a report (the welcome back line says so).</summary>
+    public int ReadyToHandIn { get; private set; }
     public PathNode Dashboard { get; }
     public PathNode Reports { get; }
     public PathNode Notes { get; }
@@ -216,6 +267,11 @@ public sealed partial class ShellViewModel : ObservableObject
             : made > 0 ? $"{made} report{(made == 1 ? "" : "s")} made"
             : "A PDF report for your instructor";
         Reports.SpokenName = "Hand in a report: " + Reports.Detail;
+        // PlusBook Tools is often folded: its own line says when a report is ready to hand in (UX review 2026-11-23).
+        Common.Detail = ready > 0 ? $"✉ {Reports.Detail} · progress, notes, glossary" : "My progress, reports, notes and the glossary";
+        Common.MarkBrush = ready > 0 ? started : Brushes.Gray;
+        Common.SpokenName = "PlusBook Tools: " + (ready > 0 ? Reports.Detail + "; " : "") + "my progress, hand in a report, my notes and the glossary";
+        ReadyToHandIn = ready;
         Reports.Tip = "Make a progress report (a PDF) for a module check, or of everything so far, and hand it in to your instructor";
 
         var noteCounts = Session?.Data.Notes.CountByItem() ?? new Dictionary<string, int>();
@@ -227,7 +283,7 @@ public sealed partial class ShellViewModel : ObservableObject
         Notes.SpokenName = "My notes: " + Notes.Detail;
         Notes.Tip = "Every note you have written on the lessons, with a search box. Only you see them (Ctrl+Shift+N)";
 
-        foreach (var node in Roots.Where(r => r.Module is not null))
+        foreach (var node in ModuleNodes)
         {
             var entry = summary.Modules.First(e => e.Module == node.Module);
             var m = node.Module!;
@@ -242,14 +298,15 @@ public sealed partial class ShellViewModel : ObservableObject
             };
             node.Detail = entry.State switch
             {
-                PathState.ComingLater => "Coming later",
+                PathState.ComingLater => "In development", // plan W.6 (Ron, 2026-11-23: "'In development' is better wording")
                 PathState.Outline => $"{entry.Complete} of {entry.Total} complete · outline",
                 PathState.Mastered => $"{entry.Complete} of {entry.Total} complete · mastered{StatusWords(m)}",
                 PathState.NeedsReview => $"{entry.Complete} of {entry.Total} complete · review suggested{StatusWords(m)}",
                 PathState.StartAfter => $"{entry.Complete} of {entry.Total} complete · after module {string.Join(" and ", entry.RecommendedFirst.Select(x => x.Number))}{StatusWords(m)}",
                 _ => $"{entry.Complete} of {entry.Total} complete{StatusWords(m)}",
             };
-            node.SpokenName = $"Module {m.Number}, {m.Title}: {Core.Progress.Dashboard.Words(entry)}. {node.Detail}";
+            node.SpokenName = entry.State == PathState.ComingLater ? $"Module {m.Number}, {m.Title}: in development"
+                : $"Module {m.Number}, {m.Title}: {Core.Progress.Dashboard.Words(entry)}. {node.Detail}";
             node.Tip = $"Module {m.Number}: {m.Title}. {Core.Progress.Dashboard.Words(entry)}. Choose it to see what it teaches, what to finish first, and its items.";
 
             foreach (var child in node.Children)
@@ -336,15 +393,29 @@ public sealed partial class ShellViewModel : ObservableObject
     /// <summary>Chooses an item in the tree (the window shows what is chosen).</summary>
     public void Select(LearningItem item)
     {
-        var node = Roots.SelectMany(r => r.Children).FirstOrDefault(n => n.Item == item);
+        var node = ModuleNodes.SelectMany(r => r.Children).FirstOrDefault(n => n.Item == item);
         if (node is null) return;
-        node.Parent!.IsExpanded = true;
+        OpenTo(node);
         node.IsSelected = true;
     }
 
     public void SelectModule(LearningModule module)
     {
-        if (Roots.FirstOrDefault(r => r.Module == module) is { } node) { node.IsExpanded = true; node.IsSelected = true; }
+        if (ModuleNodes.FirstOrDefault(r => r.Module == module) is { } node) { OpenTo(node); node.IsExpanded = true; node.IsSelected = true; }
+    }
+
+    /// <summary>The row's module (and part, if any) open, so it can be seen; the other rows stay as they are.</summary>
+    private static void OpenTo(PathNode node)
+    {
+        for (var p = node.Parent; p is not null; p = p.Parent) p.IsExpanded = true;
+    }
+
+    /// <summary>Chooses a row (again, if it is already chosen, so its page shows again), opening the row that holds it.</summary>
+    public void Choose(PathNode node)
+    {
+        OpenTo(node);
+        node.IsSelected = false;
+        node.IsSelected = true;
     }
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
@@ -372,32 +443,28 @@ public sealed partial class ShellViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(SignedIn))]
     private void ShowDashboard()
     {
-        Dashboard.IsSelected = false; // so choosing it again shows it again
-        Dashboard.IsSelected = true;
+        Choose(Dashboard); // so choosing it again shows it again, with PlusBook Tools open
         PageFocusRequested?.Invoke(); // from the menu or Ctrl+Shift+Home: the reader moves to the page
     }
 
     [RelayCommand(CanExecute = nameof(SignedIn))]
     private void ShowReports()
     {
-        Reports.IsSelected = false;
-        Reports.IsSelected = true;
+        Choose(Reports); // so choosing it again shows it again, with PlusBook Tools open
         PageFocusRequested?.Invoke();
     }
 
     [RelayCommand(CanExecute = nameof(SignedIn))]
     private void ShowNotes()
     {
-        Notes.IsSelected = false;
-        Notes.IsSelected = true;
+        Choose(Notes); // so choosing it again shows it again, with PlusBook Tools open
         PageFocusRequested?.Invoke();
     }
 
     [RelayCommand(CanExecute = nameof(SignedIn))]
     private void ShowGlossary()
     {
-        Glossary.IsSelected = false;
-        Glossary.IsSelected = true;
+        Choose(Glossary); // so choosing it again shows it again, with PlusBook Tools open
         PageFocusRequested?.Invoke();
     }
 
@@ -432,7 +499,7 @@ public sealed partial class ShellViewModel : ObservableObject
         if (d.ReviewSuggested.Count > 0) md.AppendLine();
 
         md.AppendLine("## Module checks (where reports are made)").AppendLine();
-        md.AppendLine("Each module ends with a module check. When it is complete, make a progress report there and hand it in to your instructor: **Hand in a report**, the second row on the left (Go ▸ Hand in a report, Ctrl+Shift+R).").AppendLine();
+        md.AppendLine("Each module ends with a module check. When it is complete, make a progress report there and hand it in to your instructor: **Hand in a report**, in PlusBook Tools at the top of the path (Go ▸ Hand in a report, Ctrl+Shift+R).").AppendLine();
         md.AppendLine("| Module check | Where you are |").AppendLine("|---|---|");
         foreach (var s in d.Submissions)
             md.AppendLine($"| {s.Check} | {s.State switch { SubmissionState.Generated => "✓ ", SubmissionState.Ready => "● ", _ => "○ " }}{(s.State == SubmissionState.Ready ? "Complete: ready to hand in" : s.Detail)} |");
@@ -445,7 +512,7 @@ public sealed partial class ShellViewModel : ObservableObject
             md.AppendLine($"| {e.Module.Number}. {e.Module.Title} | {Core.Progress.Dashboard.Mark(e.State)} {Core.Progress.Dashboard.Words(e)} | " +
                           (e.State == PathState.ComingLater ? "–" : $"{e.Complete} of {e.Total}") + $" | {(e.Time > TimeSpan.Zero ? Core.Progress.Dashboard.Duration(e.Time) : "–")} |");
         md.AppendLine();
-        md.AppendLine("*★ mastered: complete, and every outcome mastered. ✓ complete, not every outcome mastered yet. ↺ complete, review suggested. ◐ in progress. ○ not started (\"after module N\": recommended first, not required). – coming later.*").AppendLine();
+        md.AppendLine("*★ mastered: complete, and every outcome mastered. ✓ complete, not every outcome mastered yet. ↺ complete, review suggested. ◐ in progress. ○ not started (\"after module N\": recommended first, not required). – in development.*").AppendLine();
 
         md.AppendLine("## Outcomes").AppendLine();
         foreach (var e in d.Modules.Where(e => LearningProgress.Learnable(e.Module) && e.Outcomes.Count > 0))

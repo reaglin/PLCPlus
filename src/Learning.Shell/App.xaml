@@ -13,6 +13,40 @@
         <SolidColorBrush x:Key="PowerOnBrush" Color="#1E7B34" />
         <SolidColorBrush x:Key="PowerOffBrush" Color="#6B7685" />
 
+        <!-- Ron, 2026-11-23: Hide help and the Help strip are light blue, so they read as the way in and out of help. -->
+        <SolidColorBrush x:Key="HelpBarBrush" Color="#DCEBFA" />
+        <SolidColorBrush x:Key="HelpBarHoverBrush" Color="#C4DDF6" />
+        <SolidColorBrush x:Key="HelpBarLineBrush" Color="#8DB8E2" />
+        <!-- Help's own page: a lighter blue than its bar, so the bar still stands out above it. -->
+        <SolidColorBrush x:Key="HelpPanelBrush" Color="#EEF5FD" />
+
+        <!-- The bar across the top of help (Hide help) and the strip at the right edge (Help): light blue, flat, with a clear focus line. -->
+        <Style x:Key="HelpBarButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource HelpBarBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bar" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource HelpBarLineBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bar" Property="Background" Value="{DynamicResource HelpBarHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bar" Property="BorderBrush" Value="{DynamicResource InkBrush}" />
+                                <Setter TargetName="Bar" Property="BorderThickness" Value="2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="SectionTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="20" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -32,6 +66,73 @@
             <Setter Property="Padding" Value="12,5" />
             <Setter Property="Margin" Value="0,0,8,0" />
             <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+        </Style>
+
+        <!-- Ron, 2026-11-23 (WebDevelopment+ plan 13.9; this plan W.5): each part of the window has its own light colour and border, the same in every PlusBook.
+             PlusBook Learning (the path) is light green; on the start screen, Who is learning? green, Course Tools amber,
+             Learner files lavender, and Help, the version, About and Exit light blue like help. -->
+        <SolidColorBrush x:Key="LearningBrush" Color="#EAF5EA" />
+        <SolidColorBrush x:Key="LearningLineBrush" Color="#9CCB9C" />
+        <SolidColorBrush x:Key="ToolsBrush" Color="#FFF5E0" />
+        <SolidColorBrush x:Key="ToolsLineBrush" Color="#E2C27C" />
+        <SolidColorBrush x:Key="FilesBrush" Color="#F2EEFA" />
+        <SolidColorBrush x:Key="FilesLineBrush" Color="#B8ACD8" />
+        <SolidColorBrush x:Key="ButtonHoverBrush" Color="#EEF3F8" />
+        <SolidColorBrush x:Key="ButtonPressedBrush" Color="#DDE6F0" />
+
+        <!-- A section's buttons: white, rounded, with the section's line colour as the border (set by the section), a light tint
+             under the mouse and a dark focus line for the keyboard. -->
+        <Style x:Key="SectionButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Box" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="{DynamicResource ButtonHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="{DynamicResource ButtonPressedBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource InkBrush}" />
+                                <Setter TargetName="Box" Property="BorderThickness" Value="2" />
+                            </Trigger>
+                            <Trigger Property="IsDefaulted" Value="True">
+                                <Setter TargetName="Box" Property="BorderThickness" Value="2" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Box" Property="Opacity" Value="0.55" />
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- A section: a light background, a border in its line colour, rounded corners. -->
+        <Style x:Key="SectionBox" TargetType="Border">
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="14,10,14,10" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+        <!-- A section's heading in an Expander: the same size as the old headings, so the fold arrow sits beside it. -->
+        <Style x:Key="SectionHeading" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource InkBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
     </Application.Resources>
 </Application>

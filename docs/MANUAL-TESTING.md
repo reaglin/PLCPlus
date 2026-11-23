@@ -13,6 +13,40 @@ Record each step as ✅ / ❌ with a note. A ❌ or a note goes back into `docs/
 
 ---
 
+## Hand-test 18 — the window's room, In development and Send feedback (plan W.1–W.7, F.1), 2026-11-23
+
+**On `main`**, `manual-test\PLCPlus.exe` (rebuilt 2026-11-23 with the command at the top). Use a test folder of learners, as in
+hand-test 12, or make a new learner and remove it afterwards.
+
+1. **The start screen (W.5).** Four sections: Who is learning? (green), Course Tools (no login required) (amber), Learner files
+   (lavender), all three folded, and Help and information (blue) open at the bottom. Choose each section's name: does it open and
+   fold? Are the colours easy to tell apart, and the buttons clear?
+2. **About PlusBooks and Send feedback (W.5, F.1).** In Help and information, the softwareplus.ai/plusbooks link opens the PlusBooks
+   page. **Send feedback…** opens the feedback form in your browser: does it name PLC+ and version 1.0.0? (Close it without sending.)
+   Testing guide (for instructors) still opens the testing guide.
+3. **Signing in.** Open Who is learning?, choose a learner, type the PIN, Open. Then Learner ▸ Switch learner: the start screen
+   comes back with Who is learning? already open, so you can choose a name straight away.
+4. **PlusBook Tools (W.2).** The path starts with **+ PlusBook Tools**; the arrow opens My progress, Hand in a report, My notes and
+   the Glossary. Choosing the name PlusBook Tools opens My progress. Go ▸ Hand in a report (Ctrl+Shift+R) opens it there too. On a
+   module check's Learn page (e.g. 1.5), the last paragraph says Hand in a report is "in PlusBook Tools, at the top of the path".
+5. **Collapse Menu (W.1).** Press Collapse Menu (in the green block under the path): PlusBook Tools and every module fold to one row
+   each. Press Next (Ctrl+Shift+PgDn) or choose an item from My progress: only that item's module opens. Fold the module of the item
+   on screen with its arrow: the item stays on screen.
+6. **PlusBook Learning (W.3).** Under the path, the green block titled PlusBook Learning holds the totals, your time, the key, Collapse
+   Menu and Course Links…. Choose the title: the block folds down and the path gets taller. Switch learner and sign in again: is it
+   still folded? Open it again.
+7. **Help hides to the right (W.4).** Press the light blue **Hide help ▸** bar at the top of help: help goes, the page widens, and a
+   narrow light blue **Help (F1)** strip stays at the right edge. Press the strip (or F1): help comes back. Hide it, Switch learner,
+   sign in again: still hidden?
+8. **The machines still have their room (W.4).** Open 5.1 and its Exercise tab: help steps aside by itself (the status line says
+   so, and the strip shows). Build a rung in the ladder editor, press ⤢ Pop out (top) and the workspace's Pop out: the program and
+   machine open in their own window; Close (or Esc) brings them back. F1 still shows and hides help.
+9. **In development (W.6).** Modules 9, 10 and 12 say **In development** in the path (mark –). Choose Module 9: the page says In
+   development, the status line says which item to carry on with, and help says "This screen: a module in development". My progress
+   lists them as In development.
+10. **Everything else as before.** A lesson, an Example machine, a quiz, a report (Hand in a report ▸ save a PDF), My notes and the
+    Glossary all work as in rounds 12–17.
+
 ## Hand-test 17 — the examples on the Example tab, with circuits drawn (plan 13.15), 2026-11-17
 
 **On `main`**, `manual-test\PLCPlus.exe` (rebuild it with the command at the top), with a test folder of learners as in hand-test 12.

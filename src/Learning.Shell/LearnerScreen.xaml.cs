@@ -45,6 +45,11 @@ public partial class LearnerScreen : UserControl
         LockedBanner.Visibility = banner is null ? Visibility.Collapsed : Visibility.Visible;
         LockedText.Text = banner ?? "";
         Say(null);
+        // Ron, 2026-11-23 (plan W.5): the start screen opens with its sections folded, so a person sees every option at a glance
+        // (the banner and the messages sit above the sections, so folding never hides them). Back after a lock or Switch learner,
+        // the banner says to type a PIN or choose a name, so Who is learning? opens for that (UX review 2026-11-23).
+        ToolsExpander.IsExpanded = FilesExpander.IsExpanded = false;
+        WhoExpander.IsExpanded = banner is not null || selectProfileId is not null;
         PinBox.Clear();
         Refresh(selectProfileId);
         Visibility = Visibility.Visible;
@@ -65,6 +70,7 @@ public partial class LearnerScreen : UserControl
         var rows = learners.Select(l => new LearnerRow(l)).ToList();
         LearnersList.ItemsSource = rows;
         var empty = rows.Count == 0;
+        if (empty) WhoExpander.IsExpanded = true; // no one to choose: New learner is the thing to do, so it shows (UX review 2026-11-23)
         EmptyText.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
         LearnersList.Visibility = PinRow.Visibility = ForgotButton.Visibility = RemoveButton.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
         var usual = string.Equals(Store.Folder, LearnerPlaces.DefaultLearnersFolder, StringComparison.OrdinalIgnoreCase);
@@ -81,8 +87,21 @@ public partial class LearnerScreen : UserControl
 
     private void FocusFirst()
     {
+        if (!WhoExpander.IsExpanded)
+        {
+            // Folded: the focus goes to Who is learning?'s name, so Enter or Space opens it.
+            WhoExpander.ApplyTemplate();
+            if (WhoExpander.Template?.FindName("HeaderSite", WhoExpander) is UIElement header) header.Focus();
+            return;
+        }
         if (Selected is not null) PinBox.Focus();
         else if (LearnersList.Items.Count > 0) LearnersList.Focus();
+    }
+
+    /// <summary>Who is learning? opened: the focus goes to the PIN (a learner chosen) or the list, ready to sign in.</summary>
+    private void WhoExpander_Expanded(object sender, RoutedEventArgs e)
+    {
+        if (IsLoaded) Dispatcher.BeginInvoke(DispatcherPriority.Input, FocusFirst);
     }
 
     private void UpdateButtons()
@@ -98,16 +117,16 @@ public partial class LearnerScreen : UserControl
         ForgotButton.IsEnabled = ok;
         RemoveButton.IsEnabled = row is not null;
         ForgotButton.ToolTip = ok ? $"Set a new PIN for {row!.Name} with the recovery code given when the learner was made" : "Choose your name in the list first";
-        RemoveButton.ToolTip = row is null ? "Choose a learner in the list first"
+        RemoveButton.ToolTip = row is null ? "Choose a learner in the list under Who is learning? first"
             : !ok ? "Removes this damaged file from the list (to the Recycle Bin)"
-            : $"Takes {row.Name} off this computer (needs the PIN; offers a backup first). The file goes to the Recycle Bin. " +
+            : $"Takes {row.Name} (chosen in Who is learning?) off this computer (needs the PIN; offers a backup first). The file goes to the Recycle Bin. " +
               $"An instructor without the PIN can delete {Path.GetFileName(row.Listing.Path)} from the learners' folder instead, with PLC+ closed";
     }
 
     private void Say(string? text)
     {
         MessageText.Text = text ?? "";
-        MessageText.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+        MessageBorder.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void LearnersList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -242,7 +261,8 @@ public partial class LearnerScreen : UserControl
                 Refresh(them.ProfileId);
                 Say(null);
                 LockedBanner.Visibility = Visibility.Visible;
-                LockedText.Text = $"{them.DisplayName} is now on this computer. Type the PIN and press Open.";
+                LockedText.Text = $"{them.DisplayName} is now on this computer. Type the PIN and press Open (in Who is learning?).";
+                WhoExpander.IsExpanded = true; // the PIN box the message points to (UX review 2026-11-23)
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
@@ -402,6 +422,11 @@ public partial class LearnerScreen : UserControl
     private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = Owner }.ShowDialog();
 
     private void WebHelp_Click(object sender, RoutedEventArgs e) => WebLinks.Open(Owner, WebLinks.Help, "Help on the web");
+
+    private void PlusBooks_Click(object sender, RoutedEventArgs e) => WebLinks.Open(Owner, WebLinks.PlusBooks, "About PlusBooks");
+
+    /// <summary>Send feedback (plan F.1), as Help ▸ Send feedback does in the main window, without signing in.</summary>
+    private void SendFeedback_Click(object sender, RoutedEventArgs e) => WebLinks.Open(Owner, WebLinks.Feedback, "The feedback form");
 
     private void TestingGuide_Click(object sender, RoutedEventArgs e) => WebLinks.Open(Owner, WebLinks.Testing, "The testing guide");
 

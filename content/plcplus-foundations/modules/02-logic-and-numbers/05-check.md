@@ -16,4 +16,4 @@ The check itself is ten questions, on the **Exercise** tab: numbers to write in 
 
 Keep the Reference tab of each item at hand: the 0–15 table, the BCD digits and the logic tables are there. Work on paper if it helps. For a conversion, do it twice, once each way, to check yourself.
 
-When the four items are complete and you have passed the questions, the module is complete and ready to hand in: **Hand in a report** (the second row of the path) makes the PDF progress report for your instructor.
+When the four items are complete and you have passed the questions, the module is complete and ready to hand in: **Hand in a report** (in PlusBook Tools, at the top of the path) makes the PDF progress report for your instructor.

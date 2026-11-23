@@ -10,6 +10,15 @@ public static class WebLinks
     /// <summary>The instructors' testing guide and how to send feedback (plan 12.8).</summary>
     public const string Testing = "https://softwareplus.ai/plcplus/testing/";
     public const string Privacy = "https://softwareplus.ai/plcplus/privacy/";
+    /// <summary>
+    /// The feedback form (plan F.1; portfolio rule 2026-11-20): it names PLC+ and this version, so the inbox knows where a note
+    /// came from. No form inside the program and no network code: the web page does the rest.
+    /// </summary>
+    public static string Feedback =>
+        "https://softwareplus.ai/feedback/?program=plcplus&version="
+        + (System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "");
+    /// <summary>What a PlusBook is, and every PlusBook (the start screen's About PlusBooks; Ron, 2026-11-23, plan W.5).</summary>
+    public const string PlusBooks = "https://softwareplus.ai/plusbooks/";
 
     public static void Open(Window? owner, string url, string what)
     {

@@ -55,6 +55,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        // Whenever help folds (by the learner, for a machine or for large text), the strip at the right edge opens it again (plan W.4).
+        System.ComponentModel.DependencyPropertyDescriptor.FromProperty(VisibilityProperty, typeof(UIElement)).AddValueChanged(HelpPanel, (_, _) =>
+            HelpStrip.Visibility = HelpPanel.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible);
         // As much of the screen as is useful: the Exercise tab needs height for the rungs.
         var area = SystemParameters.WorkArea;
         Width = Math.Min(1560, area.Width - 16);
@@ -345,15 +348,41 @@ public partial class MainWindow : Window
         SetStatus((kept is null ? "" : kept + " ") + "My notes: every note you have written, newest first. Type in Find in my notes to search; Open goes to a note in its lesson.");
     }
 
+    // ---- PlusBook Learning's block under the tree (plan W.3) -------------------------------------------
+
+    private const string PathInfoPreference = "pathInfo";
+    private bool _showingPathInfo;
+
+    /// <summary>Opens or folds the block under the tree as this learner left it (open the first time).</summary>
+    private void ShowPathInfo()
+    {
+        _showingPathInfo = true;
+        PathInfo.IsExpanded = _session?.Data.Preferences.GetValueOrDefault(PathInfoPreference) != "folded";
+        _showingPathInfo = false;
+    }
+
+    /// <summary>The learner folded or opened the block: keep it that way for them (saved with their progress).</summary>
+    private void PathInfo_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_showingPathInfo || !IsLoaded || _session is null) return; // not while the window is being built
+        _session.Data.Preferences[PathInfoPreference] = PathInfo.IsExpanded ? "open" : "folded";
+        SaveProgress();
+        SetStatus(PathInfo.IsExpanded
+            ? "PlusBook Learning's totals, time, key and buttons are open under the path."
+            : "PlusBook Learning's block is folded to its title, so the path has more room. Choose PlusBook Learning to open it again.");
+    }
+
     // ---- Learners (plan 6.1–6.10) ---------------------------------------------------------------------
 
     /// <summary>A learner's file is open: show their progress, where they left off.</summary>
-    private void SignIn(LearnerFile file)
+    internal void SignIn(LearnerFile file)
     {
         _lastInput = DateTime.Now;
         var same = _vm.SignIn(file, DateTimeOffset.Now);
         ShowCourseLinks();
         ShowVoice();
+        ShowPathInfo();
+        if (!same) ShowHelpAsLeft();
         SignInScreen.Visibility = Visibility.Collapsed;
         AppContent.Visibility = Visibility.Visible;
         if (same && (_item is not null || _module is not null || DashboardPage.Visibility == Visibility.Visible))
@@ -367,11 +396,12 @@ public partial class MainWindow : Window
             return;
         }
         // Someone new: nothing of the last learner's work may show.
+        _helpHiddenForMachine = false; // help steps aside for the next learner's first machine too (UX review 2026-11-23)
         QuizView.ForgetAll();
         _openedThisSession.Clear();
         _item = null;
         _module = null;
-        foreach (var r in _vm.Roots) { r.IsSelected = false; r.IsExpanded = false; foreach (var c in r.Children) c.IsSelected = false; }
+        foreach (var r in _vm.AllNodes) { r.IsSelected = false; r.IsExpanded = false; }
         Welcome();
     }
 
@@ -478,14 +508,15 @@ public partial class MainWindow : Window
             _vm.Select(next); // a returning learner goes straight back to work
             // After the item has opened (it sets its own status line first).
             Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
-                () => SetStatus($"Welcome back, {name}. Here is where you left off: {next}. {LearnFooterText.Text}"));
+                () => SetStatus($"Welcome back, {name}. Here is where you left off: {next}. {LearnFooterText.Text}" +
+                    (_vm.ReadyToHandIn > 0 ? $" {_vm.ReadyToHandIn} module check{(_vm.ReadyToHandIn == 1 ? " is" : "s are")} ready to hand in: PlusBook Tools ▸ Hand in a report." : "")));
             return;
         }
         if (next is not null) _vm.SelectModule(next.Module);
-        else _vm.Dashboard.IsSelected = true;
+        else _vm.Choose(_vm.Dashboard);
         SetStatus(next is null
             ? "Every item in the path is complete."
-            : $"Welcome to PLC+, {name}. {WrittenSoFar()} Start here with module {next.Module.Number}: press the button under its title, or choose any module on the left.");
+            : $"Welcome to PLC+, {name}. {WrittenSoFar()} Start here with module {next.Module.Number}: press the button under its title, or choose any module on the left (the arrow beside a module opens or folds its items).");
     }
 
     /// <summary>Which modules can be worked through now, and which come later, in words ("Modules 1 to 8 and 11 are written; 9, 10 and 12 come later.").</summary>
@@ -507,18 +538,68 @@ public partial class MainWindow : Window
             }
             return parts.Count == 1 ? parts[0] : $"{string.Join(", ", parts.Take(parts.Count - 1))} and {parts[^1]}";
         }
-        return later.Count == 0 ? "Every module is written." : $"Modules {Words(written)} are written; {Words(later)} come later.";
+        return later.Count == 0 ? "Every module is written." : $"Modules {Words(written)} are written; {Words(later)} are in development.";
     }
 
     private void PathTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
         if (e.NewValue is not PathNode node) return;
-        if (node.IsDashboard) ShowDashboard();
+        // A fold, not a choice (WebDevelopment+'s UX review 2026-11-23): folding a module (or PlusBook Tools) that holds the chosen
+        // row makes the tree choose the folded row. The page on screen stays, and the row stays folded. So is ← or ↑ from one of
+        // PlusBook Tools' rows onto PlusBook Tools: it stays there (a second ← folds it), and the page stays.
+        if ((!node.IsExpanded || node.IsCommon) && e.OldValue is PathNode old && IsInside(old, node)) return;
+        // Chosen from a button or Next inside a module that was just opened: its row scrolls into sight once it is laid out.
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => RowOf(node)?.BringIntoView());
+        if (node.IsCommon)
+        {
+            // PlusBook Tools has no page of its own: it opens, and My progress (its first row) shows. After the click (selecting
+            // from inside this handler made two rows select each other in WebDevelopment+'s round 7).
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, () =>
+            {
+                node.IsSelected = false;
+                if (_session is null) return;
+                _vm.Choose(_vm.Dashboard);
+                RowOf(_vm.Dashboard)?.Focus();
+            });
+        }
+        else if (node.IsDashboard) ShowDashboard();
         else if (node.IsReports) ShowReports();
         else if (node.IsNotes) ShowNotesPage();
         else if (node.IsGlossary) ShowGlossaryPage(null);
+        else if (node.IsPart)
+        {
+            // A part (none in PLC+ today; plan W.1) opens its first module, after the click, as PlusBook Tools does.
+            var first = node.PartFirst!;
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, () =>
+            {
+                node.IsSelected = false;
+                _vm.SelectModule(first);
+                if (RowOf(_vm.ModuleNodes.FirstOrDefault(r => r.Module == first)) is { } row) row.Focus();
+            });
+        }
         else if (node.Item is { } item) ShowItem(item);
         else ShowModule(node.Module!);
+    }
+
+    private static bool IsInside(PathNode row, PathNode under)
+    {
+        for (var p = row.Parent; p is not null; p = p.Parent) if (p == under) return true;
+        return false;
+    }
+
+    /// <summary>The tree's row for a node at any depth (null while the row holding it is folded and the row not made yet).</summary>
+    internal TreeViewItem? RowOf(PathNode? node)
+    {
+        if (node is null) return null;
+        if (node.Parent is null) return PathTree.ItemContainerGenerator.ContainerFromItem(node) as TreeViewItem;
+        return RowOf(node.Parent)?.ItemContainerGenerator.ContainerFromItem(node) as TreeViewItem;
+    }
+
+    /// <summary>Collapse Menu (plan W.1): PlusBook Tools and every module fold to one row each; the page on screen stays.</summary>
+    private void FoldParts_Click(object sender, RoutedEventArgs e)
+    {
+        _vm.FoldToParts();
+        SetStatus("The path shows PlusBook Tools and the modules, one row each. Open one with the arrow beside it (or the → key), or choose a module to read its first page; each opens and folds on its own.");
     }
 
     // ---- My progress (plan 7.2–7.5) ---------------------------------------------------------------------
@@ -600,7 +681,7 @@ public partial class MainWindow : Window
         var p = _progress.Of(m);
         ModuleTitle.Text = $"Module {m.Number} · {m.Title}";
         ModuleStatusText.Text = m.Status == ModuleStatus.ComingLater
-            ? "Coming in a later version of PLC+. It is in the path so you can see where it fits."
+            ? "In development: it comes in a later version of PLC+, and is in the path so you can see where it fits."
             : $"{p.Complete} of {p.Total} items complete" + (m.Minutes > 0 ? $" · about {Hours(m.Minutes)}" : "") + m.Status switch
             {
                 ModuleStatus.Draft => " · a first draft for the instructors' review",
@@ -619,6 +700,13 @@ public partial class MainWindow : Window
         ModuleStartButton.ToolTip = "Opens the item, on its Learn tab";
 
         ModuleView.Markdown = ModuleMarkdown(m);
+        if (m.Status == ModuleStatus.ComingLater)
+        {
+            var carryOn = _progress.Continue(_package);
+            SetStatus($"Module {m.Number} is in development: it has no items yet. " + (carryOn is null
+                ? "Every item written so far is complete."
+                : $"Carry on with {carryOn} (Go ▸ Continue where I left off), or choose another module on the left."));
+        }
     }
 
     private string ModuleMarkdown(LearningModule m)
@@ -1070,7 +1158,7 @@ public partial class MainWindow : Window
         {
             _helpHiddenForMachine = true;
             HelpPanel.Visibility = Visibility.Collapsed;
-            hid = " (The help panel is hidden to make room for the machine; F1 shows it.)";
+            hid = " (Help is hidden to the right to make room for the machine; the light blue Help strip at the right edge, or F1, opens it.)";
         }
         if (ItemTabs.SelectedItem == ExerciseTab && ExerciseWorkspace.Visibility == Visibility.Visible)
             SetStatus((ExerciseWorkspace.OpeningMessage ?? "My program: click an element and type its tag in the Tag box, then use the tools above the rungs. Check my program tests it.") + hid);
@@ -1413,7 +1501,9 @@ public partial class MainWindow : Window
             : ReportsPage.Visibility == Visibility.Visible
             ? ("This screen: Hand in a report", "1. Choose a module check, or everything so far. 2. Check what the report will say; My details for reports adds your student ID, course and class code to the cover. 3. Save the PDF report, and hand in that file as it is, the way your instructor asks; do not save it again in another program. The result line is a one-line summary of the report your instructor can check: copy it if they ask for it. A report made before the check is complete is marked Incomplete. Every report you make is listed at the bottom.")
             : DashboardPage.Visibility == Visibility.Visible
-            ? ("This screen: My progress", "Your progress through the whole path. ★ mastered, ✓ complete, ↺ review suggested, ◐ in progress, ○ not started. Review suggested lists what to read again. At a module check, make a report to hand in: Hand in a report, the next row on the left. Time counts while you use PLC+.")
+            ? ("This screen: My progress", "Your progress through the whole path. ★ mastered, ✓ complete, ↺ review suggested, ◐ in progress, ○ not started. Review suggested lists what to read again. At a module check, make a report to hand in: Hand in a report, the next row in PlusBook Tools. Time counts while you use PLC+.")
+            : _item is null && _module?.Status == ModuleStatus.ComingLater
+            ? ("This screen: a module in development", "A module still being written: what it will teach. It is in the path so you can see where it fits; its items come in a later version of PLC+. Go ▸ Continue where I left off takes you to your next item.")
             : _item is null
             ? ("This screen: a module", "A module's first page: what to finish first, what you will be able to do, its topics and its items. Press the button under the title to start, or choose an item on the left.")
             : ItemTabs.SelectedItem == ExampleTab && ExamplePageShowing is not null
@@ -1462,8 +1552,34 @@ public partial class MainWindow : Window
         win.Close();
     }
 
-    private void Help_Executed(object sender, RoutedEventArgs e) =>
-        HelpPanel.Visibility = HelpPanel.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+    /// <summary>
+    /// F1, the Hide help buttons and the strip at the right edge (plan W.4): help folds to the right and opens again; the learner's
+    /// choice is kept for them. (Help stepping aside by itself, for a machine or large text, is not their choice and is not kept.)
+    /// </summary>
+    private void Help_Executed(object sender, RoutedEventArgs e)
+    {
+        var open = HelpPanel.Visibility != Visibility.Visible;
+        HelpPanel.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+        if (_session is not null)
+        {
+            _session.Data.Preferences[HelpPreference] = open ? "open" : "folded";
+            SaveProgress();
+        }
+        // From a button, focus follows to the one that now shows; F1 leaves it where it was (on the rungs, say).
+        if (sender is Button) { if (open) FoldHelpButton.Focus(); else HelpStripButton.Focus(); }
+        else if (!open && HelpPanel.IsKeyboardFocusWithin) HelpStripButton.Focus();
+        SetStatus(open ? "Help is open on the right. Hide help (the light blue bar at its top, or F1) hides it."
+                       : "Help is hidden to the right, so the page has more room. The light blue Help strip at the right edge (or F1) opens it again.");
+    }
+
+    private const string HelpPreference = "helpPanel";
+
+    /// <summary>Help as this learner left it: open the first time; folded above 120 % text, as <see cref="FitToTextSize"/> does.</summary>
+    private void ShowHelpAsLeft() =>
+        HelpPanel.Visibility = _session?.Data.Preferences.GetValueOrDefault(HelpPreference) == "folded" || _vm.TextScale > 1.2 ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>Help ▸ Send feedback (plan F.1): the feedback form on softwareplus.ai, naming PLC+ and this version.</summary>
+    private void SendFeedback_Click(object sender, RoutedEventArgs e) => WebLinks.Open(this, WebLinks.Feedback, "The feedback form");
 
     private void About_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
 
@@ -1549,7 +1665,7 @@ public partial class MainWindow : Window
         {
             _glossaryTerm = entry;
             _glossaryFrom = _item is { } from ? (from, ItemTabs.SelectedItem as TabItem) : null;
-            _vm.Glossary.IsSelected = true;   // the path's selection opens the page (and remembers where the learner was)
+            _vm.Choose(_vm.Glossary);   // the path's selection opens the page (and remembers where the learner was)
             return;
         }
         StopReading();
@@ -1726,7 +1842,7 @@ public partial class MainWindow : Window
 
     // ---- My course's links (Learning Core plan 3.10) and the AI (plan 3.8) --------------------------------
 
-    /// <summary>The buttons at the top of the path: the course's text and the LMS when set, and a way to set them.</summary>
+    /// <summary>The buttons at the bottom of the path: the course's text and the LMS when set, and a way to set them.</summary>
     private void ShowCourseLinks()
     {
         var links = _session?.Data.Course;
@@ -1736,21 +1852,24 @@ public partial class MainWindow : Window
         CourseTextButton.ToolTip = $"Opens the website of {named} in your web browser: {links?.TextUrl}";
         CourseLmsButton.ToolTip = $"Opens {named} in the learning management system, in your web browser: {links?.LmsUrl}";
         var any = links is not null && (links.TextUrl is not null || links.LmsUrl is not null);
-        CourseLinksButton.Content = any ? "Change links…" : "My course's links…";
-        System.Windows.Automation.AutomationProperties.SetName(CourseLinksButton, any ? "Change my course's links" : "Add my course's links");
+        CourseLinksButton.Content = "Course Links…";
+        System.Windows.Automation.AutomationProperties.SetName(CourseLinksButton, any ? "Change the course links" : "Add the course links");
+        CourseLinksButton.ToolTip = any
+            ? "Change or clear the links to your course in the LMS and to the course website"
+            : "Add links to your course in the LMS (Canvas, Brightspace …) and to the course website, from your instructor (optional)";
     }
 
     private void CourseLinks_Click(object sender, RoutedEventArgs e)
     {
         if (_session is null) return;
-        if (CourseLinksWindow.Edit(this, _session.Data.Course) is not { } links) { SetStatus("Your course's links are as they were."); return; }
+        if (CourseLinksWindow.Edit(this, _session.Data.Course) is not { } links) { SetStatus("Your course links are as they were."); return; }
         _session.Data.Course = links.IsEmpty ? null : links;
         _session.Data.NotesChanged(DateTimeOffset.Now);
         SaveProgress();
         ShowCourseLinks();
-        SetStatus(links.IsEmpty ? "Your course's links are cleared."
+        SetStatus(links.IsEmpty ? "Your course links are cleared."
             : links.TextUrl is null && links.LmsUrl is null ? "Your course's name is kept. Add an address to get a button that opens it."
-            : "Your course's links are kept: the buttons at the top of the learning path open them.");
+            : "Your course links are kept: the buttons at the bottom of PlusBook Learning open them.");
     }
 
     private void CourseText_Click(object sender, RoutedEventArgs e)
@@ -1769,7 +1888,7 @@ public partial class MainWindow : Window
     {
         AskAiItem.IsEnabled = _item is not null;
         AskAiItem.ToolTip = _item is null
-            ? "Open an item in the learning path first: the AI answers questions about the item you are reading"
+            ? "Open an item in PlusBook Learning first: the AI answers questions about the item you are reading"
             : "Opens this item's My notes tab with the cursor in Ask the AI: ask a question about the topic, then keep the answer in My notes or discard it";
     }
 
@@ -1777,7 +1896,7 @@ public partial class MainWindow : Window
     {
         if (_item is null)
         {
-            SetStatus("Choose an item in the learning path first: the AI answers questions about the item you are reading.");
+            SetStatus("Choose an item in PlusBook Learning first: the AI answers questions about the item you are reading.");
             return;
         }
         ItemTabs.SelectedItem = NotesTab;
@@ -1821,7 +1940,7 @@ public partial class MainWindow : Window
         if (s > 1.2 && HelpPanel.Visibility == Visibility.Visible)
         {
             HelpPanel.Visibility = Visibility.Collapsed;
-            SetStatus($"Text size {s:P0}. The help panel is hidden to make room; F1 shows it.");
+            SetStatus($"Text size {s:P0}. Help is hidden to the right to make room; the light blue Help strip at the right edge, or F1, opens it.");
         }
     }
 
@@ -1829,19 +1948,24 @@ public partial class MainWindow : Window
     private void TextSize_Executed(object sender, ExecutedRoutedEventArgs e)
     {
         var scale = e.Command == TextLarger ? _vm.TextScale + 0.1 : e.Command == TextSmaller ? _vm.TextScale - 0.1 : 1.0;
+        var helpWasOpen = HelpPanel.Visibility == Visibility.Visible;
         _vm.SetTextScale(scale);
-        if (HelpPanel.Visibility == Visibility.Visible || _vm.TextScale <= 1.2)
+        // When help has just stepped aside, FitToTextSize has said so; otherwise say the size (UX review 2026-11-23).
+        if (!(helpWasOpen && HelpPanel.Visibility != Visibility.Visible))
             SetStatus($"Text size {_vm.TextScale:P0}. Ctrl++ larger, Ctrl+− smaller, Ctrl+0 normal; kept for you on any computer.");
     }
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
+
+    /// <summary>False only in the window tests, so closing a test window never stops for the backup question.</summary>
+    internal bool OfferBackupOnClose { get; set; } = true;
 
     protected override void OnClosing(CancelEventArgs e)
     {
         ExerciseWorkspace.CommitPendingEdit();
         if (_session is not null)
         {
-            if (!OfferBackup("Before you close PLC+", leaving: true))
+            if (OfferBackupOnClose && !OfferBackup("Before you close PLC+", leaving: true))
             {
                 e.Cancel = true;
                 return;
