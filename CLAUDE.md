@@ -64,7 +64,7 @@ right with a light blue strip, the start screen in coloured sections with About 
 9, 10 and 12, on **Learning Core 1.10.2**; window tests in `tests/Learning.Shell.Tests`; 373 tests. F.3 (the privacy page) is live.
 **Store update 1.1.0 prepared 2026-11-23** (plan 12.12; 1.0.0.0 is live, hidden; 1.0.1 was never submitted and is superseded):
 `artifacts\store\PLCPlus_1.1.0.0_x64_bundle.msixupload` with the real identity, nine new screenshots, the listing and testers' notes in
-`docs/release/STORE-SUBMISSION.md`, softwareplus.ai/plcplus committed, not deployed. ⚠️ Ron: hand-test 18, WACK, deploy, submit.
+`docs/release/STORE-SUBMISSION.md`, softwareplus.ai/plcplus deployed. WACK PASS 23/24; submitted 2026-11-23; **live on the Microsoft Store 2026-11-24** (tagged `v1.1.0`).
 
 **The goal now (Ron, 2026-11-05, D24): the instructors' release.** PLC+ 1.0 on the Microsoft Store, hidden (direct link only), for
 the PLC instructors who give feedback; modules 1–8 and 11 written; a testing guide at softwareplus.ai/plcplus/testing/. Plan phases
